@@ -1,12 +1,12 @@
-import offline from 'react-native-simple-store'
+//import offline from 'react-native-simple-store'
 import * as firebase from 'firebase';
 
-var ReactNative = require('react-native');
-var {
-  AlertIOS,
-  Alert,
-  Platform,
-} = ReactNative;
+//var ReactNative = require('react-native');
+//var {
+  //AlertIOS,
+  //Alert,
+  //Platform,
+//} = ReactNative;
 
 //reducers
 export const LOG_IN = 'LOG_IN'
@@ -30,14 +30,14 @@ export function loginUser(user){
     var errorCode = error.code;
     var errorMessage = error.message;
     console.log('ERROR: ' + error.code + ' - ' + error.message);
-    if (Platform.OS == 'ios')
-    {
-      AlertIOS.alert('Invalid Login for ' + user.email, error.message);
-    }
-    else
-    {
-      Alert.alert('Invalid Login for ' + user.email, error.message);
-    }
+    //if (Platform.OS == 'ios')
+    //{
+      //AlertIOS.alert('Invalid Login for ' + user.email, error.message);
+    //}
+    //else
+    //{
+      //Alert.alert('Invalid Login for ' + user.email, error.message);
+    //}
   });
   return {
     type: LOG_IN,
@@ -51,14 +51,14 @@ export function logoutUser(){
     var errorCode = error.code;
     var errorMessage = error.message;
     console.log('ERROR: ' + error.code + ' - ' + error.message);
-    if (Platform.OS == 'ios')
-    {
-      AlertIOS.alert('Invalid Logout for ' + user.email, error.message);
-    }
-    else
-    {
-      Alert.alert('Invalid Logout for ' + user.email, error.message);
-    }
+    //if (Platform.OS == 'ios')
+    //{
+      //AlertIOS.alert('Invalid Logout for ' + user.email, error.message);
+    //}
+    //else
+    //{
+      //Alert.alert('Invalid Logout for ' + user.email, error.message);
+    //}
   });
   return {
     type: LOG_OUT
@@ -71,14 +71,14 @@ export function signUpUser(user, first, last, registered, admin, events) {
     var errorCode = error.code;
     var errorMessage = error.message;
     console.log('ERROR: ' + error.code + ' - ' + error.message);
-    if (Platform.OS == 'ios')
-    {
-      AlertIOS.alert('Invalid Signup for ' + user.email, error.message);
-    }
-    else
-    {
-      Alert.alert('Invalid Signup for ' + user.email, error.message);
-    }
+    //if (Platform.OS == 'ios')
+    //{
+      //AlertIOS.alert('Invalid Signup for ' + user.email, error.message);
+    //}
+    //else
+    //{
+      //Alert.alert('Invalid Signup for ' + user.email, error.message);
+    //}
   });
   //add user to user table -- TODO:fix this to not happen unless it is
   database.ref('users/').push({
@@ -102,14 +102,14 @@ export function resetPassword(email) {
     var errorCode = error.code;
     var errorMessage = error.message;
     console.log('ERROR: ' + error.code + ' - ' + error.message);
-    if (Platform.OS == 'ios')
-    {
-      AlertIOS.alert('Cannot Reset Password ' + user.email, error.message);
-    }
-    else
-    {
-      Alert.alert('Cannot Reset Password ' + user.email, error.message);
-    }
+    //if (Platform.OS == 'ios')
+    //{
+      //AlertIOS.alert('Cannot Reset Password ' + user.email, error.message);
+    //}
+    //else
+    //{
+      //Alert.alert('Cannot Reset Password ' + user.email, error.message);
+    //}
   });
   return {}
 }

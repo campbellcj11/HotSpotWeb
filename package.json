@@ -17,6 +17,11 @@
   },
   "homepage": "https://github.com/campbellcj11/projectNowAdmin#readme",
   "dependencies": {
-    "firebase": "^3.5.0"
+    "babel-core": "^6.17.0",
+    "babel-loader": "^6.2.5",
+    "babel-preset-react": "^6.16.0",
+    "firebase": "^3.5.0",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2"
   }
 }

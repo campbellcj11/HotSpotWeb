@@ -1,12 +1,12 @@
-import offline from 'react-native-simple-store'
+//import offline from 'react-native-simple-store'
 import * as firebase from 'firebase';
 
-var ReactNative = require('react-native');
-var {
-  AlertIOS,
-  Alert,
-  Platform,
-} = ReactNative;
+//var ReactNative = require('react-native');
+//var {
+  //AlertIOS,
+  //Alert,
+  //Platform,
+//} = ReactNative;
 
 //reducers
 export const LOG_IN = 'LOG_IN'
