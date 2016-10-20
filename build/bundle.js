@@ -78,16 +78,20 @@
 	var EventTable = function (_React$Component) {
 		_inherits(EventTable, _React$Component);
 	
-		function EventTable() {
+		function EventTable(props) {
 			_classCallCheck(this, EventTable);
 	
-			return _possibleConstructorReturn(this, (EventTable.__proto__ || Object.getPrototypeOf(EventTable)).apply(this, arguments));
+			var _this = _possibleConstructorReturn(this, (EventTable.__proto__ || Object.getPrototypeOf(EventTable)).call(this, props));
+	
+			_this.state = {
+				events: []
+			};
+			_this.addEvent.bind(_this);
+			return _this;
 		}
 	
 		_createClass(EventTable, [{
 			key: 'render',
-	
-			//getInitialState: 
 			value: function render() {
 				return _react2.default.createElement(
 					'table',
@@ -134,15 +138,91 @@
 								'Video'
 							)
 						)
+					),
+					_react2.default.createElement(
+						'tbody',
+						null,
+						this.state.events
 					)
 				);
+			}
+		}, {
+			key: 'addEvent',
+			value: function addEvent(event, key) {
+				this.setState({
+					events: this.state.events.concat(_react2.default.createElement(Event, { title: event.title,
+						startDate: event.startDate,
+						endDate: event.endDate,
+						shortDescription: event.shortDescription,
+						longDescription: event.longDescription,
+						photo: event.photo,
+						video: event.video,
+						key: key }))
+				});
 			}
 		}]);
 	
 		return EventTable;
 	}(_react2.default.Component);
 	
-	(0, _reactDom.render)(_react2.default.createElement(EventTable, null), document.getElementById('table'));
+	var Event = function (_React$Component2) {
+		_inherits(Event, _React$Component2);
+	
+		function Event() {
+			_classCallCheck(this, Event);
+	
+			return _possibleConstructorReturn(this, (Event.__proto__ || Object.getPrototypeOf(Event)).apply(this, arguments));
+		}
+	
+		_createClass(Event, [{
+			key: 'render',
+			value: function render() {
+				return _react2.default.createElement(
+					'tr',
+					null,
+					_react2.default.createElement(
+						'td',
+						null,
+						this.props.title
+					),
+					_react2.default.createElement(
+						'td',
+						null,
+						this.props.startDate
+					),
+					_react2.default.createElement(
+						'td',
+						null,
+						this.props.endDate
+					),
+					_react2.default.createElement(
+						'td',
+						null,
+						this.props.shortDescription
+					),
+					_react2.default.createElement(
+						'td',
+						null,
+						this.props.longDescription
+					),
+					_react2.default.createElement(
+						'td',
+						null,
+						this.props.photo
+					),
+					_react2.default.createElement(
+						'td',
+						null,
+						this.props.video
+					)
+				);
+			}
+		}]);
+	
+		return Event;
+	}(_react2.default.Component);
+	
+	window.EventTableRendered = (0, _reactDom.render)(_react2.default.createElement(EventTable, null), document.getElementById('table'));
 
 /***/ },
 /* 2 */

@@ -11,12 +11,13 @@ firebase.initializeApp(config);
 
 var database = firebase.database();
 
-window.events = [];
-
-var query = database.ref("events")
+var query = database.ref("events");
 
 query.on("value", function(snapshot) {
-	events.push(snapshot.val());
+	var nested = snapshot.val();
+	var key = Object.keys(nested)[0];
+	var event = nested[key];
+	EventTableRendered.addEvent(event, key);
 }, function (error) {
 	console.log("Read error:" + error.code);
 });
