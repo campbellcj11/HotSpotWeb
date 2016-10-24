@@ -15,7 +15,10 @@ class EventTable extends React.Component {
 			<table className="table table-striped table-hover">
 				<thead>
 					<tr>
-						<th>Title</th><th>Start Date</th><th>End Date</th><th>Short Description</th><th>Long Description</th><th>Photo</th><th>Video</th>
+						<th>Event Name</th>
+						<th>Date</th>
+						<th>Location</th>
+						<th>Image</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -27,26 +30,63 @@ class EventTable extends React.Component {
 	
 	addEvent(event, key) {
 		this.setState({
-			events: this.state.events.concat(<Event title={event.title}
-													startDate={event.startDate}
-													endDate={event.endDate}
-													shortDescription={event.shortDescription}
-													longDescription={event.longDescription}
-													photo={event.photo}
-													video={event.video}
+			events: this.state.events.concat(<Event 
+													Event_Name={event.Event_Name}
+													Date={event.Date}
+													Location={event.Location}
+													image={event.image}
 													key={key} />)
 		})
 	}
 }
 
 class Event extends React.Component {
+	constructor(props) {
+		super(props)
+		this.showModal = this.showModal.bind(this)
+		this.hideModal = this.hideModal.bind(this)
+	}
+	
 	render() {
 		return (
-			<tr>
-				<td>{this.props.title}</td><td>{this.props.startDate}</td><td>{this.props.endDate}</td>
-				<td>{this.props.shortDescription}</td><td>{this.props.longDescription}</td><td>{this.props.photo}</td><td>{this.props.video}</td>
+			<tr onClick={this.showModal}>
+				<td>{this.props.Event_Name}</td>
+				<td>{this.props.Date}</td>
+				<td>{this.props.Location}</td>
+				<td><img src={this.props.image}></img></td>
 			</tr>
 		)
+	}
+	
+	//populate and display modal event view
+	showModal() {
+		// populate
+		let modal = document.querySelector('#event-modal')
+		
+		let title = modal.querySelector('.modal-title')
+		let body = modal.querySelector('.modal-body')
+		
+		title.innerHTML = this.props.Event_Name
+		let propNames = Object.keys(this.props)
+		let bodyText = "";
+		for (let i=0; i<propNames.length; i++) {
+			bodyText += "<p>" + propNames[i] + ": " + this.props[propNames[i]] + "</p>"
+		}
+		body.innerHTML = bodyText
+		
+		// display
+		showModal(modal)
+	}
+	
+	//hide modal event view
+	hideModal() {
+		let modal = document.querySelector('#event-modal')
+		hideModal(modal)
+	}
+	
+	//save changes from modal editor
+	saveChanges() {
+	
 	}
 }
 

@@ -105,37 +105,22 @@
 							_react2.default.createElement(
 								'th',
 								null,
-								'Title'
+								'Event Name'
 							),
 							_react2.default.createElement(
 								'th',
 								null,
-								'Start Date'
+								'Date'
 							),
 							_react2.default.createElement(
 								'th',
 								null,
-								'End Date'
+								'Location'
 							),
 							_react2.default.createElement(
 								'th',
 								null,
-								'Short Description'
-							),
-							_react2.default.createElement(
-								'th',
-								null,
-								'Long Description'
-							),
-							_react2.default.createElement(
-								'th',
-								null,
-								'Photo'
-							),
-							_react2.default.createElement(
-								'th',
-								null,
-								'Video'
+								'Image'
 							)
 						)
 					),
@@ -150,13 +135,11 @@
 			key: 'addEvent',
 			value: function addEvent(event, key) {
 				this.setState({
-					events: this.state.events.concat(_react2.default.createElement(Event, { title: event.title,
-						startDate: event.startDate,
-						endDate: event.endDate,
-						shortDescription: event.shortDescription,
-						longDescription: event.longDescription,
-						photo: event.photo,
-						video: event.video,
+					events: this.state.events.concat(_react2.default.createElement(Event, {
+						Event_Name: event.Event_Name,
+						Date: event.Date,
+						Location: event.Location,
+						image: event.image,
 						key: key }))
 				});
 			}
@@ -168,10 +151,14 @@
 	var Event = function (_React$Component2) {
 		_inherits(Event, _React$Component2);
 	
-		function Event() {
+		function Event(props) {
 			_classCallCheck(this, Event);
 	
-			return _possibleConstructorReturn(this, (Event.__proto__ || Object.getPrototypeOf(Event)).apply(this, arguments));
+			var _this2 = _possibleConstructorReturn(this, (Event.__proto__ || Object.getPrototypeOf(Event)).call(this, props));
+	
+			_this2.showModal = _this2.showModal.bind(_this2);
+			_this2.hideModal = _this2.hideModal.bind(_this2);
+			return _this2;
 		}
 	
 		_createClass(Event, [{
@@ -179,44 +166,87 @@
 			value: function render() {
 				return _react2.default.createElement(
 					'tr',
-					null,
+					{ onClick: this.showModal },
 					_react2.default.createElement(
 						'td',
 						null,
-						this.props.title
+						this.props.Event_Name
 					),
 					_react2.default.createElement(
 						'td',
 						null,
-						this.props.startDate
+						this.props.Date
 					),
 					_react2.default.createElement(
 						'td',
 						null,
-						this.props.endDate
+						this.props.Location
 					),
 					_react2.default.createElement(
 						'td',
 						null,
-						this.props.shortDescription
-					),
-					_react2.default.createElement(
-						'td',
-						null,
-						this.props.longDescription
-					),
-					_react2.default.createElement(
-						'td',
-						null,
-						this.props.photo
-					),
-					_react2.default.createElement(
-						'td',
-						null,
-						this.props.video
+						_react2.default.createElement('img', { src: this.props.image })
 					)
 				);
 			}
+	
+			//populate and display modal event view
+	
+		}, {
+			key: 'showModal',
+			value: function (_showModal) {
+				function showModal() {
+					return _showModal.apply(this, arguments);
+				}
+	
+				showModal.toString = function () {
+					return _showModal.toString();
+				};
+	
+				return showModal;
+			}(function () {
+				var modal = document.querySelector('#event-modal');
+	
+				var title = modal.querySelector('.modal-title');
+				var body = modal.querySelector('.modal-body');
+				//var footer = modal.querySelector('.modal-footer')
+	
+				console.log(this);
+				title.innerHTML = this.props.Event_Name;
+				var propNames = Object.keys(this.props);
+				var bodyText = "";
+				for (var i = 0; i < propNames.length; i++) {
+					bodyText += "<p>" + propNames[i] + ": " + this.props[propNames[i]] + "</p>";
+				}
+				body.innerHTML = bodyText;
+	
+				showModal(modal);
+			})
+	
+			//hide modal event view
+	
+		}, {
+			key: 'hideModal',
+			value: function (_hideModal) {
+				function hideModal() {
+					return _hideModal.apply(this, arguments);
+				}
+	
+				hideModal.toString = function () {
+					return _hideModal.toString();
+				};
+	
+				return hideModal;
+			}(function () {
+				var modal = document.querySelector('#event-modal');
+				hideModal(modal);
+			})
+	
+			//save changes from modal editor
+	
+		}, {
+			key: 'saveChanges',
+			value: function saveChanges() {}
 		}]);
 	
 		return Event;

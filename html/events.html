@@ -3,11 +3,6 @@
 	<title>Admin Panel | Project Now</title>
 	<link rel="shortcut icon" href="../favicon.ico" / >
 	
-	<!-- scripts -->
-<!--
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
--->
 	<!-- stylesheets -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<link rel="stylesheet" href="../css/events.css">
@@ -35,11 +30,35 @@
 				<div id="table"></div>
 			</div><!--/main-->
 		</div><!--/row-->
-	</div><!--/container-fluid>
+	</div><!--/container-fluid-->
+	
+	<div id="event-modal" class="modal fade">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title">Modal Title</h4>
+				</div>
+				<div class="modal-body">
+					<p>Modal body</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-primary">Save Changes</button>
+				</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
 	
 	<!-- scripts -->
 	<script src="../build/bundle.js"></script>
 	<script src="https://www.gstatic.com/firebasejs/3.5.1/firebase.js"></script>
 	<script src="../actions/firebaseInteraction.js"></script>
+	<!-- bootstrap??  Do I really want these additinoal dependencies-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="../actions/globalActions.js"></script>
 </body>
 </html>

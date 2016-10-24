@@ -14,10 +14,12 @@ var database = firebase.database();
 var query = database.ref("events");
 
 query.on("value", function(snapshot) {
-	var nested = snapshot.val();
-	var key = Object.keys(nested)[0];
-	var event = nested[key];
-	EventTableRendered.addEvent(event, key);
+	var collection = snapshot.val();
+	var keys = Object.keys(collection);
+	for (var i=0; i<keys.length; i++) {
+		var key = keys[i];
+		EventTableRendered.addEvent(collection[key], key)
+	}
 }, function (error) {
 	console.log("Read error:" + error.code);
 });
