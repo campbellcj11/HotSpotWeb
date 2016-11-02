@@ -8,6 +8,7 @@ class EventTable extends React.Component {
 			events: []
 		}
 		this.addEvent.bind(this)
+		this.removeEvent.bind(this)
 	}
 	
 	render() {	
@@ -38,6 +39,10 @@ class EventTable extends React.Component {
 													key={key} />)
 		})
 	}
+	
+	removeEvent(event) {
+	
+	}
 }
 
 class Event extends React.Component {
@@ -64,15 +69,13 @@ class Event extends React.Component {
 		let modal = document.querySelector('#event-modal')
 		
 		let title = modal.querySelector('.modal-title')
-		let body = modal.querySelector('.modal-body')
+		let body = $(body)
 		
 		title.innerHTML = this.props.Event_Name
-		let propNames = Object.keys(this.props)
-		let bodyText = "";
-		for (let i=0; i<propNames.length; i++) {
-			bodyText += "<p>" + propNames[i] + ": " + this.props[propNames[i]] + "</p>"
-		}
-		body.innerHTML = bodyText
+		body.empty()
+		let row = $('<div class="row">')
+		let leftCol
+		body.append($('<img src="' + this.props.image + '">'))
 		
 		// display
 		showModal(modal)

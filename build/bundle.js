@@ -87,6 +87,7 @@
 				events: []
 			};
 			_this.addEvent.bind(_this);
+			_this.removeEvent.bind(_this);
 			return _this;
 		}
 	
@@ -143,6 +144,9 @@
 						key: key }))
 				});
 			}
+		}, {
+			key: 'removeEvent',
+			value: function removeEvent(event) {}
 		}]);
 	
 		return EventTable;
@@ -205,21 +209,16 @@
 	
 				return showModal;
 			}(function () {
+				// populate
 				var modal = document.querySelector('#event-modal');
 	
 				var title = modal.querySelector('.modal-title');
 				var body = modal.querySelector('.modal-body');
-				//var footer = modal.querySelector('.modal-footer')
 	
-				console.log(this);
 				title.innerHTML = this.props.Event_Name;
-				var propNames = Object.keys(this.props);
-				var bodyText = "";
-				for (var i = 0; i < propNames.length; i++) {
-					bodyText += "<p>" + propNames[i] + ": " + this.props[propNames[i]] + "</p>";
-				}
-				body.innerHTML = bodyText;
+				$(body).append($('<img src="' + this.props.image + '">'));
 	
+				// display
 				showModal(modal);
 			})
 	
