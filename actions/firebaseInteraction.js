@@ -11,18 +11,21 @@ firebase.initializeApp(config);
 
 var database = firebase.database();
 
-var query = database.ref("events");
+// get events for events.html
+if (location.pathname.endsWith('events.html')) {
+	var query = database.ref("events");
 
-query.on("value", function(snapshot) {
-	var collection = snapshot.val();
-	var keys = Object.keys(collection);
-	for (var i=0; i<keys.length; i++) {
-		var key = keys[i];
-		EventTableRendered.addEvent(collection[key], key)
-	}
-}, function (error) {
-	console.log("Read error:" + error.code);
-});
+	query.on("value", function(snapshot) {
+		var collection = snapshot.val();
+		var keys = Object.keys(collection);
+		for (var i=0; i<keys.length; i++) {
+			var key = keys[i];
+			EventTableRendered.addEvent(collection[key], key)
+		}
+	}, function (error) {
+		console.log("Read error:" + error.code);
+	});
+}
 
 
 

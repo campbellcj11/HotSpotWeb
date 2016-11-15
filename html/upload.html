@@ -1,0 +1,45 @@
+<html>
+<head>
+	<title>Admin Panel | Project Now</title>
+	<link rel="shortcut icon" href="../favicon.ico" / >
+	
+	<!-- stylesheets -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="../css/events.css">
+</head>
+<body>
+	<nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
+		<div class="container-fluid">
+			<ul class="nav navbar-nav">
+				<li><a>Project Now Administrative Panel</a></li>
+				<li class="active"><a href="events.html">Events</a></li>
+				<li><a>Metrics</a></li>
+			</ul>
+		</div>
+	</nav>	
+	<div class="container-fluid content">
+		<div class="row">
+			<div class="col-md-2 sidebar">
+				<ul>
+					<li><a href="events.html">View</a></li>
+					<li><a>Upload</a></li>
+				</ul>
+			</div><!--/sidebar-->
+			<div class="col-md-10 main container">
+				<h3>Upload</h3>
+				<div class="row">
+					<label class="btn btn-default">Bulk Upload Events<input type="file" id="bulkUploadBtn" style="display:none"></label>
+				</div><!--/row-->
+			</div><!--/main-->
+		</div><!--/row-->
+	</div><!--/container-fluid-->
+	
+	<!-- scripts -->
+	<script src="../build/bundle.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/3.5.1/firebase.js"></script>
+	<script src="../actions/firebaseInteraction.js"></script>
+	<!-- bootstrap??  Do I really want these additinoal dependencies-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

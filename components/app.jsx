@@ -66,25 +66,34 @@ class Event extends React.Component {
 	//populate and display modal event view
 	showModal() {
 		// populate
-		let modal = document.querySelector('#event-modal')
+		let modal = $('#event-modal')
 		
-		let title = modal.querySelector('.modal-title')
-		let body = $(body)
+		let title = modal.find('.modal-title')
+		let body = modal.find('.modal-body')
 		
-		title.innerHTML = this.props.Event_Name
+		title.text(this.props.Event_Name)
 		body.empty()
 		let row = $('<div class="row">')
-		let leftCol
-		body.append($('<img src="' + this.props.image + '">'))
+		let leftCol = $('<div class="col-md-2">')
+		let midCol = $('<div class="col-md-1">')
+		let rightCol = $('<div class="col-md-9">')
+		leftCol.append($('<img src="' + this.props.image + '">'))
+		midCol.append($('<p style="text-align:right">Location:</p>'))
+		rightCol.append($('<p>' + this.props.Location + '</p>'))
+		midCol.append($('<p style="text-align:right">Date:</p>'))
+		rightCol.append($('<p>' + this.props.Date + '</p>'))
+		row.append(leftCol)
+		row.append(midCol)
+		row.append(rightCol)
+		body.append(row)
 		
 		// display
-		showModal(modal)
+		$(modal).modal('show')
 	}
 	
 	//hide modal event view
 	hideModal() {
-		let modal = document.querySelector('#event-modal')
-		hideModal(modal)
+		$('#event-modal').modal('hide')
 	}
 	
 	//save changes from modal editor
@@ -93,4 +102,6 @@ class Event extends React.Component {
 	}
 }
 
-window.EventTableRendered = render(<EventTable/>, document.getElementById('table'))
+if (location.pathname.endsWith('events.html')) {
+	window.EventTableRendered = render(<EventTable/>, document.getElementById('table'))
+}

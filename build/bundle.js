@@ -198,48 +198,40 @@
 	
 		}, {
 			key: 'showModal',
-			value: function (_showModal) {
-				function showModal() {
-					return _showModal.apply(this, arguments);
-				}
-	
-				showModal.toString = function () {
-					return _showModal.toString();
-				};
-	
-				return showModal;
-			}(function () {
+			value: function showModal() {
 				// populate
-				var modal = document.querySelector('#event-modal');
+				var modal = $('#event-modal');
 	
-				var title = modal.querySelector('.modal-title');
-				var body = modal.querySelector('.modal-body');
+				var title = modal.find('.modal-title');
+				var body = modal.find('.modal-body');
 	
-				title.innerHTML = this.props.Event_Name;
-				$(body).append($('<img src="' + this.props.image + '">'));
+				title.text(this.props.Event_Name);
+				body.empty();
+				var row = $('<div class="row">');
+				var leftCol = $('<div class="col-md-2">');
+				var midCol = $('<div class="col-md-1">');
+				var rightCol = $('<div class="col-md-9">');
+				leftCol.append($('<img src="' + this.props.image + '">'));
+				midCol.append($('<p style="text-align:right">Location:</p>'));
+				rightCol.append($('<p>' + this.props.Location + '</p>'));
+				midCol.append($('<p style="text-align:right">Date:</p>'));
+				rightCol.append($('<p>' + this.props.Date + '</p>'));
+				row.append(leftCol);
+				row.append(midCol);
+				row.append(rightCol);
+				body.append(row);
 	
 				// display
-				showModal(modal);
-			})
+				$(modal).modal('show');
+			}
 	
 			//hide modal event view
 	
 		}, {
 			key: 'hideModal',
-			value: function (_hideModal) {
-				function hideModal() {
-					return _hideModal.apply(this, arguments);
-				}
-	
-				hideModal.toString = function () {
-					return _hideModal.toString();
-				};
-	
-				return hideModal;
-			}(function () {
-				var modal = document.querySelector('#event-modal');
-				hideModal(modal);
-			})
+			value: function hideModal() {
+				$('#event-modal').modal('hide');
+			}
 	
 			//save changes from modal editor
 	
@@ -251,7 +243,9 @@
 		return Event;
 	}(_react2.default.Component);
 	
-	window.EventTableRendered = (0, _reactDom.render)(_react2.default.createElement(EventTable, null), document.getElementById('table'));
+	if (location.pathname.endsWith('events.html')) {
+		window.EventTableRendered = (0, _reactDom.render)(_react2.default.createElement(EventTable, null), document.getElementById('table'));
+	}
 
 /***/ },
 /* 2 */
