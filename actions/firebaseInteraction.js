@@ -67,38 +67,77 @@ fileButton.addEventListener('change', function(e){
 
 });
 
-
 //Download photo
 var storageRef = firebase.storage.ref("folderName/file.jpg");
 storageRef.getDownloadURL().then(function(url) {
   console.log(url);
 });
-
-
-
-
-/*db*/
-/*
-var bulkUploadButton = document.getElementById('bulkUploadButton');
-
-bulkUploadButton.addEventListener('change', function(e){
-
-	var JSONItems = [];
-	d3.csv( e, function( data){
-	  JSONItems = data;
-	});
-
-	for(i = 0; i < JSONItems.length; i++)
-	{
-		var event = JSONItems[i];
-		export function pushEvent(event) {
-		  database.ref('events/').push(event));
-		  return {
-		    type: LOG_IN,
-		    currentUser: firebase.auth().currentUser
-		  }
-		}
-
-	}
-}
 */
+
+// key: 'required' / 'optional'
+var EventSchema = {
+	Event_Name: 'required',
+	Location: 'required',
+	Date: 'required',
+	image: 'required', //TODO update this to capitalized once Conor fixes rest of schema
+	Short_Description: 'optional',
+	Long_Description: 'optional',
+	Email: 'optional',
+	Website: 'optional',
+	Status: 'optional',
+	Category: 'optional'
+}
+
+/*Bulk upload*/
+if (location.pathname.endsWith('upload.html')) {
+	var bulkUploadButton = document.getElementById('bulkUploadBtn');
+
+	bulkUploadButton.addEventListener('change', function(e) {
+		if (e.target.files.length !== 1) {
+			console.error("Upload exactly one file at a time")
+			return
+		}
+		// TODO, indicate currently selected file and allow for secondary submit button after selection
+		// read file in as text
+		var file = e.target.files[0]
+		var jsonResult;
+		var reader = new FileReader()
+		reader.onload = function(event) {
+			var contents = event.target.result
+			// parse csv to json w/ d3
+			var jsonResult = d3.csvParse(contents)
+			// TODO sanitize events before attempting to push
+			// Commit events to db
+			var events = database.ref('events')
+			for (var i=0; i<jsonResult.length; i++) {
+				var potentialEvent = jsonResult[i]
+				// simple verification of incoming event
+				if (verifyEvent(potentialEvent)) {
+					database.ref('events').push(potentialEvent)
+				} else {
+					//console.error("Invalid event: " + JSON.stringify(potentialEvent, null, '\t'))
+				}
+			}
+		}
+		reader.readAsText(file)
+	})
+}
+
+// simple verification that event matches schema
+function verifyEvent(event) {
+		// make sure no unexpected props are found
+		for (var key in event) {
+			if (!EventSchema.hasOwnProperty(key)) {
+				console.error('Potential event contains unexpected key: ' + key)
+				return false
+			}
+		}
+		// check for specifically required props
+		for (var prop in EventSchema) {
+			if (EventSchema[prop] === 'required' && !event.hasOwnProperty(prop)) {
+				console.error('Potential event is missing the required key: ' + prop)
+				return false
+			}
+		}
+		return true
+}
