@@ -22,12 +22,19 @@
 			<div class="col-md-2 sidebar">
 				<ul>
 					<li><a href="events.html">View</a></li>
-					<li><a>Upload</a></li>
+					<li><a>Bulk Upload</a></li>
 				</ul>
 			</div><!--/sidebar-->
 			<div class="col-md-10 main">
 				<h3>Upload</h3>
-					<label class="btn btn-default">Bulk Upload Events<input type="file" id="bulkUploadBtn" style="display:none"></label>
+					<label class="btn btn-default">Select a file<input type="file" id="bulkUploadBtn" style="display:none"></label>
+					<span class="col-md-offset-1">Selected file: <span id="selectedFileName">No file selected</span></span>
+					<button id="uploadBtn" class="btn btn-success pull-right" disabled="true">Upload</button>					
+					<button id="previewBtn" class="btn btn-primary pull-right" disabled="true">Preview</button>
+					<hr />
+					<label id="alerts" style="display:none"></label>
+					<h5>Preview of selected file:</h5>
+					<div id="previewTable">
 			</div><!--/main-->
 		</div><!--/row-->
 	</div><!--/container-fluid-->

@@ -59,192 +59,26 @@
 
 	'use strict';
 	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
 	var _react = __webpack_require__(/*! react */ 2);
 	
 	var _react2 = _interopRequireDefault(_react);
 	
 	var _reactDom = __webpack_require__(/*! react-dom */ 35);
 	
+	var _Event = __webpack_require__(/*! ./Event */ 173);
+	
+	var _Event2 = _interopRequireDefault(_Event);
+	
+	var _EventTable = __webpack_require__(/*! ./EventTable */ 174);
+	
+	var _EventTable2 = _interopRequireDefault(_EventTable);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var EventTable = function (_React$Component) {
-		_inherits(EventTable, _React$Component);
-	
-		function EventTable(props) {
-			_classCallCheck(this, EventTable);
-	
-			var _this = _possibleConstructorReturn(this, (EventTable.__proto__ || Object.getPrototypeOf(EventTable)).call(this, props));
-	
-			_this.state = {
-				events: []
-			};
-			_this.addEvent.bind(_this);
-			_this.removeEvent.bind(_this);
-			return _this;
-		}
-	
-		_createClass(EventTable, [{
-			key: 'render',
-			value: function render() {
-				return _react2.default.createElement(
-					'table',
-					{ className: 'table table-striped table-hover' },
-					_react2.default.createElement(
-						'thead',
-						null,
-						_react2.default.createElement(
-							'tr',
-							null,
-							_react2.default.createElement(
-								'th',
-								null,
-								'Event Name'
-							),
-							_react2.default.createElement(
-								'th',
-								null,
-								'Date'
-							),
-							_react2.default.createElement(
-								'th',
-								null,
-								'Location'
-							),
-							_react2.default.createElement(
-								'th',
-								null,
-								'Image'
-							)
-						)
-					),
-					_react2.default.createElement(
-						'tbody',
-						null,
-						this.state.events
-					)
-				);
-			}
-		}, {
-			key: 'addEvent',
-			value: function addEvent(event, key) {
-				this.setState({
-					events: this.state.events.concat(_react2.default.createElement(Event, {
-						Event_Name: event.Event_Name,
-						Date: event.Date,
-						Location: event.Location,
-						image: event.image,
-						key: key }))
-				});
-			}
-		}, {
-			key: 'removeEvent',
-			value: function removeEvent(event) {}
-		}]);
-	
-		return EventTable;
-	}(_react2.default.Component);
-	
-	var Event = function (_React$Component2) {
-		_inherits(Event, _React$Component2);
-	
-		function Event(props) {
-			_classCallCheck(this, Event);
-	
-			var _this2 = _possibleConstructorReturn(this, (Event.__proto__ || Object.getPrototypeOf(Event)).call(this, props));
-	
-			_this2.showModal = _this2.showModal.bind(_this2);
-			_this2.hideModal = _this2.hideModal.bind(_this2);
-			return _this2;
-		}
-	
-		_createClass(Event, [{
-			key: 'render',
-			value: function render() {
-				return _react2.default.createElement(
-					'tr',
-					{ onClick: this.showModal },
-					_react2.default.createElement(
-						'td',
-						null,
-						this.props.Event_Name
-					),
-					_react2.default.createElement(
-						'td',
-						null,
-						this.props.Date
-					),
-					_react2.default.createElement(
-						'td',
-						null,
-						this.props.Location
-					),
-					_react2.default.createElement(
-						'td',
-						null,
-						_react2.default.createElement('img', { src: this.props.image })
-					)
-				);
-			}
-	
-			//populate and display modal event view
-	
-		}, {
-			key: 'showModal',
-			value: function showModal() {
-				// populate
-				var modal = $('#event-modal');
-	
-				var title = modal.find('.modal-title');
-				var body = modal.find('.modal-body');
-	
-				title.text(this.props.Event_Name);
-				body.empty();
-				var row = $('<div class="row">');
-				var leftCol = $('<div class="col-md-2">');
-				var midCol = $('<div class="col-md-1">');
-				var rightCol = $('<div class="col-md-9">');
-				leftCol.append($('<img src="' + this.props.image + '">'));
-				midCol.append($('<p style="text-align:right">Location:</p>'));
-				rightCol.append($('<p>' + this.props.Location + '</p>'));
-				midCol.append($('<p style="text-align:right">Date:</p>'));
-				rightCol.append($('<p>' + this.props.Date + '</p>'));
-				row.append(leftCol);
-				row.append(midCol);
-				row.append(rightCol);
-				body.append(row);
-	
-				// display
-				$(modal).modal('show');
-			}
-	
-			//hide modal event view
-	
-		}, {
-			key: 'hideModal',
-			value: function hideModal() {
-				$('#event-modal').modal('hide');
-			}
-	
-			//save changes from modal editor
-	
-		}, {
-			key: 'saveChanges',
-			value: function saveChanges() {}
-		}]);
-	
-		return Event;
-	}(_react2.default.Component);
-	
 	if (location.pathname.endsWith('events.html')) {
-		window.EventTableRendered = (0, _reactDom.render)(_react2.default.createElement(EventTable, null), document.getElementById('table'));
+		window.EventTableRendered = (0, _reactDom.render)(_react2.default.createElement(_EventTable2.default, null), document.getElementById('table'));
+	} else if (location.pathname.endsWith('upload.html')) {
+		window.EventPreviewTableRendered = (0, _reactDom.render)(_react2.default.createElement(_EventTable2.default, null), document.getElementById('previewTable'));
 	}
 
 /***/ },
@@ -22126,6 +21960,246 @@
 	
 	module.exports = ReactDOMNullInputValuePropHook;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./~/process/browser.js */ 4)))
+
+/***/ },
+/* 173 */
+/*!******************************!*\
+  !*** ./components/Event.jsx ***!
+  \******************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	//import {render} from 'react-dom'
+	
+	var Event = function (_React$Component) {
+		_inherits(Event, _React$Component);
+	
+		function Event(props) {
+			_classCallCheck(this, Event);
+	
+			var _this = _possibleConstructorReturn(this, (Event.__proto__ || Object.getPrototypeOf(Event)).call(this, props));
+	
+			_this.showModal = _this.showModal.bind(_this);
+			_this.hideModal = _this.hideModal.bind(_this);
+			return _this;
+		}
+	
+		_createClass(Event, [{
+			key: 'render',
+			value: function render() {
+				return _react2.default.createElement(
+					'tr',
+					{ onClick: this.showModal },
+					_react2.default.createElement(
+						'td',
+						null,
+						this.props.Event_Name
+					),
+					_react2.default.createElement(
+						'td',
+						null,
+						this.props.Date
+					),
+					_react2.default.createElement(
+						'td',
+						null,
+						this.props.Location
+					),
+					this.props.previewMode ? _react2.default.createElement(
+						'td',
+						null,
+						'Upload from URL: ',
+						this.props.Image
+					) : _react2.default.createElement(
+						'td',
+						null,
+						_react2.default.createElement('img', { src: this.props.Image })
+					)
+				);
+			}
+	
+			//populate and display modal event view
+	
+		}, {
+			key: 'showModal',
+			value: function showModal() {
+				// populate
+				var modal = $('#event-modal');
+	
+				var title = modal.find('.modal-title');
+				var body = modal.find('.modal-body');
+	
+				title.text(this.props.Event_Name);
+				body.empty();
+				var row = $('<div class="row">');
+				var leftCol = $('<div class="col-md-2">');
+				var midCol = $('<div class="col-md-1">');
+				var rightCol = $('<div class="col-md-9">');
+				leftCol.append($('<img src="' + this.props.Image + '">'));
+				midCol.append($('<p style="text-align:right">Location:</p>'));
+				rightCol.append($('<p>' + this.props.Location + '</p>'));
+				midCol.append($('<p style="text-align:right">Date:</p>'));
+				rightCol.append($('<p>' + this.props.Date + '</p>'));
+				row.append(leftCol);
+				row.append(midCol);
+				row.append(rightCol);
+				body.append(row);
+	
+				// display
+				$(modal).modal('show');
+			}
+	
+			//hide modal event view
+	
+		}, {
+			key: 'hideModal',
+			value: function hideModal() {
+				$('#event-modal').modal('hide');
+			}
+	
+			//save changes from modal editor
+	
+		}, {
+			key: 'saveChanges',
+			value: function saveChanges() {}
+		}]);
+	
+		return Event;
+	}(_react2.default.Component);
+	
+	exports.default = Event;
+
+/***/ },
+/* 174 */
+/*!***********************************!*\
+  !*** ./components/EventTable.jsx ***!
+  \***********************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _Event = __webpack_require__(/*! ./Event */ 173);
+	
+	var _Event2 = _interopRequireDefault(_Event);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	//import {render} from 'react-dom'
+	
+	
+	var EventTable = function (_React$Component) {
+		_inherits(EventTable, _React$Component);
+	
+		function EventTable(props) {
+			_classCallCheck(this, EventTable);
+	
+			var _this = _possibleConstructorReturn(this, (EventTable.__proto__ || Object.getPrototypeOf(EventTable)).call(this, props));
+	
+			_this.state = {
+				events: []
+			};
+			_this.addEvent.bind(_this);
+			_this.removeEvent.bind(_this);
+			return _this;
+		}
+	
+		_createClass(EventTable, [{
+			key: 'render',
+			value: function render() {
+				return _react2.default.createElement(
+					'table',
+					{ className: 'table table-striped table-hover' },
+					_react2.default.createElement(
+						'thead',
+						null,
+						_react2.default.createElement(
+							'tr',
+							null,
+							_react2.default.createElement(
+								'th',
+								null,
+								'Event Name'
+							),
+							_react2.default.createElement(
+								'th',
+								null,
+								'Date'
+							),
+							_react2.default.createElement(
+								'th',
+								null,
+								'Location'
+							),
+							_react2.default.createElement(
+								'th',
+								null,
+								'Image'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'tbody',
+						null,
+						this.state.events
+					)
+				);
+			}
+		}, {
+			key: 'addEvent',
+			value: function addEvent(event, key) {
+				this.setState({
+					events: this.state.events.concat(_react2.default.createElement(_Event2.default, {
+						Event_Name: event.Event_Name,
+						Date: event.Date,
+						Location: event.Location,
+						Image: event.Image,
+						previewMode: event.previewMode,
+						key: key }))
+				});
+			}
+		}, {
+			key: 'removeEvent',
+			value: function removeEvent(event) {}
+		}]);
+	
+		return EventTable;
+	}(_react2.default.Component);
+	
+	exports.default = EventTable;
 
 /***/ }
 /******/ ]);
