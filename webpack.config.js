@@ -1,8 +1,9 @@
 var webpack = require('webpack')
 var path = require('path')
 
-var BUILD_DIR = path.resolve(__dirname, 'build')
-var APP_DIR = path.resolve(__dirname, 'components')
+var BUILD_DIR = path.resolve(__dirname, 'assets/build')
+var APP_DIR = path.resolve(__dirname, 'assets/components')
+var ACTIONS_DIR = path.resolve(__dirname, 'assets/actions')
 
 var config = {
 	entry: [
@@ -19,8 +20,11 @@ var config = {
 		loaders: [
 			{
 				test: /\.jsx?/,
-				include: APP_DIR,
-				loader: 'babel'
+				include: [APP_DIR, ACTIONS_DIR],
+				loader: 'babel-loader',
+				query: {
+					presets: ['es2015', 'react']
+				}
 			}
 		]
 	}
