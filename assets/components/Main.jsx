@@ -18,6 +18,7 @@ import getMuiTheme from 'material-ui/styles/getMuiTheme'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import EventTable from './EventTable'
 import UploadForm from './UploadForm'
+import EventEditor from './EventEditor'
 import {State} from './ApplicationState'
 
 const styles = {
@@ -27,6 +28,24 @@ const styles = {
 		},
 		medium: {
 			margin: '5px 10px'
+		},
+		small: {
+			margin: '5px 10px'
+		},
+		edit: {
+			large: {
+				margin: '5px 50px 5px 316px',
+				maxWidth: '600px',
+				minWidth: '400px'
+			},
+			medium: {
+				margin: '5px 50px 5px 50px',
+				maxWidth: '600px',
+				minWidth: '400px'
+			},
+			small: {
+				margin: '5px 10px'
+			}
 		}
 	}
 }
@@ -38,7 +57,8 @@ class Main extends Component {
 		this.state = {
 			logged_in: true, //default to false later
 			width: window.innerWidth,
-			view: 'manage'
+			view: 'manage',
+			viewingEvent: null
 		}
 
 		this.handleResize = this.handleResize.bind(this)
@@ -61,7 +81,7 @@ class Main extends Component {
 	}
 
 	render() {
-		let screenWidth = this.state.width >= 800 ? 'large' : 'medium'
+		let screenWidth = this.state.width >= 800 ? 'large' : this.state.width >= 400 ? 'medium' : 'small'
 		
 		let content
 		if (this.state.logged_in) {
@@ -72,10 +92,10 @@ class Main extends Component {
 							<CardTitle
 								title="Manage Events"
 								subtitle="View and edit pre-existing events"							/>
-							<EventTable loadAll={true} screenWidth={screenWidth} />
+							<EventTable manage={true} screenWidth={screenWidth} />
 						</div>
 					)
-					break;
+					break
 				case 'import':
 					content = (
 						<div>
@@ -85,14 +105,30 @@ class Main extends Component {
 							<UploadForm screenWidth={screenWidth} />
 						</div>
 					)
-					break;
+					break
 				case 'create':
 					content = (
 						<CardHeader
 							title="Create Event"
 							subtitle="Not yet implemented" />
 					)
-					break;
+					break
+				case 'individual_view': {
+					content = (
+						<CardHeader
+							title="View Event"
+							subtitle="Not yet implemented" />
+					)
+						//<EventViewer event={this.state.viewingEventKey} />
+					//)
+					break
+				}
+				case 'individual_edit': {
+					content = (
+						<EventEditor event={this.state.viewingEvent} screenWidth={screenWidth} />
+					)
+					break
+				}
 				case 'metrics':
 					content = (
 						<CardHeader
@@ -113,7 +149,7 @@ class Main extends Component {
 				<div id="body">
 					{this.state.logged_in && 
 						<AppBarWithDrawer screenWidth={this.state.width} />}
-					<Card style={styles.content[screenWidth]}>
+					<Card style={this.state.view !== 'individual_edit' ? styles.content[screenWidth] : styles.content.edit[screenWidth]}>
 						{content}
 					</Card>
 				</div>

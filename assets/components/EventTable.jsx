@@ -8,6 +8,7 @@ import {
 	TableRowColumn
 } from 'material-ui';
 import EventActions from '../actions/eventActions'
+import {State} from './ApplicationState'
 
 class EventTable extends React.Component {
 	constructor(props) {
@@ -21,8 +22,8 @@ class EventTable extends React.Component {
 	}
 	
 	componentDidMount() {
-		if (this.props.loadAll) {
-			EventActions.getAll((function(collection) {
+		if (this.props.manage) {
+			EventActions.getAllSnapshots((function(collection) {
 				let eventArray = []
 				Object.keys(collection).forEach((key, index) => {
 					let event = collection[key]
@@ -33,42 +34,6 @@ class EventTable extends React.Component {
 			}).bind(this))
 		} else if (this.props.potentialEvents) {
 			this.addEventArray(this.props.potentialEvents)
-		}
-	}
-	
-	render() {	
-		if (this.state.events.length) {
-			let rows = []
-			this.state.events.forEach((event, index) => {
-				rows.push(
-					<TableRow key={event.key}>
-						<TableRowColumn>{event.Event_Name}</TableRowColumn>
-						<TableRowColumn>{event.Date}</TableRowColumn>
-						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Location}</TableRowColumn>}
-						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Address}</TableRowColumn>}
-						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Short_Description}</TableRowColumn>}
-					</TableRow>
-				)
-			})
-		
-			return (
-				<Table multiSelectable={true} >
-					<TableHeader enableSelectAll={true} displaySelectAll={!this.props.potentialEvents}>
-						<TableRow>
-							<TableHeaderColumn>Event Name</TableHeaderColumn>
-							<TableHeaderColumn>Date</TableHeaderColumn>
-							{this.props.screenWidth == 'large' && <TableHeaderColumn>Location</TableHeaderColumn>}
-							{this.props.screenWidth == 'large' && <TableHeaderColumn>Address</TableHeaderColumn>}
-							{this.props.screenWidth == 'large' && <TableHeaderColumn>Description</TableHeaderColumn>}
-						</TableRow>
-					</TableHeader>
-					<TableBody displayRowCheckbox={!this.props.potentialEvents}>
-						{rows}
-					</TableBody>
-				</Table>
-			)
-		} else {
-			return null
 		}
 	}
 	
@@ -87,6 +52,52 @@ class EventTable extends React.Component {
 	
 	removeEvent(event) {
 	
+	}
+
+	handleRowSelection(selectedRows) {
+		let index = selectedRows[0]
+		let event = this.state.events[index]
+		State.controller.setState({
+			view: 'individual_edit',
+			viewingEvent: event
+		})
+	}
+
+	render() {	
+		if (this.state.events.length) {
+			let rows = []
+			this.state.events.forEach((event, index) => {
+				rows.push(
+					<TableRow key={event.key}>
+						<TableRowColumn>{event.Event_Name}</TableRowColumn>
+						<TableRowColumn>{event.Date}</TableRowColumn>
+						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Location}</TableRowColumn>}
+						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Address}</TableRowColumn>}
+						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Short_Description}</TableRowColumn>}
+					</TableRow>
+				)
+			})
+		
+			//TODO reenable multiSelectable and selectAll
+			return (
+				<Table multiSelectable={false} onRowSelection={this.handleRowSelection.bind(this)}>
+					<TableHeader enableSelectAll={false} displaySelectAll={!this.props.potentialEvents}>
+						<TableRow>
+							<TableHeaderColumn>Event Name</TableHeaderColumn>
+							<TableHeaderColumn>Date</TableHeaderColumn>
+							{this.props.screenWidth == 'large' && <TableHeaderColumn>Location</TableHeaderColumn>}
+							{this.props.screenWidth == 'large' && <TableHeaderColumn>Address</TableHeaderColumn>}
+							{this.props.screenWidth == 'large' && <TableHeaderColumn>Description</TableHeaderColumn>}
+						</TableRow>
+					</TableHeader>
+					<TableBody displayRowCheckbox={!this.props.potentialEvents}>
+						{rows}
+					</TableBody>
+				</Table>
+			)
+		} else {
+			return null
+		}
 	}
 }
 

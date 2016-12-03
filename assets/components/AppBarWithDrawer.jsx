@@ -12,6 +12,9 @@ const styles = {
 	},
 	medium: {
 		paddingLeft: '20px',
+	},
+	small: {
+		paddingLeft: '20px'
 	}
 }
 
@@ -97,7 +100,7 @@ export default class AppBarWithDrawer extends Component {
 
 		return (
 			<div>
-				<AppBar title="Panel"
+				<AppBar title="Project Now"
 					style={currentStyle}
 					iconElementRight={<FlatButton>Log in</FlatButton>}
 					showMenuIconButton={!fullSize}

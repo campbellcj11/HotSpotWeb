@@ -11,6 +11,21 @@ const StorageActions = {
             let fileLocation = snapshot.a.downloadURLs[0]
             callback(fileLocation)
         })
+    },
+
+    // Get image ref
+    getEventImageRef: (fileName) => {
+        return storage.ref('EventImages/' + fileName)
+    },
+
+    // Delete image 
+    //  execute callback with info about whether the request succeeded
+    deleteEventImage: (imageRef, callback) => {
+        imageRef.delete().then(() => {
+            callback(true)
+        }).catch((error) => {
+            callback(false)
+        })
     }
 }
 

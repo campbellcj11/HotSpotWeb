@@ -65,15 +65,7 @@
 	
 	var _reactDom = __webpack_require__(/*! react-dom */ 33);
 	
-	var _Event = __webpack_require__(/*! ./Event */ 179);
-	
-	var _Event2 = _interopRequireDefault(_Event);
-	
-	var _EventTable = __webpack_require__(/*! ./EventTable */ 548);
-	
-	var _EventTable2 = _interopRequireDefault(_EventTable);
-	
-	var _Main = __webpack_require__(/*! ./Main */ 551);
+	var _Main = __webpack_require__(/*! ./Main */ 179);
 	
 	var _Main2 = _interopRequireDefault(_Main);
 	
@@ -81,23 +73,14 @@
 	
 	var _reactTapEventPlugin2 = _interopRequireDefault(_reactTapEventPlugin);
 	
-	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 553);
+	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 549);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	// For material-ui
 	(0, _reactTapEventPlugin2.default)();
 	
-	//TODO do away with separate pages and go full single page
-	if (location.pathname.endsWith('events.html')) {
-		window.EventTableRendered = (0, _reactDom.render)(_react2.default.createElement(_EventTable2.default, null), document.getElementById('table'));
-	} else if (location.pathname.endsWith('upload.html')) {
-		window.EventPreviewTableRendered = (0, _reactDom.render)(_react2.default.createElement(_EventTable2.default, null), document.getElementById('previewTable'));
-	} else if (location.pathname.endsWith('login.html')) {
-		_ApplicationState.State.controller = (0, _reactDom.render)(_react2.default.createElement(_Main2.default, null), document.getElementById('main'));
-	}
-	
-	//render(<Main/>, document.getElementById('main'))
+	_ApplicationState.State.controller = (0, _reactDom.render)(_react2.default.createElement(_Main2.default, null), document.getElementById('main'));
 
 /***/ },
 /* 2 */
@@ -22019,9 +22002,9 @@
 
 /***/ },
 /* 179 */
-/*!*************************************!*\
-  !*** ./assets/components/Event.jsx ***!
-  \*************************************/
+/*!************************************!*\
+  !*** ./assets/components/Main.jsx ***!
+  \************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -22038,100 +22021,190 @@
 	
 	var _materialUi = __webpack_require__(/*! material-ui */ 180);
 	
+	var _AppBarWithDrawer = __webpack_require__(/*! ./AppBarWithDrawer */ 548);
+	
+	var _AppBarWithDrawer2 = _interopRequireDefault(_AppBarWithDrawer);
+	
+	var _getMuiTheme = __webpack_require__(/*! material-ui/styles/getMuiTheme */ 440);
+	
+	var _getMuiTheme2 = _interopRequireDefault(_getMuiTheme);
+	
+	var _MuiThemeProvider = __webpack_require__(/*! material-ui/styles/MuiThemeProvider */ 439);
+	
+	var _MuiThemeProvider2 = _interopRequireDefault(_MuiThemeProvider);
+	
+	var _EventTable = __webpack_require__(/*! ./EventTable */ 550);
+	
+	var _EventTable2 = _interopRequireDefault(_EventTable);
+	
+	var _UploadForm = __webpack_require__(/*! ./UploadForm */ 553);
+	
+	var _UploadForm2 = _interopRequireDefault(_UploadForm);
+	
+	var _EventEditor = __webpack_require__(/*! ./EventEditor */ 555);
+	
+	var _EventEditor2 = _interopRequireDefault(_EventEditor);
+	
+	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 549);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Main component loaded by app.jsx
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Manages single page application and coordinates with ApplicationState
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
 	
-	var Event = function (_React$Component) {
-		_inherits(Event, _React$Component);
 	
-		function Event(props) {
-			_classCallCheck(this, Event);
+	var styles = {
+		content: {
+			large: {
+				margin: '5px 10px 5px 266px'
+			},
+			medium: {
+				margin: '5px 10px'
+			},
+			small: {
+				margin: '5px 10px'
+			},
+			edit: {
+				large: {
+					margin: '5px 50px 5px 316px',
+					maxWidth: '600px',
+					minWidth: '400px'
+				},
+				medium: {
+					margin: '5px 50px 5px 50px',
+					maxWidth: '600px',
+					minWidth: '400px'
+				},
+				small: {
+					margin: '5px 10px'
+				}
+			}
+		}
+	};
 	
-			var _this = _possibleConstructorReturn(this, (Event.__proto__ || Object.getPrototypeOf(Event)).call(this, props));
+	var Main = function (_Component) {
+		_inherits(Main, _Component);
 	
-			_this.showModal = _this.showModal.bind(_this);
-			_this.hideModal = _this.hideModal.bind(_this);
+		function Main(props, context) {
+			_classCallCheck(this, Main);
+	
+			var _this = _possibleConstructorReturn(this, (Main.__proto__ || Object.getPrototypeOf(Main)).call(this, props, context));
+	
+			_this.state = {
+				logged_in: true, //default to false later
+				width: window.innerWidth,
+				view: 'manage',
+				viewingEvent: null
+			};
+	
+			_this.handleResize = _this.handleResize.bind(_this);
+			_this.componentDidMount = _this.componentDidMount.bind(_this);
+			_this.componentWillUnmount = _this.componentWillUnmount.bind(_this);
 			return _this;
 		}
 	
-		_createClass(Event, [{
+		_createClass(Main, [{
+			key: 'handleResize',
+			value: function handleResize(e) {
+				this.setState({
+					width: window.innerWidth
+				});
+			}
+		}, {
+			key: 'componentDidMount',
+			value: function componentDidMount() {
+				window.addEventListener('resize', this.handleResize);
+			}
+		}, {
+			key: 'componentWillUnmount',
+			value: function componentWillUnmount() {
+				window.removeEventListener('resize', this.handleResize);
+			}
+		}, {
 			key: 'render',
 			value: function render() {
+				var screenWidth = this.state.width >= 800 ? 'large' : this.state.width >= 400 ? 'medium' : 'small';
+	
+				var content = void 0;
+				if (this.state.logged_in) {
+					switch (this.state.view) {
+						case 'manage':
+							content = _react2.default.createElement(
+								'div',
+								null,
+								_react2.default.createElement(_materialUi.CardTitle, {
+									title: 'Manage Events',
+									subtitle: 'View and edit pre-existing events' }),
+								_react2.default.createElement(_EventTable2.default, { manage: true, screenWidth: screenWidth })
+							);
+							break;
+						case 'import':
+							content = _react2.default.createElement(
+								'div',
+								null,
+								_react2.default.createElement(_materialUi.CardTitle, {
+									title: 'Import Events',
+									subtitle: 'Upload new events to the database in bulk' }),
+								_react2.default.createElement(_UploadForm2.default, { screenWidth: screenWidth })
+							);
+							break;
+						case 'create':
+							content = _react2.default.createElement(_materialUi.CardHeader, {
+								title: 'Create Event',
+								subtitle: 'Not yet implemented' });
+							break;
+						case 'individual_view':
+							{
+								content = _react2.default.createElement(_materialUi.CardHeader, {
+									title: 'View Event',
+									subtitle: 'Not yet implemented' });
+								//<EventViewer event={this.state.viewingEventKey} />
+								//)
+								break;
+							}
+						case 'individual_edit':
+							{
+								content = _react2.default.createElement(_EventEditor2.default, { event: this.state.viewingEvent, screenWidth: screenWidth });
+								break;
+							}
+						case 'metrics':
+							content = _react2.default.createElement(_materialUi.CardHeader, {
+								title: 'Metrics',
+								subtitle: 'Not yet implemented' });
+					}
+				} else {
+					content = _react2.default.createElement(_materialUi.CardHeader, {
+						title: 'Log in',
+						subtitle: 'Not yet implemented' });
+				}
+	
 				return _react2.default.createElement(
-					_materialUi.TableRow,
+					_MuiThemeProvider2.default,
 					null,
 					_react2.default.createElement(
-						'td',
-						null,
-						this.props.Event_Name
-					),
-					_react2.default.createElement(
-						'td',
-						null,
-						this.props.Date
-					),
-					_react2.default.createElement(
-						'td',
-						null,
-						this.props.Location
-					),
-					_react2.default.createElement(
-						'td',
-						null,
-						this.props.Short_Description
+						'div',
+						{ id: 'body' },
+						this.state.logged_in && _react2.default.createElement(_AppBarWithDrawer2.default, { screenWidth: this.state.width }),
+						_react2.default.createElement(
+							_materialUi.Card,
+							{ style: this.state.view !== 'individual_edit' ? styles.content[screenWidth] : styles.content.edit[screenWidth] },
+							content
+						)
 					)
 				);
 			}
-	
-			//populate and display modal event view
-			/*showModal() {
-	  	// populate
-	  	let modal = $('#event-modal')
-	  	
-	  	let title = modal.find('.modal-title')
-	  	let body = modal.find('.modal-body')
-	  	
-	  	title.text(this.props.Event_Name)
-	  	body.empty()
-	  	let row = $('<div class="row">')
-	  	let leftCol = $('<div class="col-md-2">')
-	  	let midCol = $('<div class="col-md-1">')
-	  	let rightCol = $('<div class="col-md-9">')
-	  	leftCol.append($('<img src="' + this.props.Image + '">'))
-	  	midCol.append($('<p style="text-align:right">Location:</p>'))
-	  	rightCol.append($('<p>' + this.props.Location + '</p>'))
-	  	midCol.append($('<p style="text-align:right">Date:</p>'))
-	  	rightCol.append($('<p>' + this.props.Date + '</p>'))
-	  	row.append(leftCol)
-	  	row.append(midCol)
-	  	row.append(rightCol)
-	  	body.append(row)
-	  	
-	  	// display
-	  	$(modal).modal('show')
-	  }
-	  
-	  //hide modal event view
-	  hideModal() {
-	  	$('#event-modal').modal('hide')
-	  }
-	  
-	  //save changes from modal editor
-	  saveChanges() {
-	  
-	  }*/
-	
 		}]);
 	
-		return Event;
-	}(_react2.default.Component);
+		return Main;
+	}(_react.Component);
 	
-	exports.default = Event;
+	exports.default = Main;
 
 /***/ },
 /* 180 */
@@ -63670,447 +63743,6 @@
 
 /***/ },
 /* 548 */
-/*!******************************************!*\
-  !*** ./assets/components/EventTable.jsx ***!
-  \******************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(/*! react */ 2);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _materialUi = __webpack_require__(/*! material-ui */ 180);
-	
-	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 549);
-	
-	var _eventActions2 = _interopRequireDefault(_eventActions);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var EventTable = function (_React$Component) {
-		_inherits(EventTable, _React$Component);
-	
-		function EventTable(props) {
-			_classCallCheck(this, EventTable);
-	
-			var _this = _possibleConstructorReturn(this, (EventTable.__proto__ || Object.getPrototypeOf(EventTable)).call(this, props));
-	
-			_this.state = {
-				events: []
-			};
-	
-			_this.addEvent.bind(_this);
-			_this.removeEvent.bind(_this);
-			return _this;
-		}
-	
-		_createClass(EventTable, [{
-			key: 'componentDidMount',
-			value: function componentDidMount() {
-				if (this.props.loadAll) {
-					_eventActions2.default.getAll(function (collection) {
-						var eventArray = [];
-						Object.keys(collection).forEach(function (key, index) {
-							var event = collection[key];
-							event.key = key;
-							eventArray.push(event);
-						});
-						this.addEventArray(eventArray);
-					}.bind(this));
-				} else if (this.props.potentialEvents) {
-					this.addEventArray(this.props.potentialEvents);
-				}
-			}
-		}, {
-			key: 'render',
-			value: function render() {
-				var _this2 = this;
-	
-				if (this.state.events.length) {
-					var _ret = function () {
-						var rows = [];
-						_this2.state.events.forEach(function (event, index) {
-							rows.push(_react2.default.createElement(
-								_materialUi.TableRow,
-								{ key: event.key },
-								_react2.default.createElement(
-									_materialUi.TableRowColumn,
-									null,
-									event.Event_Name
-								),
-								_react2.default.createElement(
-									_materialUi.TableRowColumn,
-									null,
-									event.Date
-								),
-								_this2.props.screenWidth == 'large' && _react2.default.createElement(
-									_materialUi.TableRowColumn,
-									null,
-									event.Location
-								),
-								_this2.props.screenWidth == 'large' && _react2.default.createElement(
-									_materialUi.TableRowColumn,
-									null,
-									event.Address
-								),
-								_this2.props.screenWidth == 'large' && _react2.default.createElement(
-									_materialUi.TableRowColumn,
-									null,
-									event.Short_Description
-								)
-							));
-						});
-	
-						return {
-							v: _react2.default.createElement(
-								_materialUi.Table,
-								{ multiSelectable: true },
-								_react2.default.createElement(
-									_materialUi.TableHeader,
-									{ enableSelectAll: true, displaySelectAll: !_this2.props.potentialEvents },
-									_react2.default.createElement(
-										_materialUi.TableRow,
-										null,
-										_react2.default.createElement(
-											_materialUi.TableHeaderColumn,
-											null,
-											'Event Name'
-										),
-										_react2.default.createElement(
-											_materialUi.TableHeaderColumn,
-											null,
-											'Date'
-										),
-										_this2.props.screenWidth == 'large' && _react2.default.createElement(
-											_materialUi.TableHeaderColumn,
-											null,
-											'Location'
-										),
-										_this2.props.screenWidth == 'large' && _react2.default.createElement(
-											_materialUi.TableHeaderColumn,
-											null,
-											'Address'
-										),
-										_this2.props.screenWidth == 'large' && _react2.default.createElement(
-											_materialUi.TableHeaderColumn,
-											null,
-											'Description'
-										)
-									)
-								),
-								_react2.default.createElement(
-									_materialUi.TableBody,
-									{ displayRowCheckbox: !_this2.props.potentialEvents },
-									rows
-								)
-							)
-						};
-					}();
-	
-					if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
-				} else {
-					return null;
-				}
-			}
-		}, {
-			key: 'addEventArray',
-			value: function addEventArray(eventArray) {
-				this.setState({
-					events: eventArray
-				});
-			}
-		}, {
-			key: 'addEvent',
-			value: function addEvent(event, key) {
-				event.key = key;
-				this.setState({
-					events: this.state.events.concat(event)
-				});
-			}
-		}, {
-			key: 'removeEvent',
-			value: function removeEvent(event) {}
-		}]);
-	
-		return EventTable;
-	}(_react2.default.Component);
-	
-	exports.default = EventTable;
-
-/***/ },
-/* 549 */
-/*!*****************************************!*\
-  !*** ./assets/actions/eventActions.jsx ***!
-  \*****************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	
-	var _firebaseInit = __webpack_require__(/*! ./firebaseInit */ 550);
-	
-	var _firebaseInit2 = _interopRequireDefault(_firebaseInit);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	//initialize database
-	var database = _firebaseInit2.default.database();
-	
-	var eventTable = database.ref("events");
-	
-	var EventActions = {
-		// get all events
-		//	callback args: events, keys
-		getAll: function getAll(callback) {
-			eventTable.on("value", function (snapshot) {
-				var collection = snapshot.val();
-				callback(collection);
-			}, function (error) {
-				console.log("Read error:" + error.code);
-			});
-		},
-	
-		// get a specific event ref
-		get: function get(eventId) {
-			return database.ref('events/' + eventId);
-		},
-	
-		// remove a specific event entry
-		// TODO also remove image
-		remove: function remove(eventId) {
-			var event = undefined.get(eventId);
-			event.remove();
-			return event;
-		},
-	
-		// create new event
-		//  callback args: didSucceed, event
-		createEvent: function createEvent(event, callback) {
-			eventTable.push(event, function (error) {
-				callback(!error, event);
-			});
-		}
-	};
-	
-	//export all event related functionality as a single object
-	exports.default = EventActions;
-
-/***/ },
-/* 550 */
-/*!*****************************************!*\
-  !*** ./assets/actions/firebaseInit.jsx ***!
-  \*****************************************/
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	//import * as firebase from 'firebase'; //using cdn based import from google ver 3.5.1 til blob issue resolved
-	
-	//initialize firebase TODO: pull from a credentials file
-	var firebaseConfig = {
-	  apiKey: "AIzaSyBc6_49WEUZLKCBoR8FFIHAfVjrZasdHlc",
-	  authDomain: "projectnow-964ba.firebaseapp.com",
-	  databaseURL: "https://projectnow-964ba.firebaseio.com",
-	  storageBucket: "projectnow-964ba.appspot.com",
-	  messagingSenderId: "14798821887"
-	};
-	
-	var firebaseApp = firebase.initializeApp(firebaseConfig);
-	exports.default = firebase;
-
-/***/ },
-/* 551 */
-/*!************************************!*\
-  !*** ./assets/components/Main.jsx ***!
-  \************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(/*! react */ 2);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _materialUi = __webpack_require__(/*! material-ui */ 180);
-	
-	var _AppBarWithDrawer = __webpack_require__(/*! ./AppBarWithDrawer */ 552);
-	
-	var _AppBarWithDrawer2 = _interopRequireDefault(_AppBarWithDrawer);
-	
-	var _getMuiTheme = __webpack_require__(/*! material-ui/styles/getMuiTheme */ 440);
-	
-	var _getMuiTheme2 = _interopRequireDefault(_getMuiTheme);
-	
-	var _MuiThemeProvider = __webpack_require__(/*! material-ui/styles/MuiThemeProvider */ 439);
-	
-	var _MuiThemeProvider2 = _interopRequireDefault(_MuiThemeProvider);
-	
-	var _EventTable = __webpack_require__(/*! ./EventTable */ 548);
-	
-	var _EventTable2 = _interopRequireDefault(_EventTable);
-	
-	var _UploadForm = __webpack_require__(/*! ./UploadForm */ 554);
-	
-	var _UploadForm2 = _interopRequireDefault(_UploadForm);
-	
-	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 553);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Main component loaded by app.jsx
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Manages single page application and coordinates with ApplicationState
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
-	
-	
-	var styles = {
-		content: {
-			large: {
-				margin: '5px 10px 5px 266px'
-			},
-			medium: {
-				margin: '5px 10px'
-			}
-		}
-	};
-	
-	var Main = function (_Component) {
-		_inherits(Main, _Component);
-	
-		function Main(props, context) {
-			_classCallCheck(this, Main);
-	
-			var _this = _possibleConstructorReturn(this, (Main.__proto__ || Object.getPrototypeOf(Main)).call(this, props, context));
-	
-			_this.state = {
-				logged_in: true, //default to false later
-				width: window.innerWidth,
-				view: 'manage'
-			};
-	
-			_this.handleResize = _this.handleResize.bind(_this);
-			_this.componentDidMount = _this.componentDidMount.bind(_this);
-			_this.componentWillUnmount = _this.componentWillUnmount.bind(_this);
-			return _this;
-		}
-	
-		_createClass(Main, [{
-			key: 'handleResize',
-			value: function handleResize(e) {
-				this.setState({
-					width: window.innerWidth
-				});
-			}
-		}, {
-			key: 'componentDidMount',
-			value: function componentDidMount() {
-				window.addEventListener('resize', this.handleResize);
-			}
-		}, {
-			key: 'componentWillUnmount',
-			value: function componentWillUnmount() {
-				window.removeEventListener('resize', this.handleResize);
-			}
-		}, {
-			key: 'render',
-			value: function render() {
-				var screenWidth = this.state.width >= 800 ? 'large' : 'medium';
-	
-				var content = void 0;
-				if (this.state.logged_in) {
-					switch (this.state.view) {
-						case 'manage':
-							content = _react2.default.createElement(
-								'div',
-								null,
-								_react2.default.createElement(_materialUi.CardTitle, {
-									title: 'Manage Events',
-									subtitle: 'View and edit pre-existing events' }),
-								_react2.default.createElement(_EventTable2.default, { loadAll: true, screenWidth: screenWidth })
-							);
-							break;
-						case 'import':
-							content = _react2.default.createElement(
-								'div',
-								null,
-								_react2.default.createElement(_materialUi.CardTitle, {
-									title: 'Import Events',
-									subtitle: 'Upload new events to the database in bulk' }),
-								_react2.default.createElement(_UploadForm2.default, { screenWidth: screenWidth })
-							);
-							break;
-						case 'create':
-							content = _react2.default.createElement(_materialUi.CardHeader, {
-								title: 'Create Event',
-								subtitle: 'Not yet implemented' });
-							break;
-						case 'metrics':
-							content = _react2.default.createElement(_materialUi.CardHeader, {
-								title: 'Metrics',
-								subtitle: 'Not yet implemented' });
-					}
-				} else {
-					content = _react2.default.createElement(_materialUi.CardHeader, {
-						title: 'Log in',
-						subtitle: 'Not yet implemented' });
-				}
-	
-				return _react2.default.createElement(
-					_MuiThemeProvider2.default,
-					null,
-					_react2.default.createElement(
-						'div',
-						{ id: 'body' },
-						this.state.logged_in && _react2.default.createElement(_AppBarWithDrawer2.default, { screenWidth: this.state.width }),
-						_react2.default.createElement(
-							_materialUi.Card,
-							{ style: styles.content[screenWidth] },
-							content
-						)
-					)
-				);
-			}
-		}]);
-	
-		return Main;
-	}(_react.Component);
-	
-	exports.default = Main;
-
-/***/ },
-/* 552 */
 /*!************************************************!*\
   !*** ./assets/components/AppBarWithDrawer.jsx ***!
   \************************************************/
@@ -64132,7 +63764,7 @@
 	
 	var _materialUi = __webpack_require__(/*! material-ui */ 180);
 	
-	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 553);
+	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 549);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -64150,6 +63782,9 @@
 			paddingLeft: '276px'
 		},
 		medium: {
+			paddingLeft: '20px'
+		},
+		small: {
 			paddingLeft: '20px'
 		}
 	};
@@ -64268,7 +63903,7 @@
 				return _react2.default.createElement(
 					'div',
 					null,
-					_react2.default.createElement(_materialUi.AppBar, { title: 'Panel',
+					_react2.default.createElement(_materialUi.AppBar, { title: 'Project Now',
 						style: currentStyle,
 						iconElementRight: _react2.default.createElement(
 							_materialUi.FlatButton,
@@ -64288,7 +63923,7 @@
 	exports.default = AppBarWithDrawer;
 
 /***/ },
-/* 553 */
+/* 549 */
 /*!************************************************!*\
   !*** ./assets/components/ApplicationState.jsx ***!
   \************************************************/
@@ -64312,7 +63947,299 @@
 	var State = exports.State = new ApplicationState();
 
 /***/ },
-/* 554 */
+/* 550 */
+/*!******************************************!*\
+  !*** ./assets/components/EventTable.jsx ***!
+  \******************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _materialUi = __webpack_require__(/*! material-ui */ 180);
+	
+	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 551);
+	
+	var _eventActions2 = _interopRequireDefault(_eventActions);
+	
+	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 549);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var EventTable = function (_React$Component) {
+		_inherits(EventTable, _React$Component);
+	
+		function EventTable(props) {
+			_classCallCheck(this, EventTable);
+	
+			var _this = _possibleConstructorReturn(this, (EventTable.__proto__ || Object.getPrototypeOf(EventTable)).call(this, props));
+	
+			_this.state = {
+				events: []
+			};
+	
+			_this.addEvent.bind(_this);
+			_this.removeEvent.bind(_this);
+			return _this;
+		}
+	
+		_createClass(EventTable, [{
+			key: 'componentDidMount',
+			value: function componentDidMount() {
+				if (this.props.manage) {
+					_eventActions2.default.getAllSnapshots(function (collection) {
+						var eventArray = [];
+						Object.keys(collection).forEach(function (key, index) {
+							var event = collection[key];
+							event.key = key;
+							eventArray.push(event);
+						});
+						this.addEventArray(eventArray);
+					}.bind(this));
+				} else if (this.props.potentialEvents) {
+					this.addEventArray(this.props.potentialEvents);
+				}
+			}
+		}, {
+			key: 'addEventArray',
+			value: function addEventArray(eventArray) {
+				this.setState({
+					events: eventArray
+				});
+			}
+		}, {
+			key: 'addEvent',
+			value: function addEvent(event, key) {
+				event.key = key;
+				this.setState({
+					events: this.state.events.concat(event)
+				});
+			}
+		}, {
+			key: 'removeEvent',
+			value: function removeEvent(event) {}
+		}, {
+			key: 'handleRowSelection',
+			value: function handleRowSelection(selectedRows) {
+				var index = selectedRows[0];
+				var event = this.state.events[index];
+				_ApplicationState.State.controller.setState({
+					view: 'individual_edit',
+					viewingEvent: event
+				});
+			}
+		}, {
+			key: 'render',
+			value: function render() {
+				var _this2 = this;
+	
+				if (this.state.events.length) {
+					var _ret = function () {
+						var rows = [];
+						_this2.state.events.forEach(function (event, index) {
+							rows.push(_react2.default.createElement(
+								_materialUi.TableRow,
+								{ key: event.key },
+								_react2.default.createElement(
+									_materialUi.TableRowColumn,
+									null,
+									event.Event_Name
+								),
+								_react2.default.createElement(
+									_materialUi.TableRowColumn,
+									null,
+									event.Date
+								),
+								_this2.props.screenWidth == 'large' && _react2.default.createElement(
+									_materialUi.TableRowColumn,
+									null,
+									event.Location
+								),
+								_this2.props.screenWidth == 'large' && _react2.default.createElement(
+									_materialUi.TableRowColumn,
+									null,
+									event.Address
+								),
+								_this2.props.screenWidth == 'large' && _react2.default.createElement(
+									_materialUi.TableRowColumn,
+									null,
+									event.Short_Description
+								)
+							));
+						});
+	
+						//TODO reenable multiSelectable and selectAll
+						return {
+							v: _react2.default.createElement(
+								_materialUi.Table,
+								{ multiSelectable: false, onRowSelection: _this2.handleRowSelection.bind(_this2) },
+								_react2.default.createElement(
+									_materialUi.TableHeader,
+									{ enableSelectAll: false, displaySelectAll: !_this2.props.potentialEvents },
+									_react2.default.createElement(
+										_materialUi.TableRow,
+										null,
+										_react2.default.createElement(
+											_materialUi.TableHeaderColumn,
+											null,
+											'Event Name'
+										),
+										_react2.default.createElement(
+											_materialUi.TableHeaderColumn,
+											null,
+											'Date'
+										),
+										_this2.props.screenWidth == 'large' && _react2.default.createElement(
+											_materialUi.TableHeaderColumn,
+											null,
+											'Location'
+										),
+										_this2.props.screenWidth == 'large' && _react2.default.createElement(
+											_materialUi.TableHeaderColumn,
+											null,
+											'Address'
+										),
+										_this2.props.screenWidth == 'large' && _react2.default.createElement(
+											_materialUi.TableHeaderColumn,
+											null,
+											'Description'
+										)
+									)
+								),
+								_react2.default.createElement(
+									_materialUi.TableBody,
+									{ displayRowCheckbox: !_this2.props.potentialEvents },
+									rows
+								)
+							)
+						};
+					}();
+	
+					if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+				} else {
+					return null;
+				}
+			}
+		}]);
+	
+		return EventTable;
+	}(_react2.default.Component);
+	
+	exports.default = EventTable;
+
+/***/ },
+/* 551 */
+/*!*****************************************!*\
+  !*** ./assets/actions/eventActions.jsx ***!
+  \*****************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _firebaseInit = __webpack_require__(/*! ./firebaseInit */ 552);
+	
+	var _firebaseInit2 = _interopRequireDefault(_firebaseInit);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	//initialize database
+	var database = _firebaseInit2.default.database();
+	
+	var eventTable = database.ref("events");
+	
+	var EventActions = {
+		// get all events
+		//	callback args: events, keys
+		getAllSnapshots: function getAllSnapshots(callback) {
+			eventTable.on("value", function (snapshot) {
+				var collection = snapshot.val();
+				callback(collection);
+			}, function (error) {
+				console.log("Read error:" + error.code);
+			});
+		},
+	
+		// get a specific event ref
+		getRef: function getRef(eventId) {
+			return database.ref('events/' + eventId);
+		},
+	
+		// get snapshot for event value
+		getSnapshot: function getSnapshot(eventId, callback) {
+			undefined.getRef().once('value', function (snapshot) {
+				callback(snapshot.val());
+			});
+		},
+	
+		// remove a specific event entry
+		// TODO also remove image
+		remove: function remove(eventId) {
+			var event = undefined.getRef(eventId);
+			event.remove();
+			return event;
+		},
+	
+		// create new event
+		//  callback args: didSucceed, event
+		createEvent: function createEvent(event, callback) {
+			eventTable.push(event, function (error) {
+				callback(!error, event);
+			});
+		}
+	};
+	
+	//export all event related functionality as a single object
+	exports.default = EventActions;
+
+/***/ },
+/* 552 */
+/*!*****************************************!*\
+  !*** ./assets/actions/firebaseInit.jsx ***!
+  \*****************************************/
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	//import * as firebase from 'firebase'; //using cdn based import from google ver 3.5.1 til blob issue resolved
+	
+	//initialize firebase TODO: pull from a credentials file
+	var firebaseConfig = {
+	  apiKey: "AIzaSyBc6_49WEUZLKCBoR8FFIHAfVjrZasdHlc",
+	  authDomain: "projectnow-964ba.firebaseapp.com",
+	  databaseURL: "https://projectnow-964ba.firebaseio.com",
+	  storageBucket: "projectnow-964ba.appspot.com",
+	  messagingSenderId: "14798821887"
+	};
+	
+	var firebaseApp = firebase.initializeApp(firebaseConfig);
+	exports.default = firebase;
+
+/***/ },
+/* 553 */
 /*!******************************************!*\
   !*** ./assets/components/UploadForm.jsx ***!
   \******************************************/
@@ -64330,15 +64257,15 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _EventTable = __webpack_require__(/*! ./EventTable */ 548);
+	var _EventTable = __webpack_require__(/*! ./EventTable */ 550);
 	
 	var _EventTable2 = _interopRequireDefault(_EventTable);
 	
-	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 555);
+	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 554);
 	
 	var _storageActions2 = _interopRequireDefault(_storageActions);
 	
-	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 549);
+	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 551);
 	
 	var _eventActions2 = _interopRequireDefault(_eventActions);
 	
@@ -64627,11 +64554,12 @@
 	    State: 'optional',
 	    County: 'optional',
 	    Event_Type: 'optional',
-	    Event_Contact: 'optional',
+	    Email_Contact: 'optional',
 	    Phone_Number: 'optional',
 	    Price: 'optional',
 	    Start_Date: 'optional',
-	    End_Date: 'optional'
+	    End_Date: 'optional',
+	    City: 'optional'
 	};
 	
 	Object.freeze(EventSchema);
@@ -64690,7 +64618,7 @@
 	};
 
 /***/ },
-/* 555 */
+/* 554 */
 /*!*******************************************!*\
   !*** ./assets/actions/storageActions.jsx ***!
   \*******************************************/
@@ -64699,10 +64627,10 @@
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-		value: true
+	    value: true
 	});
 	
-	var _firebaseInit = __webpack_require__(/*! ./firebaseInit */ 550);
+	var _firebaseInit = __webpack_require__(/*! ./firebaseInit */ 552);
 	
 	var _firebaseInit2 = _interopRequireDefault(_firebaseInit);
 	
@@ -64711,30 +64639,274 @@
 	//initialize storage
 	var storage = _firebaseInit2.default.storage();
 	
-	var StorageActions = {};
+	var StorageActions = {
+	    // Upload an Event Image and provide its URL to the callback function
+	    uploadEventImage: function uploadEventImage(file, callback) {
+	        var imageDestination = storage.ref('EventImages/' + generateBase64String(20) + '.jpg');
+	        imageDestination.put(file).then(function (snapshot) {
+	            var fileLocation = snapshot.a.downloadURLs[0];
+	            callback(fileLocation);
+	        });
+	    },
 	
-	// Upload an Event Image and provide its URL to the callback function
-	StorageActions.uploadEventImage = function (file, callback) {
-		var imageDestination = storage.ref('EventImages/' + generateBase64String(20) + '.jpg');
-		imageDestination.put(file).then(function (snapshot) {
-			var fileLocation = snapshot.a.downloadURLs[0];
-			callback(fileLocation);
-		});
+	    // Get image ref
+	    getEventImageRef: function getEventImageRef(fileName) {
+	        return storage.ref('EventImages/' + fileName);
+	    },
+	
+	    // Delete image 
+	    //  execute callback with info about whether the request succeeded
+	    deleteEventImage: function deleteEventImage(imageRef, callback) {
+	        imageRef.delete().then(function () {
+	            callback(true);
+	        }).catch(function (error) {
+	            callback(false);
+	        });
+	    }
 	};
 	
 	// auxiliary function to uploading images
 	var generateBase64String = function generateBase64String(length) {
-		var text = "";
-		var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	    var text = "";
+	    var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	
-		for (var i = 0; i < length; i++) {
-			text += chars.charAt(Math.floor(Math.random() * chars.length));
-		}
-		return text;
+	    for (var i = 0; i < length; i++) {
+	        text += chars.charAt(Math.floor(Math.random() * chars.length));
+	    }
+	    return text;
 	};
 	
 	//export all event related functionality as a single object
 	exports.default = StorageActions;
+
+/***/ },
+/* 555 */
+/*!*******************************************!*\
+  !*** ./assets/components/EventEditor.jsx ***!
+  \*******************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _materialUi = __webpack_require__(/*! material-ui */ 180);
+	
+	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 551);
+	
+	var _eventActions2 = _interopRequireDefault(_eventActions);
+	
+	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 554);
+	
+	var _storageActions2 = _interopRequireDefault(_storageActions);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var styles = {
+	    chooseImageButton: {
+	        margin: '10px'
+	    },
+	    fileInput: {
+	        cursor: 'pointer',
+	        position: 'absolute',
+	        top: 0,
+	        bottom: 0,
+	        right: 0,
+	        left: 0,
+	        width: '100%',
+	        opacity: 0
+	    }
+	};
+	
+	var EventEditor = function (_Component) {
+	    _inherits(EventEditor, _Component);
+	
+	    function EventEditor(props) {
+	        _classCallCheck(this, EventEditor);
+	
+	        var _this = _possibleConstructorReturn(this, (EventEditor.__proto__ || Object.getPrototypeOf(EventEditor)).call(this, props));
+	
+	        _this.state = {
+	            changedSinceSave: false,
+	            newImageURL: null,
+	            oldImageURL: null, //only set when image has been updated but not yet committed
+	            hasImage: !!_this.props.event.Image
+	        };
+	        return _this;
+	    }
+	
+	    _createClass(EventEditor, [{
+	        key: 'onImageInput',
+	        value: function onImageInput(e) {
+	            var _this2 = this;
+	
+	            var newImage = e.target.files[0];
+	            var fr = new FileReader();
+	            fr.onload = function (e) {
+	                var old = _this2.props.event.Image || null;
+	                _this2.props.event.Image = fr.result;
+	                _this2.setState({
+	                    changedSinceSave: true,
+	                    newImage: newImage,
+	                    newImageURL: fr.result,
+	                    oldImageURL: old
+	                });
+	            }.bind(this);
+	            fr.readAsDataURL(newImage);
+	        }
+	
+	        //TODO only updates image for now
+	
+	    }, {
+	        key: 'onSave',
+	        value: function onSave() {
+	            var _this3 = this;
+	
+	            var newImage = this.state.newImage;
+	            var event = this.props.event;
+	            if (this.state.hasImage) {
+	                (function () {
+	                    // delete old image
+	                    var oldURL = _this3.state.oldImageURL;
+	                    var oldImageName = oldURL.substring(oldURL.lastIndexOf('/EventImages%2F') + 15);
+	                    oldImageName = oldImageName.substring(0, oldImageName.indexOf('?'));
+	                    var oldImageRef = _storageActions2.default.getEventImageRef(oldImageName);
+	                    _storageActions2.default.deleteEventImage(oldImageRef, function (success) {
+	                        if (success) {
+	                            console.log('Delete old image: ' + oldImageName);
+	                        } else {
+	                            console.log('Failed to delete old image: ' + oldImageName);
+	                        }
+	                    });
+	                })();
+	            }
+	
+	            //upload new image
+	            _storageActions2.default.uploadEventImage(newImage, function (url) {
+	                // update event to use new image url
+	                var eventRef = _eventActions2.default.getRef(event.key);
+	                eventRef.update({
+	                    Image: url
+	                }).then(function () {
+	                    console.log('Reference updated');
+	                    _this3.setState({
+	                        changedSinceSave: false,
+	                        newImage: false,
+	                        newImageURL: null,
+	                        oldImageURL: null,
+	                        hasImage: true
+	                    });
+	                }).catch(function (error) {
+	                    console.log('Failed to update event');
+	                });
+	            });
+	        }
+	    }, {
+	        key: 'clearChanges',
+	        value: function clearChanges() {
+	            if (this.state.oldImageURL) {
+	                this.props.event.Image = this.state.oldImageURL;
+	            }
+	            this.setState({
+	                changedSinceSave: false,
+	                newImage: false,
+	                newImageURL: null,
+	                oldImageURL: null
+	            });
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var subtitleText = !this.state.changedSinceSave ? 'Up to date' : 'Click Save to commit your changes';
+	            var event = this.props.event;
+	
+	            var header = _react2.default.createElement(
+	                'div',
+	                null,
+	                _react2.default.createElement(_materialUi.CardTitle, {
+	                    title: event.Event_Name,
+	                    titleColor: event.Image ? '#fff' : '#000',
+	                    subtitle: event.Date,
+	                    subtitleColor: event.Image ? '#ddd' : '#222' }),
+	                _react2.default.createElement(_materialUi.CardHeader, {
+	                    title: '@ ' + event.Location,
+	                    titleColor: event.Image ? '#fff' : '#000',
+	                    subtitle: event.Short_Description,
+	                    subtitleColor: event.Image ? '#ccc' : '#333' })
+	            );
+	
+	            var cardImage = null;
+	            var chooseImgText = void 0;
+	            if (event.Image) {
+	                cardImage = _react2.default.createElement(
+	                    _materialUi.CardMedia,
+	                    {
+	                        overlay: header },
+	                    _react2.default.createElement('img', { src: event.Image })
+	                );
+	                chooseImgText = 'Choose image';
+	            } else {
+	                chooseImgText = 'Add an Image';
+	            }
+	            var chooseImageButton = chooseImageButton = _react2.default.createElement(
+	                _materialUi.FlatButton,
+	                {
+	                    label: chooseImgText,
+	                    secondary: true,
+	                    style: styles.chooseImageButton,
+	                    containerElement: 'label' },
+	                _react2.default.createElement('input', {
+	                    id: 'chooseImageInput',
+	                    onChange: this.onImageInput.bind(this),
+	                    type: 'file',
+	                    accept: 'image/*',
+	                    style: styles.fileInput })
+	            );
+	
+	            return _react2.default.createElement(
+	                _materialUi.Card,
+	                null,
+	                _react2.default.createElement(_materialUi.CardTitle, {
+	                    title: 'Editing Event',
+	                    subtitle: subtitleText }),
+	                cardImage,
+	                !event.Image && header,
+	                chooseImageButton,
+	                _react2.default.createElement(
+	                    _materialUi.CardActions,
+	                    null,
+	                    _react2.default.createElement(_materialUi.FlatButton, {
+	                        label: 'Clear Changes',
+	                        disabled: !this.state.changedSinceSave,
+	                        onClick: this.clearChanges.bind(this) }),
+	                    _react2.default.createElement(_materialUi.RaisedButton, {
+	                        label: 'Save',
+	                        primary: true,
+	                        disabled: !this.state.changedSinceSave,
+	                        onClick: this.onSave.bind(this) })
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return EventEditor;
+	}(_react.Component);
+	
+	exports.default = EventEditor;
 
 /***/ },
 /* 556 */

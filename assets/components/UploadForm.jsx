@@ -258,11 +258,12 @@ let EventSchema = {
 	State: 'optional',
 	County: 'optional',
 	Event_Type: 'optional',
-	Event_Contact: 'optional',
+	Email_Contact: 'optional',
 	Phone_Number: 'optional',
 	Price: 'optional',
     Start_Date: 'optional',
-    End_Date: 'optional'
+    End_Date: 'optional',
+    City: 'optional'
 }
 
 Object.freeze(EventSchema)
