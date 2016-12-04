@@ -22085,6 +22085,21 @@
 					margin: '5px 10px'
 				}
 			}
+		},
+		login: {
+			large: {
+				margin: '5px 100px 5px 100px',
+				maxWidth: '600px',
+				minWidth: '400px'
+			},
+			medium: {
+				margin: '5px 50px 5px 50px',
+				maxWidth: '600px',
+				minWidth: '400px'
+			},
+			small: {
+				margin: '5px 10px'
+			}
 		}
 	};
 	
@@ -22129,9 +22144,10 @@
 		}, {
 			key: 'render',
 			value: function render() {
-				var screenWidth = this.state.width >= 800 ? 'large' : this.state.width >= 400 ? 'medium' : 'small';
+				var screenWidth = this.state.width >= 800 ? 'large' : this.state.width >= 600 ? 'medium' : 'small';
 	
-				var content = void 0;
+				var container = null;
+				var content = null;
 				if (this.state.logged_in) {
 					switch (this.state.view) {
 						case 'manage':
@@ -22178,10 +22194,20 @@
 								title: 'Metrics',
 								subtitle: 'Not yet implemented' });
 					}
+					container = _react2.default.createElement(
+						_materialUi.Card,
+						{ style: this.state.view !== 'individual_edit' ? styles.content[screenWidth] : styles.content.edit[screenWidth] },
+						content
+					);
 				} else {
-					content = _react2.default.createElement(_materialUi.CardHeader, {
+					content = _react2.default.createElement(_materialUi.CardTitle, {
 						title: 'Log in',
-						subtitle: 'Not yet implemented' });
+						subtitle: 'Log in to the administrative panel' });
+					container = _react2.default.createElement(
+						_materialUi.Card,
+						{ style: styles.login[screenWidth] },
+						content
+					);
 				}
 	
 				return _react2.default.createElement(
@@ -22191,11 +22217,7 @@
 						'div',
 						{ id: 'body' },
 						this.state.logged_in && _react2.default.createElement(_AppBarWithDrawer2.default, { screenWidth: this.state.width }),
-						_react2.default.createElement(
-							_materialUi.Card,
-							{ style: this.state.view !== 'individual_edit' ? styles.content[screenWidth] : styles.content.edit[screenWidth] },
-							content
-						)
+						container
 					)
 				);
 			}
@@ -63908,7 +63930,7 @@
 						iconElementRight: _react2.default.createElement(
 							_materialUi.FlatButton,
 							null,
-							'Log in'
+							'Log out'
 						),
 						showMenuIconButton: !fullSize,
 						onLeftIconButtonTouchTap: this.onLeftIconButtonTap }),
@@ -64282,12 +64304,12 @@
 	var styles = {
 	    row: {
 	        margin: '0px 20px 20px 20px',
-	        display: 'flex',
-	        flex: 'row wrap',
+	        display: 'inline-block',
 	        padding: '10px'
 	    },
 	    rowItem: {
-	        margin: '5px'
+	        margin: '5px',
+	        float: 'left'
 	    },
 	    fileInput: {
 	        cursor: 'pointer',
@@ -64298,9 +64320,6 @@
 	        left: 0,
 	        width: '100%',
 	        opacity: 0
-	    },
-	    uploadButton: {
-	        margin: '5px 5px 5px 25px'
 	    },
 	    warning: {
 	        backgroundColor: 'rgba(150, 0, 0, 0.4)'
@@ -64517,7 +64536,7 @@
 	                        disabled: !enableUpload,
 	                        label: uploadButtonLabel,
 	                        secondary: true,
-	                        style: styles.uploadButton,
+	                        style: styles.rowItem,
 	                        onClick: this.handleUpload }),
 	                    _react2.default.createElement(_materialUi.Snackbar, {
 	                        open: true,
@@ -64717,8 +64736,14 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	var styles = {
-	    chooseImageButton: {
-	        margin: '10px'
+	    row: {
+	        margin: '0px 20px',
+	        display: 'inline-block',
+	        padding: '10px'
+	    },
+	    rowItem: {
+	        margin: '5px',
+	        float: 'left'
 	    },
 	    fileInput: {
 	        cursor: 'pointer',
@@ -64729,6 +64754,9 @@
 	        left: 0,
 	        width: '100%',
 	        opacity: 0
+	    },
+	    fields: {
+	        margin: '10px'
 	    }
 	};
 	
@@ -64744,7 +64772,9 @@
 	            changedSinceSave: false,
 	            newImageURL: null,
 	            oldImageURL: null, //only set when image has been updated but not yet committed
-	            hasImage: !!_this.props.event.Image
+	            hasImage: !!_this.props.event.Image,
+	            editingText: false,
+	            modifications: {}
 	        };
 	        return _this;
 	    }
@@ -64778,54 +64808,110 @@
 	
 	            var newImage = this.state.newImage;
 	            var event = this.props.event;
-	            if (this.state.hasImage) {
-	                (function () {
-	                    // delete old image
-	                    var oldURL = _this3.state.oldImageURL;
-	                    var oldImageName = oldURL.substring(oldURL.lastIndexOf('/EventImages%2F') + 15);
-	                    oldImageName = oldImageName.substring(0, oldImageName.indexOf('?'));
-	                    var oldImageRef = _storageActions2.default.getEventImageRef(oldImageName);
-	                    _storageActions2.default.deleteEventImage(oldImageRef, function (success) {
-	                        if (success) {
-	                            console.log('Delete old image: ' + oldImageName);
-	                        } else {
-	                            console.log('Failed to delete old image: ' + oldImageName);
-	                        }
-	                    });
-	                })();
-	            }
+	            if (this.state.newImage) {
+	                if (this.state.hasImage) {
+	                    (function () {
+	                        // delete old image
+	                        var oldURL = _this3.state.oldImageURL;
+	                        var oldImageName = oldURL.substring(oldURL.lastIndexOf('/EventImages%2F') + 15);
+	                        oldImageName = oldImageName.substring(0, oldImageName.indexOf('?'));
+	                        var oldImageRef = _storageActions2.default.getEventImageRef(oldImageName);
+	                        _storageActions2.default.deleteEventImage(oldImageRef, function (success) {
+	                            if (success) {
+	                                console.log('Delete old image: ' + oldImageName);
+	                            } else {
+	                                console.log('Failed to delete old image: ' + oldImageName);
+	                            }
+	                        });
+	                    })();
+	                }
 	
-	            //upload new image
-	            _storageActions2.default.uploadEventImage(newImage, function (url) {
-	                // update event to use new image url
-	                var eventRef = _eventActions2.default.getRef(event.key);
-	                eventRef.update({
-	                    Image: url
-	                }).then(function () {
-	                    console.log('Reference updated');
-	                    _this3.setState({
-	                        changedSinceSave: false,
-	                        newImage: false,
-	                        newImageURL: null,
-	                        oldImageURL: null,
-	                        hasImage: true
+	                //upload new image
+	                _storageActions2.default.uploadEventImage(newImage, function (url) {
+	                    // update event to use new image url
+	                    var eventRef = _eventActions2.default.getRef(event.key);
+	                    var changes = _this3.state.modifications;
+	                    changes.Image = url;
+	                    eventRef.update(changes).then(function () {
+	                        console.log('Reference updated');
+	                        // update local copy
+	                        for (var field in changes) {
+	                            _this3.props.event[field] = changes[field];
+	                        }
+	                        _this3.setState({
+	                            changedSinceSave: false,
+	                            newImage: false,
+	                            newImageURL: null,
+	                            oldImageURL: null,
+	                            hasImage: true,
+	                            editingText: false,
+	                            modifications: {}
+	                        });
+	                    }).catch(function (error) {
+	                        console.log('Failed to update event');
 	                    });
-	                }).catch(function (error) {
-	                    console.log('Failed to update event');
 	                });
-	            });
+	            } else {
+	                if (Object.keys(this.state.modifications).length) {
+	                    (function () {
+	                        var eventRef = _eventActions2.default.getRef(event.key);
+	                        var changes = _this3.state.modifications;
+	                        eventRef.update(changes).then(function () {
+	                            console.log('Reference updated');
+	                            //update local copy
+	                            for (var field in changes) {
+	                                _this3.props.event[field] = changes[field];
+	                            }
+	                            _this3.setState({
+	                                changedSinceSave: false,
+	                                editingText: false,
+	                                modifications: {}
+	                            });
+	                        }).catch(function (error) {
+	                            console.log('Failed to update event');
+	                        });
+	                    })();
+	                }
+	            }
 	        }
 	    }, {
 	        key: 'clearChanges',
 	        value: function clearChanges() {
-	            if (this.state.oldImageURL) {
-	                this.props.event.Image = this.state.oldImageURL;
+	            if (!this.state.editingText) {
+	                if (this.state.oldImageURL) {
+	                    this.props.event.Image = this.state.oldImageURL;
+	                }
+	                this.setState({
+	                    changedSinceSave: false,
+	                    newImage: false,
+	                    newImageURL: null,
+	                    oldImageURL: null,
+	                    editingText: false,
+	                    modifications: {}
+	                });
+	            } else {
+	                this.setState({
+	                    editingText: false
+	                });
 	            }
+	        }
+	    }, {
+	        key: 'enterEditTextMode',
+	        value: function enterEditTextMode() {
 	            this.setState({
-	                changedSinceSave: false,
-	                newImage: false,
-	                newImageURL: null,
-	                oldImageURL: null
+	                editingText: true
+	            });
+	        }
+	    }, {
+	        key: 'handleInputChange',
+	        value: function handleInputChange(e) {
+	            var newValue = e.target.value;
+	            var field = e.target.id;
+	            var modifications = this.state.modifications;
+	            modifications[field] = newValue;
+	            this.setState({
+	                changedSinceSave: true,
+	                modifications: modifications
 	            });
 	        }
 	    }, {
@@ -64851,7 +64937,7 @@
 	
 	            var cardImage = null;
 	            var chooseImgText = void 0;
-	            if (event.Image) {
+	            if (!this.state.editingText && event.Image) {
 	                cardImage = _react2.default.createElement(
 	                    _materialUi.CardMedia,
 	                    {
@@ -64863,19 +64949,114 @@
 	                chooseImgText = 'Add an Image';
 	            }
 	            var chooseImageButton = chooseImageButton = _react2.default.createElement(
-	                _materialUi.FlatButton,
-	                {
-	                    label: chooseImgText,
-	                    secondary: true,
-	                    style: styles.chooseImageButton,
-	                    containerElement: 'label' },
-	                _react2.default.createElement('input', {
-	                    id: 'chooseImageInput',
-	                    onChange: this.onImageInput.bind(this),
-	                    type: 'file',
-	                    accept: 'image/*',
-	                    style: styles.fileInput })
+	                'div',
+	                { style: styles.row },
+	                _react2.default.createElement(
+	                    _materialUi.FlatButton,
+	                    {
+	                        label: chooseImgText,
+	                        secondary: true,
+	                        style: styles.rowItem,
+	                        containerElement: 'label' },
+	                    _react2.default.createElement('input', {
+	                        id: 'chooseImageInput',
+	                        onChange: this.onImageInput.bind(this),
+	                        type: 'file',
+	                        accept: 'image/*',
+	                        style: styles.fileInput })
+	                ),
+	                _react2.default.createElement(_materialUi.FlatButton, {
+	                    label: 'Edit Properties',
+	                    primary: true,
+	                    style: styles.rowItem,
+	                    onClick: this.enterEditTextMode.bind(this) })
 	            );
+	
+	            var modifications = this.state.modifications;
+	            var body = this.state.editingText ? _react2.default.createElement(
+	                'div',
+	                { style: styles.fields },
+	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'Address',
+	                    floatingLabelText: 'Address',
+	                    disabled: !this.state.editingText,
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.Address || event.Address,
+	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'Short_Description',
+	                    floatingLabelText: 'Short Description',
+	                    disabled: !this.state.editingText,
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.Short_Description || event.Short_Description,
+	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'Long_Description',
+	                    floatingLabelText: 'Long Description',
+	                    disabled: !this.state.editingText,
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.Long_Description || event.Long_Description,
+	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'Website',
+	                    floatingLabelText: 'Website',
+	                    disabled: !this.state.editingText,
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.Website || event.Website,
+	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'Email_Contact',
+	                    floatingLabelText: 'Email Contact',
+	                    disabled: !this.state.editingText,
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.Email_Contact || event.Email_Contact,
+	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'City',
+	                    floatingLabelText: 'City',
+	                    disabled: !this.state.editingText,
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.City || event.City,
+	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'County',
+	                    floatingLabelText: 'County',
+	                    disabled: !this.state.editingText,
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.County || event.County,
+	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'State',
+	                    floatingLabelText: 'State',
+	                    disabled: !this.state.editingText,
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.State || event.State,
+	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'Status',
+	                    floatingLabelText: 'Status',
+	                    disabled: !this.state.editingText,
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.Status || event.Status,
+	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'Event_Type',
+	                    floatingLabelText: 'Type',
+	                    disabled: !this.state.editingText,
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.Event_Type || event.Event_Type,
+	                    onChange: this.handleInputChange.bind(this) })
+	            ) : null;
 	
 	            return _react2.default.createElement(
 	                _materialUi.Card,
@@ -64884,14 +65065,15 @@
 	                    title: 'Editing Event',
 	                    subtitle: subtitleText }),
 	                cardImage,
-	                !event.Image && header,
-	                chooseImageButton,
+	                !this.state.editingText && !event.Image && header,
+	                !this.state.editingText && chooseImageButton,
+	                body,
 	                _react2.default.createElement(
 	                    _materialUi.CardActions,
 	                    null,
 	                    _react2.default.createElement(_materialUi.FlatButton, {
-	                        label: 'Clear Changes',
-	                        disabled: !this.state.changedSinceSave,
+	                        label: this.state.editingText ? 'Close Editor' : 'Clear Changes',
+	                        disabled: !this.state.changedSinceSave && !this.state.editingText,
 	                        onClick: this.clearChanges.bind(this) }),
 	                    _react2.default.createElement(_materialUi.RaisedButton, {
 	                        label: 'Save',

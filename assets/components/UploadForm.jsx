@@ -13,12 +13,12 @@ import {
 const styles = {
     row: {
         margin: '0px 20px 20px 20px',
-        display: 'flex',
-        flex: 'row wrap',
+        display: 'inline-block',
         padding: '10px'
     },
     rowItem: {
-        margin: '5px'
+        margin: '5px',
+        float: 'left'
     },
     fileInput: {
         cursor: 'pointer',
@@ -29,9 +29,6 @@ const styles = {
         left: 0,
         width: '100%',
         opacity: 0,
-    },
-    uploadButton: {
-        margin: '5px 5px 5px 25px',
     },
     warning: {
         backgroundColor: 'rgba(150, 0, 0, 0.4)'
@@ -224,7 +221,7 @@ class UploadForm extends React.Component {
                         disabled={!enableUpload}
                         label={uploadButtonLabel}
                         secondary={true}
-                        style={styles.uploadButton} 
+                        style={styles.rowItem} 
                         onClick={this.handleUpload} />
                     <Snackbar
                         open={true}

@@ -47,6 +47,21 @@ const styles = {
 				margin: '5px 10px'
 			}
 		}
+	},
+	login: {
+		large: {
+			margin: '5px 100px 5px 100px',
+			maxWidth: '600px',
+			minWidth: '400px'
+		},
+		medium: {
+			margin: '5px 50px 5px 50px',
+			maxWidth: '600px',
+			minWidth: '400px'
+		},
+		small: {
+			margin: '5px 10px'
+		}
 	}
 }
 
@@ -81,9 +96,10 @@ class Main extends Component {
 	}
 
 	render() {
-		let screenWidth = this.state.width >= 800 ? 'large' : this.state.width >= 400 ? 'medium' : 'small'
+		let screenWidth = this.state.width >= 800 ? 'large' : this.state.width >= 600 ? 'medium' : 'small'
 		
-		let content
+		let container = null
+		let content = null
 		if (this.state.logged_in) {
 			switch (this.state.view) {
 				case 'manage':
@@ -136,11 +152,21 @@ class Main extends Component {
 							subtitle="Not yet implemented" />
 					)
 			}
+			container = (
+				<Card style={this.state.view !== 'individual_edit' ? styles.content[screenWidth] : styles.content.edit[screenWidth]}>
+					{content}
+				</Card>
+			)	
 		} else {
 			content = (
-				<CardHeader
+				<CardTitle
 					title="Log in"
-					subtitle="Not yet implemented" />
+					subtitle="Log in to the administrative panel" />
+			)
+			container = (
+				<Card style={styles.login[screenWidth]}>
+					{content}
+				</Card>
 			)
 		}
 	
@@ -149,9 +175,7 @@ class Main extends Component {
 				<div id="body">
 					{this.state.logged_in && 
 						<AppBarWithDrawer screenWidth={this.state.width} />}
-					<Card style={this.state.view !== 'individual_edit' ? styles.content[screenWidth] : styles.content.edit[screenWidth]}>
-						{content}
-					</Card>
+					{container}
 				</div>
 			</MuiThemeProvider>
 		)

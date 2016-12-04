@@ -102,7 +102,7 @@ export default class AppBarWithDrawer extends Component {
 			<div>
 				<AppBar title="Project Now"
 					style={currentStyle}
-					iconElementRight={<FlatButton>Log in</FlatButton>}
+					iconElementRight={<FlatButton>Log out</FlatButton>}
 					showMenuIconButton={!fullSize}
 					onLeftIconButtonTouchTap={this.onLeftIconButtonTap} />
 				{drawer}
