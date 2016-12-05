@@ -69,11 +69,11 @@
 	
 	var _Main2 = _interopRequireDefault(_Main);
 	
-	var _reactTapEventPlugin = __webpack_require__(/*! react-tap-event-plugin */ 556);
+	var _reactTapEventPlugin = __webpack_require__(/*! react-tap-event-plugin */ 558);
 	
 	var _reactTapEventPlugin2 = _interopRequireDefault(_reactTapEventPlugin);
 	
-	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 549);
+	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 551);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -22033,19 +22033,23 @@
 	
 	var _MuiThemeProvider2 = _interopRequireDefault(_MuiThemeProvider);
 	
-	var _EventTable = __webpack_require__(/*! ./EventTable */ 550);
+	var _EventTable = __webpack_require__(/*! ./EventTable */ 552);
 	
 	var _EventTable2 = _interopRequireDefault(_EventTable);
 	
-	var _UploadForm = __webpack_require__(/*! ./UploadForm */ 553);
+	var _UploadForm = __webpack_require__(/*! ./UploadForm */ 554);
 	
 	var _UploadForm2 = _interopRequireDefault(_UploadForm);
 	
-	var _EventEditor = __webpack_require__(/*! ./EventEditor */ 555);
+	var _EventEditor = __webpack_require__(/*! ./EventEditor */ 556);
 	
 	var _EventEditor2 = _interopRequireDefault(_EventEditor);
 	
-	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 549);
+	var _Login = __webpack_require__(/*! ./Login */ 557);
+	
+	var _Login2 = _interopRequireDefault(_Login);
+	
+	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 551);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -22085,21 +22089,6 @@
 					margin: '5px 10px'
 				}
 			}
-		},
-		login: {
-			large: {
-				margin: '5px 100px 5px 100px',
-				maxWidth: '600px',
-				minWidth: '400px'
-			},
-			medium: {
-				margin: '5px 50px 5px 50px',
-				maxWidth: '600px',
-				minWidth: '400px'
-			},
-			small: {
-				margin: '5px 10px'
-			}
 		}
 	};
 	
@@ -22112,7 +22101,8 @@
 			var _this = _possibleConstructorReturn(this, (Main.__proto__ || Object.getPrototypeOf(Main)).call(this, props, context));
 	
 			_this.state = {
-				logged_in: true, //default to false later
+				logged_in: false,
+				currentUser: null,
 				width: window.innerWidth,
 				view: 'manage',
 				viewingEvent: null
@@ -22200,14 +22190,7 @@
 						content
 					);
 				} else {
-					content = _react2.default.createElement(_materialUi.CardTitle, {
-						title: 'Log in',
-						subtitle: 'Log in to the administrative panel' });
-					container = _react2.default.createElement(
-						_materialUi.Card,
-						{ style: styles.login[screenWidth] },
-						content
-					);
+					container = _react2.default.createElement(_Login2.default, { screenWidth: screenWidth });
 				}
 	
 				return _react2.default.createElement(
@@ -22216,7 +22199,9 @@
 					_react2.default.createElement(
 						'div',
 						{ id: 'body' },
-						this.state.logged_in && _react2.default.createElement(_AppBarWithDrawer2.default, { screenWidth: this.state.width }),
+						this.state.logged_in && _react2.default.createElement(_AppBarWithDrawer2.default, {
+							screenWidth: this.state.width,
+							userLabel: this.state.currentUser.First_Name + ' ' + this.state.currentUser.Last_Name }),
 						container
 					)
 				);
@@ -63786,7 +63771,11 @@
 	
 	var _materialUi = __webpack_require__(/*! material-ui */ 180);
 	
-	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 549);
+	var _userActions = __webpack_require__(/*! ../actions/userActions */ 549);
+	
+	var _userActions2 = _interopRequireDefault(_userActions);
+	
+	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 551);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -63850,6 +63839,20 @@
 						view: item.props.value
 					});
 				}
+			}
+		}, {
+			key: 'handleLogOut',
+			value: function handleLogOut() {
+				_userActions2.default.logoutUser(function (success, errMessage) {
+					if (success) {
+						_ApplicationState.State.controller.setState({
+							logged_in: false,
+							currentUser: null
+						});
+					} else {
+						console.error('Error logging out: ' + errMessage);
+					}
+				});
 			}
 		}, {
 			key: 'render',
@@ -63929,7 +63932,8 @@
 						style: currentStyle,
 						iconElementRight: _react2.default.createElement(
 							_materialUi.FlatButton,
-							null,
+							{
+								onClick: this.handleLogOut.bind(this) },
 							'Log out'
 						),
 						showMenuIconButton: !fullSize,
@@ -63946,6 +63950,168 @@
 
 /***/ },
 /* 549 */
+/*!****************************************!*\
+  !*** ./assets/actions/userActions.jsx ***!
+  \****************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _firebaseInit = __webpack_require__(/*! ./firebaseInit */ 550);
+	
+	var _firebaseInit2 = _interopRequireDefault(_firebaseInit);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	//initialize database
+	var database = _firebaseInit2.default.database();
+	
+	var UserActions = {
+	
+	  /*
+	  This function logs a user in to firebase and when successful, it will
+	  update the last login field in the database under the specified user. This
+	  also sets the state of the current user.
+	    callback args: didSucceed, userFromTable/error, authResponse
+	  */
+	  loginUser: function loginUser(user, callback) {
+	    _firebaseInit2.default.auth().signInWithEmailAndPassword(user.email, user.password).then(function (currentUser) {
+	      var ref = database.ref("users/" + _firebaseInit2.default.auth().currentUser.uid);
+	      //update timestamp
+	      ref.update({
+	        Last_Login: _firebaseInit2.default.database.ServerValue.TIMESTAMP
+	      });
+	      ref.once('value').then(function (snapshot) {
+	        callback(true, snapshot.val(), currentUser);
+	      }).catch(function (error) {
+	        var errorCode = error.code;
+	        var errorMessage = error.message;
+	        console.log('ERROR: ' + error.code + ' - ' + error.message);
+	        callback(false, 'USER_NOT_FOUND');
+	      });
+	    }).catch(function (error) {
+	      var errorCode = error.code;
+	      var errorMessage = error.message;
+	      console.log('ERROR: ' + error.code + ' - ' + error.message);
+	      callback(false, 'AUTH');
+	    });
+	  },
+	
+	  getCurrentUser: function getCurrentUser(callback) {
+	    _firebaseInit2.default.auth().onAuthStateChanged(function (user) {
+	      if (user) {
+	        var ref = database.ref("users/" + _firebaseInit2.default.auth().currentUser.uid);
+	        ref.once('value').then(function (snapshot) {
+	          callback(true, snapshot.val(), _firebaseInit2.default.auth().currentUser);
+	        }).catch(function (error) {
+	          var errorCode = error.code;
+	          var errorMessage = error.message;
+	          console.log('ERROR: ' + error.code + ' - ' + error.message);
+	          callback(false, 'USER_NOT_FOUND');
+	        });
+	      } else {
+	        // No user is signed in.
+	        callback(false, 'AUTH');
+	      }
+	    });
+	  },
+	
+	  logoutUser: function logoutUser(callback) {
+	    _firebaseInit2.default.auth().signOut().then(function (currentUser) {
+	      callback(true);
+	    }).catch(function (error) {
+	      var errorCode = error.code;
+	      var errorMessage = error.message;
+	      console.log('ERROR: ' + error.code + ' - ' + error.message);
+	      callback(false, error);
+	    });
+	  }
+	
+	  /*export function signUpUser(user) {
+	    console.log('Signing up user');
+	    console.log("USER!: " + user);
+	    return (dispatch) => {
+	      dispatch(signingUp());
+	      firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
+	        .then(currentUser => {
+	          database.ref('users/' + firebase.auth().currentUser.uid).set({
+	            email: user.email,
+	            //TODO: need to implement first Name and last name fields on sign up.
+	            //firstName: 'Conor',
+	            //lastName: 'Campbell',
+	            registeredUser: true,
+	            adminUser: false,
+	            lastLogin : firebase.database.ServerValue.TIMESTAMP
+	          });
+	          dispatch(stateSignUp(user));
+	        })
+	        .catch(error => {
+	          var errorCode = error.code;
+	          var errorMessage = error.message;
+	          console.log('ERROR: ' + error.code + ' - ' + error.message);
+	        });
+	    };
+	  }*/
+	
+	  //TODO: Test function - this function will have issues with the current
+	  // implementation.
+	  /*export function resetPassword(email) {
+	    console.log('Resetting Password');
+	    return (dispatch) => {
+	      dispatch(resettingPassword());
+	      firebase.auth().sendPasswordResetEmail(email)
+	        .then(currentUser => {
+	        
+	        })
+	        .catch(error => {
+	          var errorCode = error.code;
+	          var errorMessage = error.message;
+	          console.log('ERROR: ' + error.code + ' - ' + error.message);
+	        });
+	    };
+	    firebase.auth().sendPasswordResetEmail(email).catch(function(error) {
+	      var errorCode = error.code;
+	      var errorMessage = error.message;
+	      console.log('ERROR: ' + error.code + ' - ' + error.message);
+	    });
+	    return {}
+	  }*/
+	};
+	
+	exports.default = UserActions;
+
+/***/ },
+/* 550 */
+/*!*****************************************!*\
+  !*** ./assets/actions/firebaseInit.jsx ***!
+  \*****************************************/
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	//import * as firebase from 'firebase'; //using cdn based import from google ver 3.5.1 til blob issue resolved
+	
+	//initialize firebase TODO: pull from a credentials file
+	var firebaseConfig = {
+	  apiKey: "AIzaSyBc6_49WEUZLKCBoR8FFIHAfVjrZasdHlc",
+	  authDomain: "projectnow-964ba.firebaseapp.com",
+	  databaseURL: "https://projectnow-964ba.firebaseio.com",
+	  storageBucket: "projectnow-964ba.appspot.com",
+	  messagingSenderId: "14798821887"
+	};
+	
+	var firebaseApp = firebase.initializeApp(firebaseConfig);
+	exports.default = firebase;
+
+/***/ },
+/* 551 */
 /*!************************************************!*\
   !*** ./assets/components/ApplicationState.jsx ***!
   \************************************************/
@@ -63969,7 +64135,7 @@
 	var State = exports.State = new ApplicationState();
 
 /***/ },
-/* 550 */
+/* 552 */
 /*!******************************************!*\
   !*** ./assets/components/EventTable.jsx ***!
   \******************************************/
@@ -63991,11 +64157,11 @@
 	
 	var _materialUi = __webpack_require__(/*! material-ui */ 180);
 	
-	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 551);
+	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 553);
 	
 	var _eventActions2 = _interopRequireDefault(_eventActions);
 	
-	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 549);
+	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 551);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -64167,7 +64333,7 @@
 	exports.default = EventTable;
 
 /***/ },
-/* 551 */
+/* 553 */
 /*!*****************************************!*\
   !*** ./assets/actions/eventActions.jsx ***!
   \*****************************************/
@@ -64179,7 +64345,7 @@
 		value: true
 	});
 	
-	var _firebaseInit = __webpack_require__(/*! ./firebaseInit */ 552);
+	var _firebaseInit = __webpack_require__(/*! ./firebaseInit */ 550);
 	
 	var _firebaseInit2 = _interopRequireDefault(_firebaseInit);
 	
@@ -64235,33 +64401,7 @@
 	exports.default = EventActions;
 
 /***/ },
-/* 552 */
-/*!*****************************************!*\
-  !*** ./assets/actions/firebaseInit.jsx ***!
-  \*****************************************/
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	//import * as firebase from 'firebase'; //using cdn based import from google ver 3.5.1 til blob issue resolved
-	
-	//initialize firebase TODO: pull from a credentials file
-	var firebaseConfig = {
-	  apiKey: "AIzaSyBc6_49WEUZLKCBoR8FFIHAfVjrZasdHlc",
-	  authDomain: "projectnow-964ba.firebaseapp.com",
-	  databaseURL: "https://projectnow-964ba.firebaseio.com",
-	  storageBucket: "projectnow-964ba.appspot.com",
-	  messagingSenderId: "14798821887"
-	};
-	
-	var firebaseApp = firebase.initializeApp(firebaseConfig);
-	exports.default = firebase;
-
-/***/ },
-/* 553 */
+/* 554 */
 /*!******************************************!*\
   !*** ./assets/components/UploadForm.jsx ***!
   \******************************************/
@@ -64279,15 +64419,15 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _EventTable = __webpack_require__(/*! ./EventTable */ 550);
+	var _EventTable = __webpack_require__(/*! ./EventTable */ 552);
 	
 	var _EventTable2 = _interopRequireDefault(_EventTable);
 	
-	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 554);
+	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 555);
 	
 	var _storageActions2 = _interopRequireDefault(_storageActions);
 	
-	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 551);
+	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 553);
 	
 	var _eventActions2 = _interopRequireDefault(_eventActions);
 	
@@ -64637,7 +64777,7 @@
 	};
 
 /***/ },
-/* 554 */
+/* 555 */
 /*!*******************************************!*\
   !*** ./assets/actions/storageActions.jsx ***!
   \*******************************************/
@@ -64649,7 +64789,7 @@
 	    value: true
 	});
 	
-	var _firebaseInit = __webpack_require__(/*! ./firebaseInit */ 552);
+	var _firebaseInit = __webpack_require__(/*! ./firebaseInit */ 550);
 	
 	var _firebaseInit2 = _interopRequireDefault(_firebaseInit);
 	
@@ -64684,7 +64824,7 @@
 	    }
 	};
 	
-	// auxiliary function to uploading images
+	// auxiliary function for uploading images
 	var generateBase64String = function generateBase64String(length) {
 	    var text = "";
 	    var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -64699,7 +64839,7 @@
 	exports.default = StorageActions;
 
 /***/ },
-/* 555 */
+/* 556 */
 /*!*******************************************!*\
   !*** ./assets/components/EventEditor.jsx ***!
   \*******************************************/
@@ -64719,11 +64859,11 @@
 	
 	var _materialUi = __webpack_require__(/*! material-ui */ 180);
 	
-	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 551);
+	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 553);
 	
 	var _eventActions2 = _interopRequireDefault(_eventActions);
 	
-	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 554);
+	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 555);
 	
 	var _storageActions2 = _interopRequireDefault(_storageActions);
 	
@@ -65091,14 +65231,230 @@
 	exports.default = EventEditor;
 
 /***/ },
-/* 556 */
+/* 557 */
+/*!*************************************!*\
+  !*** ./assets/components/Login.jsx ***!
+  \*************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _materialUi = __webpack_require__(/*! material-ui */ 180);
+	
+	var _userActions = __webpack_require__(/*! ../actions/userActions */ 549);
+	
+	var _userActions2 = _interopRequireDefault(_userActions);
+	
+	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 551);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var styles = {
+	    login: {
+	        large: {
+	            margin: '5px 100px 5px 100px',
+	            maxWidth: '600px',
+	            minWidth: '400px'
+	        },
+	        medium: {
+	            margin: '5px 50px 5px 50px',
+	            maxWidth: '600px',
+	            minWidth: '400px'
+	        },
+	        small: {
+	            margin: '5px 10px'
+	        }
+	    },
+	    row: {
+	        margin: '0px 20px',
+	        display: 'inline-block',
+	        padding: '10px'
+	    },
+	    rowItem: {
+	        margin: '5px',
+	        float: 'left'
+	    },
+	    fields: {
+	        margin: '10px'
+	    }
+	};
+	
+	var Login = function (_Component) {
+	    _inherits(Login, _Component);
+	
+	    function Login(props) {
+	        _classCallCheck(this, Login);
+	
+	        var _this = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this, props));
+	
+	        _this.state = {
+	            status: 'LOGGED_OUT',
+	            user: {
+	                email: null,
+	                password: null
+	            },
+	            //status:
+	            //'LOGGING_IN'
+	            //'LOGIN_FAILED'
+	            //'LOGIN_SUCCEEDED'
+	            errorText: {}
+	        };
+	        return _this;
+	    }
+	
+	    _createClass(Login, [{
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            var _this2 = this;
+	
+	            _userActions2.default.getCurrentUser(function (success, content) {
+	                if (success) {
+	                    _this2.setState({
+	                        status: 'LOGIN_SUCCEEDED',
+	                        user: null,
+	                        errorText: {}
+	                    });
+	                    _ApplicationState.State.controller.setState({
+	                        logged_in: true,
+	                        currentUser: content
+	                    });
+	                }
+	            });
+	        }
+	    }, {
+	        key: 'onEmailChange',
+	        value: function onEmailChange(e) {
+	            var user = this.state.user;
+	            user.email = e.target.value;
+	            this.setState({
+	                user: user,
+	                errorText: {}
+	            });
+	        }
+	    }, {
+	        key: 'onPasswordChange',
+	        value: function onPasswordChange(e) {
+	            var user = this.state.user;
+	            user.password = e.target.value;
+	            this.setState({
+	                user: user,
+	                errorText: {}
+	            });
+	        }
+	    }, {
+	        key: 'attemptLogin',
+	        value: function attemptLogin() {
+	            var _this3 = this;
+	
+	            this.setState({
+	                status: 'LOGGING_IN'
+	            });
+	            _userActions2.default.loginUser(this.state.user, function (success, content, authResponse) {
+	                if (success) {
+	                    _this3.setState({
+	                        status: 'LOGIN_SUCCEEDED',
+	                        user: null,
+	                        errorText: {}
+	                    });
+	                    _ApplicationState.State.controller.setState({
+	                        logged_in: true,
+	                        currentUser: content
+	                    });
+	                } else {
+	                    if (content == 'AUTH') {
+	                        _this3.setState({
+	                            status: 'LOGIN_FAILED',
+	                            errorText: {
+	                                auth: 'The email address or password is incorrect'
+	                            }
+	                        });
+	                    } else if (content == 'USER_NOT_FOUND') {
+	                        _this3.setState({
+	                            status: 'LOGIN_FAILED',
+	                            errorText: {
+	                                user: 'User not found.'
+	                            }
+	                        });
+	                    }
+	                }
+	            });
+	        }
+	    }, {
+	        key: 'onSignUpClick',
+	        value: function onSignUpClick() {}
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            return _react2.default.createElement(
+	                _materialUi.Card,
+	                { style: styles.login[this.props.screenWidth] },
+	                _react2.default.createElement(_materialUi.CardTitle, {
+	                    title: 'Log in',
+	                    subtitle: 'Log in to the administrative panel' }),
+	                _react2.default.createElement(
+	                    'div',
+	                    { style: styles.fields },
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        floatingLabelText: 'User Email',
+	                        fullWidth: true,
+	                        onChange: this.onEmailChange.bind(this),
+	                        errorText: this.state.errorText.user }),
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        floatingLabelText: 'Password',
+	                        fullWidth: true,
+	                        type: 'password',
+	                        onChange: this.onPasswordChange.bind(this),
+	                        errorText: this.state.errorText.auth })
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { style: styles.row },
+	                    _react2.default.createElement(_materialUi.FlatButton, {
+	                        label: 'Sign Up',
+	                        style: styles.rowItem,
+	                        secondary: true,
+	                        onClick: this.onSignUpClick.bind(this),
+	                        disabled: true }),
+	                    _react2.default.createElement(_materialUi.RaisedButton, {
+	                        label: 'Log in',
+	                        style: styles.rowItem,
+	                        primary: true,
+	                        onClick: this.attemptLogin.bind(this) })
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return Login;
+	}(_react.Component);
+	
+	exports.default = Login;
+
+/***/ },
+/* 558 */
 /*!**************************************************************!*\
   !*** ./~/react-tap-event-plugin/src/injectTapEventPlugin.js ***!
   \**************************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {var invariant = __webpack_require__(/*! fbjs/lib/invariant */ 557);
-	var defaultClickRejectionStrategy = __webpack_require__(/*! ./defaultClickRejectionStrategy */ 558);
+	/* WEBPACK VAR INJECTION */(function(process) {var invariant = __webpack_require__(/*! fbjs/lib/invariant */ 559);
+	var defaultClickRejectionStrategy = __webpack_require__(/*! ./defaultClickRejectionStrategy */ 560);
 	
 	var alreadyInjected = false;
 	
@@ -65120,14 +65476,14 @@
 	  alreadyInjected = true;
 	
 	  __webpack_require__(/*! react-dom/lib/EventPluginHub */ 43).injection.injectEventPluginsByName({
-	    'TapEventPlugin':       __webpack_require__(/*! ./TapEventPlugin.js */ 559)(shouldRejectClick)
+	    'TapEventPlugin':       __webpack_require__(/*! ./TapEventPlugin.js */ 561)(shouldRejectClick)
 	  });
 	};
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./~/process/browser.js */ 4)))
 
 /***/ },
-/* 557 */
+/* 559 */
 /*!**********************************************************!*\
   !*** ./~/react-tap-event-plugin/~/fbjs/lib/invariant.js ***!
   \**********************************************************/
@@ -65185,7 +65541,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./~/process/browser.js */ 4)))
 
 /***/ },
-/* 558 */
+/* 560 */
 /*!***********************************************************************!*\
   !*** ./~/react-tap-event-plugin/src/defaultClickRejectionStrategy.js ***!
   \***********************************************************************/
@@ -65199,7 +65555,7 @@
 
 
 /***/ },
-/* 559 */
+/* 561 */
 /*!********************************************************!*\
   !*** ./~/react-tap-event-plugin/src/TapEventPlugin.js ***!
   \********************************************************/
@@ -65230,10 +65586,10 @@
 	var EventPluginUtils = __webpack_require__(/*! react-dom/lib/EventPluginUtils */ 45);
 	var EventPropagators = __webpack_require__(/*! react-dom/lib/EventPropagators */ 42);
 	var SyntheticUIEvent = __webpack_require__(/*! react-dom/lib/SyntheticUIEvent */ 76);
-	var TouchEventUtils = __webpack_require__(/*! ./TouchEventUtils */ 560);
+	var TouchEventUtils = __webpack_require__(/*! ./TouchEventUtils */ 562);
 	var ViewportMetrics = __webpack_require__(/*! react-dom/lib/ViewportMetrics */ 77);
 	
-	var keyOf = __webpack_require__(/*! fbjs/lib/keyOf */ 561);
+	var keyOf = __webpack_require__(/*! fbjs/lib/keyOf */ 563);
 	var topLevelTypes = EventConstants.topLevelTypes;
 	
 	var isStartish = EventPluginUtils.isStartish;
@@ -65379,7 +65735,7 @@
 
 
 /***/ },
-/* 560 */
+/* 562 */
 /*!*********************************************************!*\
   !*** ./~/react-tap-event-plugin/src/TouchEventUtils.js ***!
   \*********************************************************/
@@ -65430,7 +65786,7 @@
 
 
 /***/ },
-/* 561 */
+/* 563 */
 /*!******************************************************!*\
   !*** ./~/react-tap-event-plugin/~/fbjs/lib/keyOf.js ***!
   \******************************************************/

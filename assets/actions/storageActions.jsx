@@ -29,7 +29,7 @@ const StorageActions = {
     }
 }
 
-// auxiliary function to uploading images
+// auxiliary function for uploading images
 let generateBase64String = (length) => {
 	let text = ""
 	let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"

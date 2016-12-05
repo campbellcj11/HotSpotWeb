@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import {indigo500} from 'material-ui/styles/colors'
 import {AppBar, Drawer, Menu, FlatButton, MenuItem} from 'material-ui'
+import UserActions from '../actions/userActions'
 import {State} from './ApplicationState'
 
 const styles = {
@@ -48,6 +49,19 @@ export default class AppBarWithDrawer extends Component {
 				view: item.props.value
 			})
 		}
+	}
+
+	handleLogOut() {
+		UserActions.logoutUser((success, errMessage) => {
+			if (success) {
+				State.controller.setState({
+					logged_in: false,
+					currentUser: null
+				})
+			} else {
+				console.error('Error logging out: ' + errMessage)
+			}
+		})
 	}
 	
 	render() {
@@ -102,7 +116,11 @@ export default class AppBarWithDrawer extends Component {
 			<div>
 				<AppBar title="Project Now"
 					style={currentStyle}
-					iconElementRight={<FlatButton>Log out</FlatButton>}
+					iconElementRight={
+						<FlatButton
+							onClick={this.handleLogOut.bind(this)} >
+							Log out
+						</FlatButton>}
 					showMenuIconButton={!fullSize}
 					onLeftIconButtonTouchTap={this.onLeftIconButtonTap} />
 				{drawer}

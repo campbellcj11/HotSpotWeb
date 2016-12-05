@@ -19,6 +19,7 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import EventTable from './EventTable'
 import UploadForm from './UploadForm'
 import EventEditor from './EventEditor'
+import Login from './Login'
 import {State} from './ApplicationState'
 
 const styles = {
@@ -47,21 +48,6 @@ const styles = {
 				margin: '5px 10px'
 			}
 		}
-	},
-	login: {
-		large: {
-			margin: '5px 100px 5px 100px',
-			maxWidth: '600px',
-			minWidth: '400px'
-		},
-		medium: {
-			margin: '5px 50px 5px 50px',
-			maxWidth: '600px',
-			minWidth: '400px'
-		},
-		small: {
-			margin: '5px 10px'
-		}
 	}
 }
 
@@ -70,7 +56,8 @@ class Main extends Component {
 		super(props, context)
 		
 		this.state = {
-			logged_in: true, //default to false later
+			logged_in: false,
+			currentUser: null,
 			width: window.innerWidth,
 			view: 'manage',
 			viewingEvent: null
@@ -158,23 +145,17 @@ class Main extends Component {
 				</Card>
 			)	
 		} else {
-			content = (
-				<CardTitle
-					title="Log in"
-					subtitle="Log in to the administrative panel" />
-			)
-			container = (
-				<Card style={styles.login[screenWidth]}>
-					{content}
-				</Card>
-			)
+			container = <Login screenWidth={screenWidth} />
 		}
 	
 		return (
 			<MuiThemeProvider>
 				<div id="body">
 					{this.state.logged_in && 
-						<AppBarWithDrawer screenWidth={this.state.width} />}
+						<AppBarWithDrawer
+							screenWidth={this.state.width}
+							userLabel={this.state.currentUser.First_Name + ' ' +
+								this.state.currentUser.Last_Name} /> }
 					{container}
 				</div>
 			</MuiThemeProvider>
