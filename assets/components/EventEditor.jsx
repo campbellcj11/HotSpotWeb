@@ -38,6 +38,8 @@ const styles = {
     }
 }
 
+let inputTimeouts = {}
+
 class EventEditor extends Component {
     constructor(props) {
         super(props)
@@ -163,12 +165,16 @@ class EventEditor extends Component {
     handleInputChange(e) {
         let newValue = e.target.value
         let field = e.target.id
-        let modifications = this.state.modifications
-        modifications[field] = newValue
-        this.setState({
-            changedSinceSave: true,
-            modifications: modifications
-        })
+        // prevent rapid setState calls when typing
+        clearTimeout(inputTimeouts[field])
+        inputTimeouts[field] = setTimeout(() => {
+            let modifications = this.state.modifications
+            modifications[field] = newValue
+            this.setState({
+                changedSinceSave: true,
+                modifications: modifications
+            })
+        }, 1000)
     }
 
     render() {
@@ -204,27 +210,25 @@ class EventEditor extends Component {
             chooseImgText = 'Add an Image'
         }
         let chooseImageButton = (
-            chooseImageButton = (
-                <div style={styles.row}>
-                    <FlatButton
-                        label={chooseImgText}
-                        secondary={true}
-                        style={styles.rowItem} 
-                        containerElement="label" >
-                            <input
-                                id="chooseImageInput"
-                                onChange={this.onImageInput.bind(this)}
-                                type="file"
-                                accept="image/*"
-                                style={styles.fileInput} /> 
-                    </FlatButton>
-                    <FlatButton
-                        label="Edit Properties"
-                        primary={true}
-                        style={styles.rowItem}
-                        onClick={this.enterEditTextMode.bind(this)} />
-                </div>
-            )
+            <div style={styles.row}>
+                <FlatButton
+                    label={chooseImgText}
+                    secondary={true}
+                    style={styles.rowItem} 
+                    containerElement="label" >
+                        <input
+                            id="chooseImageInput"
+                            onChange={this.onImageInput.bind(this)}
+                            type="file"
+                            accept="image/*"
+                            style={styles.fileInput} /> 
+                </FlatButton>
+                <FlatButton
+                    label="Edit Properties"
+                    primary={true}
+                    style={styles.rowItem}
+                    onClick={this.enterEditTextMode.bind(this)} />
+            </div>
         )
 
         let modifications = this.state.modifications
@@ -316,7 +320,7 @@ class EventEditor extends Component {
         return (
             <Card>
                 <CardTitle
-                    title={'Editing Event'}
+                    title={'Edit Event'}
                     subtitle={subtitleText} />
                 {cardImage}
                 {!this.state.editingText && !event.Image && header}

@@ -3,6 +3,7 @@
  * Manages single page application and coordinates with ApplicationState
  */
 import React, {Component} from 'react'
+// MUI
 import {
 	Dialog,
 	RaisedButton,
@@ -16,9 +17,11 @@ import {
 import AppBarWithDrawer from './AppBarWithDrawer'
 import getMuiTheme from 'material-ui/styles/getMuiTheme'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
+// First Party
 import EventTable from './EventTable'
 import UploadForm from './UploadForm'
 import EventEditor from './EventEditor'
+import EventCreator from './EventCreator'
 import Login from './Login'
 import {State} from './ApplicationState'
 
@@ -111,21 +114,9 @@ class Main extends Component {
 					break
 				case 'create':
 					content = (
-						<CardHeader
-							title="Create Event"
-							subtitle="Not yet implemented" />
+						<EventCreator screenWidth={screenWidth} />
 					)
 					break
-				case 'individual_view': {
-					content = (
-						<CardHeader
-							title="View Event"
-							subtitle="Not yet implemented" />
-					)
-						//<EventViewer event={this.state.viewingEventKey} />
-					//)
-					break
-				}
 				case 'individual_edit': {
 					content = (
 						<EventEditor event={this.state.viewingEvent} screenWidth={screenWidth} />

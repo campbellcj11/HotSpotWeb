@@ -4,7 +4,8 @@ import {
     CardTitle,
     TextField,
     FlatButton,
-    RaisedButton
+    RaisedButton,
+    CircularProgress
 } from 'material-ui'
 import UserActions from '../actions/userActions'
 import {State} from './ApplicationState'
@@ -36,6 +37,16 @@ const styles = {
     },
     fields: {
         margin: '10px'
+    },
+    progressContainer: {
+        height: '100%',
+        width: '100%',
+        position: 'relative'
+    },
+    loadIndicator: {
+        marginLeft: '50%',
+        left: '-50px',
+        top: '25px'
     }
 }
 
@@ -44,6 +55,7 @@ class Login extends Component {
         super(props)
         this.state = {
             status: 'LOGGED_OUT',
+            loading: true,
             user: {
                 email: null,
                 password: null
@@ -56,7 +68,7 @@ class Login extends Component {
         }
     }
 
-    componentDidMount() {
+    componentWillMount() {
         UserActions.getCurrentUser((success, content) => {
             if (success) {
                 this.setState({
@@ -67,6 +79,10 @@ class Login extends Component {
                 State.controller.setState({
                     logged_in: true,
                     currentUser: content
+                })
+            } else {
+                this.setState({
+                    loading: false
                 })
             }
         })
@@ -130,39 +146,50 @@ class Login extends Component {
     }
     
     render() {
-        return (
-            <Card style={styles.login[this.props.screenWidth]}>
-                <CardTitle
-                    title="Log in"
-                    subtitle="Log in to the administrative panel" />
-                <div style={styles.fields}>
-                    <TextField
-                        floatingLabelText="User Email"
-                        fullWidth={true}
-                        onChange={this.onEmailChange.bind(this)}
-                        errorText={this.state.errorText.user} />
-                    <TextField
-                        floatingLabelText="Password"
-                        fullWidth={true}
-                        type="password"
-                        onChange={this.onPasswordChange.bind(this)}
-                        errorText={this.state.errorText.auth} />
+        if (this.state.loading) {
+            return (
+                <div style={styles.progressContainer}>
+                    <CircularProgress
+                        size={80}
+                        thickness={5}
+                        style={styles.loadIndicator} />
                 </div>
-                <div style={styles.row}>
-                    <FlatButton
-                        label="Sign Up"
-                        style={styles.rowItem}
-                        secondary={true}
-                        onClick={this.onSignUpClick.bind(this)}
-                        disabled={true} />
-                    <RaisedButton
-                        label="Log in"
-                        style={styles.rowItem}
-                        primary={true}
-                        onClick={this.attemptLogin.bind(this)} />
-                </div>
-            </Card>
-        )
+            )
+        } else {
+            return (
+                <Card style={styles.login[this.props.screenWidth]}>
+                    <CardTitle
+                        title="Log in"
+                        subtitle="Log in to the administrative panel" />
+                    <div style={styles.fields}>
+                        <TextField
+                            floatingLabelText="User Email"
+                            fullWidth={true}
+                            onChange={this.onEmailChange.bind(this)}
+                            errorText={this.state.errorText.user} />
+                        <TextField
+                            floatingLabelText="Password"
+                            fullWidth={true}
+                            type="password"
+                            onChange={this.onPasswordChange.bind(this)}
+                            errorText={this.state.errorText.auth} />
+                    </div>
+                    <div style={styles.row}>
+                        <FlatButton
+                            label="Sign Up"
+                            style={styles.rowItem}
+                            secondary={true}
+                            onClick={this.onSignUpClick.bind(this)}
+                            disabled={true} />
+                        <RaisedButton
+                            label="Log in"
+                            style={styles.rowItem}
+                            primary={true}
+                            onClick={this.attemptLogin.bind(this)} />
+                    </div>
+                </Card>
+            )
+        }
     }
 }
 

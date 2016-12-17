@@ -69,7 +69,7 @@
 	
 	var _Main2 = _interopRequireDefault(_Main);
 	
-	var _reactTapEventPlugin = __webpack_require__(/*! react-tap-event-plugin */ 558);
+	var _reactTapEventPlugin = __webpack_require__(/*! react-tap-event-plugin */ 559);
 	
 	var _reactTapEventPlugin2 = _interopRequireDefault(_reactTapEventPlugin);
 	
@@ -22045,7 +22045,11 @@
 	
 	var _EventEditor2 = _interopRequireDefault(_EventEditor);
 	
-	var _Login = __webpack_require__(/*! ./Login */ 557);
+	var _EventCreator = __webpack_require__(/*! ./EventCreator */ 557);
+	
+	var _EventCreator2 = _interopRequireDefault(_EventCreator);
+	
+	var _Login = __webpack_require__(/*! ./Login */ 558);
 	
 	var _Login2 = _interopRequireDefault(_Login);
 	
@@ -22061,6 +22065,10 @@
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Main component loaded by app.jsx
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Manages single page application and coordinates with ApplicationState
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+	
+	// MUI
+	
+	// First Party
 	
 	
 	var styles = {
@@ -22161,19 +22169,8 @@
 							);
 							break;
 						case 'create':
-							content = _react2.default.createElement(_materialUi.CardHeader, {
-								title: 'Create Event',
-								subtitle: 'Not yet implemented' });
+							content = _react2.default.createElement(_EventCreator2.default, { screenWidth: screenWidth });
 							break;
-						case 'individual_view':
-							{
-								content = _react2.default.createElement(_materialUi.CardHeader, {
-									title: 'View Event',
-									subtitle: 'Not yet implemented' });
-								//<EventViewer event={this.state.viewingEventKey} />
-								//)
-								break;
-							}
 						case 'individual_edit':
 							{
 								content = _react2.default.createElement(_EventEditor2.default, { event: this.state.viewingEvent, screenWidth: screenWidth });
@@ -64900,6 +64897,8 @@
 	    }
 	};
 	
+	var inputTimeouts = {};
+	
 	var EventEditor = function (_Component) {
 	    _inherits(EventEditor, _Component);
 	
@@ -65045,14 +65044,20 @@
 	    }, {
 	        key: 'handleInputChange',
 	        value: function handleInputChange(e) {
+	            var _this4 = this;
+	
 	            var newValue = e.target.value;
 	            var field = e.target.id;
-	            var modifications = this.state.modifications;
-	            modifications[field] = newValue;
-	            this.setState({
-	                changedSinceSave: true,
-	                modifications: modifications
-	            });
+	            // prevent rapid setState calls when typing
+	            clearTimeout(inputTimeouts[field]);
+	            inputTimeouts[field] = setTimeout(function () {
+	                var modifications = _this4.state.modifications;
+	                modifications[field] = newValue;
+	                _this4.setState({
+	                    changedSinceSave: true,
+	                    modifications: modifications
+	                });
+	            }, 1000);
 	        }
 	    }, {
 	        key: 'render',
@@ -65088,7 +65093,7 @@
 	            } else {
 	                chooseImgText = 'Add an Image';
 	            }
-	            var chooseImageButton = chooseImageButton = _react2.default.createElement(
+	            var chooseImageButton = _react2.default.createElement(
 	                'div',
 	                { style: styles.row },
 	                _react2.default.createElement(
@@ -65202,7 +65207,7 @@
 	                _materialUi.Card,
 	                null,
 	                _react2.default.createElement(_materialUi.CardTitle, {
-	                    title: 'Editing Event',
+	                    title: 'Edit Event',
 	                    subtitle: subtitleText }),
 	                cardImage,
 	                !this.state.editingText && !event.Image && header,
@@ -65232,6 +65237,259 @@
 
 /***/ },
 /* 557 */
+/*!********************************************!*\
+  !*** ./assets/components/EventCreator.jsx ***!
+  \********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _materialUi = __webpack_require__(/*! material-ui */ 180);
+	
+	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 553);
+	
+	var _eventActions2 = _interopRequireDefault(_eventActions);
+	
+	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 555);
+	
+	var _storageActions2 = _interopRequireDefault(_storageActions);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var styles = {
+	    row: {
+	        margin: '0px 20px',
+	        display: 'inline-block',
+	        padding: '10px'
+	    },
+	    rowItem: {
+	        margin: '5px',
+	        float: 'left'
+	    },
+	    fileInput: {
+	        cursor: 'pointer',
+	        position: 'absolute',
+	        top: 0,
+	        bottom: 0,
+	        right: 0,
+	        left: 0,
+	        width: '100%',
+	        opacity: 0
+	    },
+	    fields: {
+	        margin: '10px'
+	    }
+	};
+	
+	var inputTimeouts = {};
+	
+	var EventCreator = function (_Component) {
+	    _inherits(EventCreator, _Component);
+	
+	    function EventCreator(props) {
+	        _classCallCheck(this, EventCreator);
+	
+	        var _this = _possibleConstructorReturn(this, (EventCreator.__proto__ || Object.getPrototypeOf(EventCreator)).call(this, props));
+	
+	        _this.state = {
+	            potentialEvent: {},
+	            tags: [],
+	            imageName: null,
+	            imageURL: null
+	        };
+	        return _this;
+	    }
+	
+	    _createClass(EventCreator, [{
+	        key: 'onImageInput',
+	        value: function onImageInput(e) {
+	            var _this2 = this;
+	
+	            var image = e.target.files[0];
+	            var fr = new FileReader();
+	            fr.onload = function (e) {
+	                _this2.setState({
+	                    imageURL: fr.result,
+	                    imageName: image.name
+	                });
+	            }.bind(this);
+	            fr.readAsDataURL(image);
+	        }
+	    }, {
+	        key: 'handleInputChange',
+	        value: function handleInputChange(e) {
+	            var _this3 = this;
+	
+	            var newValue = e.target.value;
+	            var field = e.target.id;
+	            // prevent rapid setState calls when typing
+	            clearTimeout(inputTimeouts[field]);
+	            inputTimeouts[field] = setTimeout(function () {
+	                var event = _this3.state.potentialEvent;
+	                event[field] = newValue;
+	                _this3.setState({
+	                    potentialEvent: event
+	                });
+	            }, 1000);
+	        }
+	    }, {
+	        key: 'handleDateChange',
+	        value: function handleDateChange(e, date) {
+	            var event = this.state.potentialEvent;
+	            event.Date = date.getTime();
+	            this.setState({
+	                potentialEvent: event
+	            });
+	        }
+	    }, {
+	        key: 'onSave',
+	        value: function onSave() {}
+	
+	        //TODO verify event
+	
+	    }, {
+	        key: 'verify',
+	        value: function verify() {
+	            return true;
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var event = this.state.potentialEvent;
+	
+	            return _react2.default.createElement(
+	                _materialUi.Card,
+	                null,
+	                _react2.default.createElement(_materialUi.CardTitle, {
+	                    title: 'Create Event',
+	                    subtitle: 'Create a new event' }),
+	                _react2.default.createElement(
+	                    'div',
+	                    { style: styles.row },
+	                    _react2.default.createElement(
+	                        _materialUi.FlatButton,
+	                        {
+	                            label: 'Choose Image',
+	                            secondary: true,
+	                            style: styles.rowItem,
+	                            containerElement: 'label' },
+	                        _react2.default.createElement('input', {
+	                            id: 'chooseImageInput',
+	                            onChange: this.onImageInput.bind(this),
+	                            type: 'file',
+	                            accept: 'image/*',
+	                            style: styles.fileInput })
+	                    ),
+	                    this.state.imageName && _react2.default.createElement(
+	                        _materialUi.Chip,
+	                        { style: styles.rowItem },
+	                        this.state.imageName
+	                    )
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { style: styles.fields },
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'Address',
+	                        floatingLabelText: 'Address',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.DatePicker, {
+	                        id: 'Date',
+	                        floatingLabelText: 'Date',
+	                        minDate: new Date(),
+	                        onChange: this.handleDateChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'Short_Description',
+	                        floatingLabelText: 'Short Description',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'Long_Description',
+	                        floatingLabelText: 'Long Description',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'Website',
+	                        floatingLabelText: 'Website',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'Email_Contact',
+	                        floatingLabelText: 'Email Contact',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'City',
+	                        floatingLabelText: 'City',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'County',
+	                        floatingLabelText: 'County',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'State',
+	                        floatingLabelText: 'State',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'Status',
+	                        floatingLabelText: 'Status',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'Event_Type',
+	                        floatingLabelText: 'Type',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) })
+	                ),
+	                _react2.default.createElement(
+	                    _materialUi.CardActions,
+	                    null,
+	                    _react2.default.createElement(_materialUi.RaisedButton, {
+	                        label: 'Submit',
+	                        primary: true,
+	                        onClick: this.onSave.bind(this) })
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return EventCreator;
+	}(_react.Component);
+	
+	exports.default = EventCreator;
+
+/***/ },
+/* 558 */
 /*!*************************************!*\
   !*** ./assets/components/Login.jsx ***!
   \*************************************/
@@ -65292,6 +65550,16 @@
 	    },
 	    fields: {
 	        margin: '10px'
+	    },
+	    progressContainer: {
+	        height: '100%',
+	        width: '100%',
+	        position: 'relative'
+	    },
+	    loadIndicator: {
+	        marginLeft: '50%',
+	        left: '-50px',
+	        top: '25px'
 	    }
 	};
 	
@@ -65305,6 +65573,7 @@
 	
 	        _this.state = {
 	            status: 'LOGGED_OUT',
+	            loading: true,
 	            user: {
 	                email: null,
 	                password: null
@@ -65319,8 +65588,8 @@
 	    }
 	
 	    _createClass(Login, [{
-	        key: 'componentDidMount',
-	        value: function componentDidMount() {
+	        key: 'componentWillMount',
+	        value: function componentWillMount() {
 	            var _this2 = this;
 	
 	            _userActions2.default.getCurrentUser(function (success, content) {
@@ -65333,6 +65602,10 @@
 	                    _ApplicationState.State.controller.setState({
 	                        logged_in: true,
 	                        currentUser: content
+	                    });
+	                } else {
+	                    _this2.setState({
+	                        loading: false
 	                    });
 	                }
 	            });
@@ -65401,43 +65674,54 @@
 	    }, {
 	        key: 'render',
 	        value: function render() {
-	            return _react2.default.createElement(
-	                _materialUi.Card,
-	                { style: styles.login[this.props.screenWidth] },
-	                _react2.default.createElement(_materialUi.CardTitle, {
-	                    title: 'Log in',
-	                    subtitle: 'Log in to the administrative panel' }),
-	                _react2.default.createElement(
+	            if (this.state.loading) {
+	                return _react2.default.createElement(
 	                    'div',
-	                    { style: styles.fields },
-	                    _react2.default.createElement(_materialUi.TextField, {
-	                        floatingLabelText: 'User Email',
-	                        fullWidth: true,
-	                        onChange: this.onEmailChange.bind(this),
-	                        errorText: this.state.errorText.user }),
-	                    _react2.default.createElement(_materialUi.TextField, {
-	                        floatingLabelText: 'Password',
-	                        fullWidth: true,
-	                        type: 'password',
-	                        onChange: this.onPasswordChange.bind(this),
-	                        errorText: this.state.errorText.auth })
-	                ),
-	                _react2.default.createElement(
-	                    'div',
-	                    { style: styles.row },
-	                    _react2.default.createElement(_materialUi.FlatButton, {
-	                        label: 'Sign Up',
-	                        style: styles.rowItem,
-	                        secondary: true,
-	                        onClick: this.onSignUpClick.bind(this),
-	                        disabled: true }),
-	                    _react2.default.createElement(_materialUi.RaisedButton, {
-	                        label: 'Log in',
-	                        style: styles.rowItem,
-	                        primary: true,
-	                        onClick: this.attemptLogin.bind(this) })
-	                )
-	            );
+	                    { style: styles.progressContainer },
+	                    _react2.default.createElement(_materialUi.CircularProgress, {
+	                        size: 80,
+	                        thickness: 5,
+	                        style: styles.loadIndicator })
+	                );
+	            } else {
+	                return _react2.default.createElement(
+	                    _materialUi.Card,
+	                    { style: styles.login[this.props.screenWidth] },
+	                    _react2.default.createElement(_materialUi.CardTitle, {
+	                        title: 'Log in',
+	                        subtitle: 'Log in to the administrative panel' }),
+	                    _react2.default.createElement(
+	                        'div',
+	                        { style: styles.fields },
+	                        _react2.default.createElement(_materialUi.TextField, {
+	                            floatingLabelText: 'User Email',
+	                            fullWidth: true,
+	                            onChange: this.onEmailChange.bind(this),
+	                            errorText: this.state.errorText.user }),
+	                        _react2.default.createElement(_materialUi.TextField, {
+	                            floatingLabelText: 'Password',
+	                            fullWidth: true,
+	                            type: 'password',
+	                            onChange: this.onPasswordChange.bind(this),
+	                            errorText: this.state.errorText.auth })
+	                    ),
+	                    _react2.default.createElement(
+	                        'div',
+	                        { style: styles.row },
+	                        _react2.default.createElement(_materialUi.FlatButton, {
+	                            label: 'Sign Up',
+	                            style: styles.rowItem,
+	                            secondary: true,
+	                            onClick: this.onSignUpClick.bind(this),
+	                            disabled: true }),
+	                        _react2.default.createElement(_materialUi.RaisedButton, {
+	                            label: 'Log in',
+	                            style: styles.rowItem,
+	                            primary: true,
+	                            onClick: this.attemptLogin.bind(this) })
+	                    )
+	                );
+	            }
 	        }
 	    }]);
 	
@@ -65447,14 +65731,14 @@
 	exports.default = Login;
 
 /***/ },
-/* 558 */
+/* 559 */
 /*!**************************************************************!*\
   !*** ./~/react-tap-event-plugin/src/injectTapEventPlugin.js ***!
   \**************************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {var invariant = __webpack_require__(/*! fbjs/lib/invariant */ 559);
-	var defaultClickRejectionStrategy = __webpack_require__(/*! ./defaultClickRejectionStrategy */ 560);
+	/* WEBPACK VAR INJECTION */(function(process) {var invariant = __webpack_require__(/*! fbjs/lib/invariant */ 560);
+	var defaultClickRejectionStrategy = __webpack_require__(/*! ./defaultClickRejectionStrategy */ 561);
 	
 	var alreadyInjected = false;
 	
@@ -65476,14 +65760,14 @@
 	  alreadyInjected = true;
 	
 	  __webpack_require__(/*! react-dom/lib/EventPluginHub */ 43).injection.injectEventPluginsByName({
-	    'TapEventPlugin':       __webpack_require__(/*! ./TapEventPlugin.js */ 561)(shouldRejectClick)
+	    'TapEventPlugin':       __webpack_require__(/*! ./TapEventPlugin.js */ 562)(shouldRejectClick)
 	  });
 	};
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./~/process/browser.js */ 4)))
 
 /***/ },
-/* 559 */
+/* 560 */
 /*!**********************************************************!*\
   !*** ./~/react-tap-event-plugin/~/fbjs/lib/invariant.js ***!
   \**********************************************************/
@@ -65541,7 +65825,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./~/process/browser.js */ 4)))
 
 /***/ },
-/* 560 */
+/* 561 */
 /*!***********************************************************************!*\
   !*** ./~/react-tap-event-plugin/src/defaultClickRejectionStrategy.js ***!
   \***********************************************************************/
@@ -65555,7 +65839,7 @@
 
 
 /***/ },
-/* 561 */
+/* 562 */
 /*!********************************************************!*\
   !*** ./~/react-tap-event-plugin/src/TapEventPlugin.js ***!
   \********************************************************/
@@ -65586,10 +65870,10 @@
 	var EventPluginUtils = __webpack_require__(/*! react-dom/lib/EventPluginUtils */ 45);
 	var EventPropagators = __webpack_require__(/*! react-dom/lib/EventPropagators */ 42);
 	var SyntheticUIEvent = __webpack_require__(/*! react-dom/lib/SyntheticUIEvent */ 76);
-	var TouchEventUtils = __webpack_require__(/*! ./TouchEventUtils */ 562);
+	var TouchEventUtils = __webpack_require__(/*! ./TouchEventUtils */ 563);
 	var ViewportMetrics = __webpack_require__(/*! react-dom/lib/ViewportMetrics */ 77);
 	
-	var keyOf = __webpack_require__(/*! fbjs/lib/keyOf */ 563);
+	var keyOf = __webpack_require__(/*! fbjs/lib/keyOf */ 564);
 	var topLevelTypes = EventConstants.topLevelTypes;
 	
 	var isStartish = EventPluginUtils.isStartish;
@@ -65735,7 +66019,7 @@
 
 
 /***/ },
-/* 562 */
+/* 563 */
 /*!*********************************************************!*\
   !*** ./~/react-tap-event-plugin/src/TouchEventUtils.js ***!
   \*********************************************************/
@@ -65786,7 +66070,7 @@
 
 
 /***/ },
-/* 563 */
+/* 564 */
 /*!******************************************************!*\
   !*** ./~/react-tap-event-plugin/~/fbjs/lib/keyOf.js ***!
   \******************************************************/
