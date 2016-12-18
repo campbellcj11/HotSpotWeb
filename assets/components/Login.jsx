@@ -105,6 +105,12 @@ class Login extends Component {
         })
     }
 
+    checkForEnter(e) {
+        if (e.which == 13 || e.keyCode == 13) {
+            this.attemptLogin()
+        }
+    }
+
     attemptLogin() {
         this.setState({
             status: 'LOGGING_IN',
@@ -165,12 +171,14 @@ class Login extends Component {
                             floatingLabelText="User Email"
                             fullWidth={true}
                             onChange={this.onEmailChange.bind(this)}
+                            onKeyDown={this.checkForEnter.bind(this)}
                             errorText={this.state.errorText.user} />
                         <TextField
                             floatingLabelText="Password"
                             fullWidth={true}
                             type="password"
-                            onChange={this.onPasswordChange.bind(this)}
+                            onChange={this.onPasswordChange.bind(this)}                            onKeyDown={this.checkForEnter.bind(this)}
+                            onKeyDown={this.checkForEnter.bind(this)}
                             errorText={this.state.errorText.auth} />
                     </div>
                     <div style={styles.row}>

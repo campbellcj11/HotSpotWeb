@@ -65383,14 +65383,42 @@
 	        }
 	    }, {
 	        key: 'onSave',
-	        value: function onSave() {}
+	        value: function onSave() {
+	            var check = this.verify();
+	            var event = this.state.potentialEvent;
+	            /*
+	            if (check.succeeded) {
+	                StorageActions.uploadEventImage(this.imageURL, (url) => {
+	                    event.Image = url
+	                    Event.Actions.createEvent(event, (success, event) => {
+	                        if (success) {
+	                            // redirect to event editor page for this event
+	                            State.controller.setState({
+	                                viewingEvent: // this one,
+	                                view: 'individual_edit'
+	                            })
+	                        } else {
+	                            // report failure
+	                            // ? delete image
+	                            // see EventEditor for process
+	                        }
+	                    })
+	                })
+	            } else {
+	                // else update editor to show errors
+	            }
+	            */
+	        }
 	
 	        //TODO verify event
+	        // if not verified, return error information
 	
 	    }, {
 	        key: 'verify',
 	        value: function verify() {
-	            return true;
+	            return {
+	                succeeded: true
+	            };
 	        }
 	    }, {
 	        key: 'render',
@@ -65541,6 +65569,8 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -65654,6 +65684,13 @@
 	            });
 	        }
 	    }, {
+	        key: 'checkForEnter',
+	        value: function checkForEnter(e) {
+	            if (e.which == 13 || e.keyCode == 13) {
+	                this.attemptLogin();
+	            }
+	        }
+	    }, {
 	        key: 'attemptLogin',
 	        value: function attemptLogin() {
 	            var _this3 = this;
@@ -65707,6 +65744,8 @@
 	                        style: styles.loadIndicator })
 	                );
 	            } else {
+	                var _React$createElement;
+	
 	                return _react2.default.createElement(
 	                    _materialUi.Card,
 	                    { style: styles.login[this.props.screenWidth] },
@@ -65720,13 +65759,14 @@
 	                            floatingLabelText: 'User Email',
 	                            fullWidth: true,
 	                            onChange: this.onEmailChange.bind(this),
+	                            onKeyDown: this.checkForEnter.bind(this),
 	                            errorText: this.state.errorText.user }),
-	                        _react2.default.createElement(_materialUi.TextField, {
+	                        _react2.default.createElement(_materialUi.TextField, (_React$createElement = {
 	                            floatingLabelText: 'Password',
 	                            fullWidth: true,
 	                            type: 'password',
-	                            onChange: this.onPasswordChange.bind(this),
-	                            errorText: this.state.errorText.auth })
+	                            onChange: this.onPasswordChange.bind(this), onKeyDown: this.checkForEnter.bind(this)
+	                        }, _defineProperty(_React$createElement, 'onKeyDown', this.checkForEnter.bind(this)), _defineProperty(_React$createElement, 'errorText', this.state.errorText.auth), _React$createElement))
 	                    ),
 	                    _react2.default.createElement(
 	                        'div',

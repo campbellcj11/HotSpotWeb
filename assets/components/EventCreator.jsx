@@ -97,6 +97,10 @@ class EventCreator extends Component {
                 Event.Actions.createEvent(event, (success, event) => {
                     if (success) {
                         // redirect to event editor page for this event
+                        State.controller.setState({
+                            viewingEvent: // this one,
+                            view: 'individual_edit'
+                        })
                     } else {
                         // report failure
                         // ? delete image
@@ -104,9 +108,11 @@ class EventCreator extends Component {
                     }
                 })
             })
+        } else {
+            // else update editor to show errors
         }
         */
-        // else update editor to show errors
+        
     }
 
     //TODO verify event
