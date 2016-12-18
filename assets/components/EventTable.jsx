@@ -5,16 +5,29 @@ import {
 	TableHeader,
 	TableHeaderColumn,
 	TableRow,
-	TableRowColumn
+	TableRowColumn,
+	CircularProgress
 } from 'material-ui';
 import EventActions from '../actions/eventActions'
 import {State} from './ApplicationState'
+
+const styles = {
+	progressContainer: {
+        width: '100%',
+        position: 'relative'
+    },
+    loadIndicator: {
+        marginLeft: '50%',
+        left: '-20px',
+    }
+}
 
 class EventTable extends React.Component {
 	constructor(props) {
 		super(props)
 		this.state = {
-			events: []
+			events: [],
+			loading: true
 		}
 
 		this.addEvent.bind(this)
@@ -31,6 +44,9 @@ class EventTable extends React.Component {
 					eventArray.push(event)
 				})
 				this.addEventArray(eventArray)
+				this.setState({
+					loading: false
+				})
 			}).bind(this))
 		} else if (this.props.potentialEvents) {
 			this.addEventArray(this.props.potentialEvents)
@@ -64,6 +80,15 @@ class EventTable extends React.Component {
 	}
 
 	render() {	
+		if (this.props.manage && this.state.loading) {
+			return (
+				<div style={styles.progressContainer}>
+                    <CircularProgress
+                        size={40}
+                        style={styles.loadIndicator} />
+                </div>
+			)
+		}
 		if (this.state.events.length) {
 			let rows = []
 			this.state.events.forEach((event, index) => {

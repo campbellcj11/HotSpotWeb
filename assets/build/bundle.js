@@ -64168,6 +64168,17 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
+	var styles = {
+		progressContainer: {
+			width: '100%',
+			position: 'relative'
+		},
+		loadIndicator: {
+			marginLeft: '50%',
+			left: '-20px'
+		}
+	};
+	
 	var EventTable = function (_React$Component) {
 		_inherits(EventTable, _React$Component);
 	
@@ -64177,7 +64188,8 @@
 			var _this = _possibleConstructorReturn(this, (EventTable.__proto__ || Object.getPrototypeOf(EventTable)).call(this, props));
 	
 			_this.state = {
-				events: []
+				events: [],
+				loading: true
 			};
 	
 			_this.addEvent.bind(_this);
@@ -64197,6 +64209,9 @@
 							eventArray.push(event);
 						});
 						this.addEventArray(eventArray);
+						this.setState({
+							loading: false
+						});
 					}.bind(this));
 				} else if (this.props.potentialEvents) {
 					this.addEventArray(this.props.potentialEvents);
@@ -64235,6 +64250,15 @@
 			value: function render() {
 				var _this2 = this;
 	
+				if (this.props.manage && this.state.loading) {
+					return _react2.default.createElement(
+						'div',
+						{ style: styles.progressContainer },
+						_react2.default.createElement(_materialUi.CircularProgress, {
+							size: 40,
+							style: styles.loadIndicator })
+					);
+				}
 				if (this.state.events.length) {
 					var _ret = function () {
 						var rows = [];
@@ -65552,7 +65576,6 @@
 	        margin: '10px'
 	    },
 	    progressContainer: {
-	        height: '100%',
 	        width: '100%',
 	        position: 'relative'
 	    },

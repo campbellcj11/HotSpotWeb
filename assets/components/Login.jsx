@@ -39,7 +39,6 @@ const styles = {
         margin: '10px'
     },
     progressContainer: {
-        height: '100%',
         width: '100%',
         position: 'relative'
     },
