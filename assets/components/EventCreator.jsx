@@ -88,12 +88,33 @@ class EventCreator extends Component {
     }
 
     onSave() {
-
+        let check = this.verify()
+        let event = this.state.potentialEvent
+        /*
+        if (check.succeeded) {
+            StorageActions.uploadEventImage(this.imageURL, (url) => {
+                event.Image = url
+                Event.Actions.createEvent(event, (success, event) => {
+                    if (success) {
+                        // redirect to event editor page for this event
+                    } else {
+                        // report failure
+                        // ? delete image
+                        // see EventEditor for process
+                    }
+                })
+            })
+        }
+        */
+        // else update editor to show errors
     }
 
     //TODO verify event
+    // if not verified, return error information
     verify() {
-        return true
+        return {
+            succeeded: true
+        }
     }
 
     render() {
