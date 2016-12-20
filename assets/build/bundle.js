@@ -64410,10 +64410,11 @@
 		},
 	
 		// create new event
-		//  callback args: didSucceed, event
+		//  callback args: didSucceed, event, eventRef
 		createEvent: function createEvent(event, callback) {
-			eventTable.push(event, function (error) {
-				callback(!error, event);
+			var ref = eventTable.push();
+			ref.set(event, function (error) {
+				callback(!error, event, ref);
 			});
 		}
 	};
@@ -65154,6 +65155,13 @@
 	                    defaultValue: modifications.Address || event.Address,
 	                    onChange: this.handleInputChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'Location',
+	                    floatingLabelText: 'Location',
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.Location || event.Location,
+	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'Short_Description',
 	                    floatingLabelText: 'Short Description',
 	                    disabled: !this.state.editingText,
@@ -65288,6 +65296,8 @@
 	
 	var _storageActions2 = _interopRequireDefault(_storageActions);
 	
+	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 551);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -65335,7 +65345,7 @@
 	            potentialEvent: {},
 	            tags: [],
 	            imageName: null,
-	            imageURL: null
+	            image: null
 	        };
 	        return _this;
 	    }
@@ -65343,31 +65353,26 @@
 	    _createClass(EventCreator, [{
 	        key: 'onImageInput',
 	        value: function onImageInput(e) {
-	            var _this2 = this;
-	
 	            var image = e.target.files[0];
 	            var fr = new FileReader();
-	            fr.onload = function (e) {
-	                _this2.setState({
-	                    imageURL: fr.result,
-	                    imageName: image.name
-	                });
-	            }.bind(this);
-	            fr.readAsDataURL(image);
+	            this.setState({
+	                image: image,
+	                imageName: image.name
+	            });
 	        }
 	    }, {
 	        key: 'handleInputChange',
 	        value: function handleInputChange(e) {
-	            var _this3 = this;
+	            var _this2 = this;
 	
 	            var newValue = e.target.value;
 	            var field = e.target.id;
 	            // prevent rapid setState calls when typing
 	            clearTimeout(inputTimeouts[field]);
 	            inputTimeouts[field] = setTimeout(function () {
-	                var event = _this3.state.potentialEvent;
+	                var event = _this2.state.potentialEvent;
 	                event[field] = newValue;
-	                _this3.setState({
+	                _this2.setState({
 	                    potentialEvent: event
 	                });
 	            }, 1000);
@@ -65385,29 +65390,43 @@
 	        key: 'onSave',
 	        value: function onSave() {
 	            var check = this.verify();
-	            var event = this.state.potentialEvent;
-	            /*
+	            var potentialEvent = this.state.potentialEvent;
 	            if (check.succeeded) {
-	                StorageActions.uploadEventImage(this.imageURL, (url) => {
-	                    event.Image = url
-	                    Event.Actions.createEvent(event, (success, event) => {
+	                _storageActions2.default.uploadEventImage(this.state.image, function (url) {
+	                    potentialEvent.Image = url;
+	                    _eventActions2.default.createEvent(potentialEvent, function (success, event, ref) {
 	                        if (success) {
 	                            // redirect to event editor page for this event
-	                            State.controller.setState({
-	                                viewingEvent: // this one,
+	                            event.key = ref.key;
+	                            _ApplicationState.State.controller.setState({
+	                                viewingEvent: event,
 	                                view: 'individual_edit'
-	                            })
+	                            });
 	                        } else {
-	                            // report failure
-	                            // ? delete image
-	                            // see EventEditor for process
+	                            (function () {
+	                                // report failure
+	                                console.error('Failed to create event:');
+	                                console.error(JSON.stringify(potentialEvent, null, '\t'));
+	                                // delete image
+	                                var imageName = url.substring(url.lastIndexOf('/EventImages%2F') + 15);
+	                                imageName = imageName.substring(0, imageName.indexOf('?'));
+	                                var imageRef = _storageActions2.default.getEventImageRef(imageName);
+	                                _storageActions2.default.deleteEventImage(imageRef, function (success, event) {
+	                                    if (success) {
+	                                        console.log('Delete image from failed commit: ' + imageName);
+	                                    } else {
+	                                        console.log('Failed to delete image: ' + imageName);
+	                                    }
+	                                });
+	                            })();
 	                        }
-	                    })
-	                })
+	                    });
+	                });
 	            } else {
-	                // else update editor to show errors
+	                // else update editor to show errors TODO
+	                console.error('Event not verified:');
+	                console.error(JSON.stringify(potentialEvent, null, '\t'));
 	            }
-	            */
 	        }
 	
 	        //TODO verify event
@@ -65468,6 +65487,12 @@
 	                        floatingLabelText: 'Date',
 	                        minDate: new Date(),
 	                        onChange: this.handleDateChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'Location',
+	                        floatingLabelText: 'Location',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) }),
 	                    _react2.default.createElement(_materialUi.TextField, {
 	                        id: 'Short_Description',
 	                        floatingLabelText: 'Short Description',

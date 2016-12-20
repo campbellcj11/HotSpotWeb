@@ -38,10 +38,11 @@ const EventActions = {
 	},
 
 	// create new event
-	//  callback args: didSucceed, event
+	//  callback args: didSucceed, event, eventRef
 	createEvent: (event, callback) => {
-		eventTable.push(event, (error) => {
-			callback(!error, event)
+		let ref = eventTable.push()
+		ref.set(event, (error) => {
+			callback(!error, event, ref)
 		})
 	}
 }

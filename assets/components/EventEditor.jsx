@@ -242,6 +242,13 @@ class EventEditor extends Component {
                     multiLine={true}
                     defaultValue={modifications.Address || event.Address}
                     onChange={this.handleInputChange.bind(this)} />
+                 <TextField
+                    id="Location"
+                    floatingLabelText="Location"
+                    fullWidth={true}
+                    multiLine={true}
+                    defaultValue={modifications.Location || event.Location}
+                    onChange={this.handleInputChange.bind(this)} />
                 <TextField
                     id="Short_Description"
                     floatingLabelText="Short Description"

@@ -14,6 +14,7 @@ import {
 } from 'material-ui'
 import EventActions from '../actions/eventActions'
 import StorageActions from '../actions/storageActions'
+import {State} from './ApplicationState'
 
 const styles = {
     row: {
@@ -49,20 +50,17 @@ class EventCreator extends Component {
             potentialEvent: {},
             tags: [],
             imageName: null,
-            imageURL: null
+            image: null
         }
     }
 
     onImageInput(e) {
         let image = e.target.files[0]
         let fr = new FileReader()
-        fr.onload = ((e) => {
-            this.setState({
-                imageURL: fr.result,
-                imageName: image.name
-            })
-        }).bind(this)
-        fr.readAsDataURL(image)
+        this.setState({
+            image: image,
+            imageName: image.name
+        })
     }
 
     handleInputChange(e) {
@@ -89,29 +87,41 @@ class EventCreator extends Component {
 
     onSave() {
         let check = this.verify()
-        let event = this.state.potentialEvent
-        /*
+        let potentialEvent = this.state.potentialEvent
         if (check.succeeded) {
-            StorageActions.uploadEventImage(this.imageURL, (url) => {
-                event.Image = url
-                Event.Actions.createEvent(event, (success, event) => {
+            StorageActions.uploadEventImage(this.state.image, (url) => {
+                potentialEvent.Image = url
+                EventActions.createEvent(potentialEvent, (success, event, ref) => {
                     if (success) {
                         // redirect to event editor page for this event
+                        event.key = ref.key
                         State.controller.setState({
-                            viewingEvent: // this one,
+                            viewingEvent: event,
                             view: 'individual_edit'
                         })
                     } else {
                         // report failure
-                        // ? delete image
-                        // see EventEditor for process
+                        console.error('Failed to create event:')
+                        console.error(JSON.stringify(potentialEvent, null, '\t'))
+                        // delete image
+                        let imageName = url.substring(url.lastIndexOf('/EventImages%2F') + 15)
+                        imageName = imageName.substring(0, imageName.indexOf('?'))
+                        let imageRef = StorageActions.getEventImageRef(imageName)
+                        StorageActions.deleteEventImage(imageRef, (success, event) => {
+                            if (success) {
+                                console.log('Delete image from failed commit: ' + imageName)
+                            } else {
+                                console.log('Failed to delete image: ' + imageName)
+                            }
+                        })
                     }
                 })
             })
         } else {
-            // else update editor to show errors
+            // else update editor to show errors TODO
+            console.error('Event not verified:')
+            console.error(JSON.stringify(potentialEvent, null, '\t'))
         }
-        */
         
     }
 
@@ -162,6 +172,12 @@ class EventCreator extends Component {
                         floatingLabelText="Date"
                         minDate={new Date()}
                         onChange={this.handleDateChange.bind(this)} />
+                    <TextField
+                        id="Location"
+                        floatingLabelText="Location"
+                        fullWidth={true}
+                        multiLine={true}
+                        onChange={this.handleInputChange.bind(this)} />
                     <TextField
                         id="Short_Description"
                         floatingLabelText="Short Description"
