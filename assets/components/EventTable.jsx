@@ -92,10 +92,11 @@ class EventTable extends React.Component {
 		if (this.state.events.length) {
 			let rows = []
 			this.state.events.forEach((event, index) => {
+				var d = new Date(event.Date)
 				rows.push(
 					<TableRow key={event.key}>
 						<TableRowColumn>{event.Event_Name}</TableRowColumn>
-						<TableRowColumn>{event.Date}</TableRowColumn>
+						<TableRowColumn>{d.toLocaleDateString('en-us') + ' ' + d.toLocaleTimeString('en-us')}</TableRowColumn>
 						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Location}</TableRowColumn>}
 						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Address}</TableRowColumn>}
 						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Short_Description}</TableRowColumn>}

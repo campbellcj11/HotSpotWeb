@@ -118,6 +118,7 @@ class EventEditor extends Component {
             if (Object.keys(this.state.modifications).length) {
                 let eventRef = EventActions.getRef(event.key)
                 let changes = this.state.modifications
+                changes.Sort_Date = event.Date
                 eventRef.update(changes).then(() => {
                     console.log('Reference updated')
                     //update local copy

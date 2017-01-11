@@ -10,7 +10,8 @@ import {
     RaisedButton,
     Chip,
     TextField,
-    DatePicker
+    DatePicker,
+    TimePicker
 } from 'material-ui'
 import EventActions from '../actions/eventActions'
 import StorageActions from '../actions/storageActions'
@@ -50,7 +51,9 @@ class EventCreator extends Component {
             potentialEvent: {},
             tags: [],
             imageName: null,
-            image: null
+            image: null,
+            datePickerVal: new Date(),
+            timePickerVal: new Date()
         }
     }
 
@@ -78,8 +81,31 @@ class EventCreator extends Component {
     }
 
     handleDateChange(e, date) {
+        this.setState({
+            datePickerVal: date
+        })
+        this.mergeTimeAndDate(date, this.state.timePickerVal)
+    }
+
+    handleTimeChange(e, time) {
+        this.setState({
+            timePickerVal: time
+        })
+        this.mergeTimeAndDate(this.state.datePickerVal, time)
+    }
+
+    mergeTimeAndDate(date, time) {
         let event = this.state.potentialEvent
-        event.Date = date.getTime()
+        // TODO consider using UTC values for better cross region compatibility
+        let merged = new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+            time.getHours(),
+            time.getMinutes(),
+            0 // no seconds
+        )
+        event.Date = merged.getTime()
         this.setState({
             potentialEvent: event
         })
@@ -172,6 +198,11 @@ class EventCreator extends Component {
                         floatingLabelText="Date"
                         minDate={new Date()}
                         onChange={this.handleDateChange.bind(this)} />
+                    <TimePicker
+                        id="Time"
+                        floatingLabelText="Time"
+                        pedantic={true}
+                        onChange={this.handleTimeChange.bind(this)} />
                     <TextField
                         id="Location"
                         floatingLabelText="Location"
