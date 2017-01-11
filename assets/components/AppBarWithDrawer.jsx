@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-import {indigo500} from 'material-ui/styles/colors'
 import {AppBar, Drawer, Menu, FlatButton, MenuItem} from 'material-ui'
 import UserActions from '../actions/userActions'
 import {State} from './ApplicationState'
@@ -49,6 +48,7 @@ export default class AppBarWithDrawer extends Component {
 				view: item.props.value
 			})
 		}
+		this.closeDrawer()
 	}
 
 	handleLogOut() {
@@ -106,7 +106,7 @@ export default class AppBarWithDrawer extends Component {
 		}
 		let drawer = showDrawer ? (
 			<Drawer>
-				<Menu onItemTouchTap={this.onDrawerMenuItemSelect}>
+				<Menu onItemTouchTap={this.onDrawerMenuItemSelect.bind(this)}>
 					{drawerItems}
 				</Menu>
 			</Drawer>

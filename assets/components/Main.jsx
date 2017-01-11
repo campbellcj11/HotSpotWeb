@@ -15,6 +15,7 @@ import {
 	CardTitle
 } from 'material-ui'
 import AppBarWithDrawer from './AppBarWithDrawer'
+import {blueA400} from 'material-ui/styles/colors'
 import getMuiTheme from 'material-ui/styles/getMuiTheme'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 // First Party
@@ -140,7 +141,16 @@ class Main extends Component {
 		}
 	
 		return (
-			<MuiThemeProvider>
+			<MuiThemeProvider muiTheme={
+				getMuiTheme({
+					palette: {
+						primary1Color: blueA400
+					},
+					appBar: {
+						height: 50
+					}
+				})
+			}>
 				<div id="body">
 					{this.state.logged_in && 
 						<AppBarWithDrawer
