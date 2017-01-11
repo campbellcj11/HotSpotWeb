@@ -8,7 +8,9 @@ import {
     CardActions,
     FlatButton,
     RaisedButton,
-    TextField
+    TextField,
+    DatePicker,
+    TimePicker
 } from 'material-ui'
 import EventActions from '../actions/eventActions'
 import StorageActions from '../actions/storageActions'
@@ -43,12 +45,15 @@ let inputTimeouts = {}
 class EventEditor extends Component {
     constructor(props) {
         super(props)
+        let date = new Date(this.props.event.Date)
         this.state = {
             changedSinceSave: false,
             newImageURL: null,
             oldImageURL: null, //only set when image has been updated but not yet committed
             hasImage: !!this.props.event.Image,
             editingText: false,
+            datePickerVal: date,
+            timePickerVal: date,
             modifications: {}
         }
     }
@@ -137,6 +142,38 @@ class EventEditor extends Component {
         }
     }
 
+    handleDateChange(e, date) {
+        this.setState({
+            datePickerVal: date
+        })
+        this.mergeTimeAndDate(date, this.state.timePickerVal)
+    }
+
+    handleTimeChange(e, time) {
+        this.setState({
+            timePickerVal: time
+        })
+        this.mergeTimeAndDate(this.state.datePickerVal, time)
+    }
+
+    mergeTimeAndDate(date, time) {
+        let modifications = this.state.modifications
+        // TODO consider using UTC values for better cross region compatibility
+        let merged = new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+            time.getHours(),
+            time.getMinutes(),
+            0 // no seconds
+        )
+        modifications.Date = merged.getTime()
+        this.setState({
+            changedSinceSave: true,
+            modifications: modifications
+        })
+    }
+
     clearChanges() {
         if (!this.state.editingText) {
             if (this.state.oldImageURL) {
@@ -182,12 +219,13 @@ class EventEditor extends Component {
         let subtitleText = !this.state.changedSinceSave ? 'Up to date' : 'Click Save to commit your changes'
         let event = this.props.event
         
+        let date = new Date(event.Date)
         let header = (
             <div>
                 <CardTitle 
                     title={event.Event_Name}
                     titleColor={event.Image ? '#fff' : '#000'}
-                    subtitle={event.Date}
+                    subtitle={date.toLocaleDateString() + ' ' + date.toLocaleTimeString()}
                     subtitleColor={event.Image ? '#ddd' : '#222'} />
                 <CardHeader
                     title={'@ ' + event.Location}
@@ -243,6 +281,20 @@ class EventEditor extends Component {
                     multiLine={true}
                     defaultValue={modifications.Address || event.Address}
                     onChange={this.handleInputChange.bind(this)} />
+                <DatePicker
+                    id="Date"
+                    floatingLabelText="Date"
+                    minDate={new Date()}
+                    defaultDate={modifications.Date ? 
+                        new Date(modifications.Date) : date}
+                    onChange={this.handleDateChange.bind(this)} />
+                <TimePicker
+                    id="Time"
+                    floatingLabelText="Time"
+                    defaultTime={modifications.Date ? 
+                        new Date(modifications.Date) : date}
+                    pedantic={true}
+                    onChange={this.handleTimeChange.bind(this)} />
                  <TextField
                     id="Location"
                     floatingLabelText="Location"

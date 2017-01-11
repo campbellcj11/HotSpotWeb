@@ -96,7 +96,7 @@ class EventTable extends React.Component {
 				rows.push(
 					<TableRow key={event.key}>
 						<TableRowColumn>{event.Event_Name}</TableRowColumn>
-						<TableRowColumn>{d.toLocaleDateString('en-us') + ' ' + d.toLocaleTimeString('en-us')}</TableRowColumn>
+						<TableRowColumn>{d.toLocaleDateString() + ' ' + d.toLocaleTimeString()}</TableRowColumn>
 						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Location}</TableRowColumn>}
 						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Address}</TableRowColumn>}
 						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Short_Description}</TableRowColumn>}

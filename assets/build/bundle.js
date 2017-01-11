@@ -22025,6 +22025,8 @@
 	
 	var _AppBarWithDrawer2 = _interopRequireDefault(_AppBarWithDrawer);
 	
+	var _colors = __webpack_require__(/*! material-ui/styles/colors */ 444);
+	
 	var _getMuiTheme = __webpack_require__(/*! material-ui/styles/getMuiTheme */ 440);
 	
 	var _getMuiTheme2 = _interopRequireDefault(_getMuiTheme);
@@ -22192,7 +22194,14 @@
 	
 				return _react2.default.createElement(
 					_MuiThemeProvider2.default,
-					null,
+					{ muiTheme: (0, _getMuiTheme2.default)({
+							palette: {
+								primary1Color: _colors.blueA400
+							},
+							appBar: {
+								height: 50
+							}
+						}) },
 					_react2.default.createElement(
 						'div',
 						{ id: 'body' },
@@ -63764,8 +63773,6 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _colors = __webpack_require__(/*! material-ui/styles/colors */ 444);
-	
 	var _materialUi = __webpack_require__(/*! material-ui */ 180);
 	
 	var _userActions = __webpack_require__(/*! ../actions/userActions */ 549);
@@ -63836,6 +63843,7 @@
 						view: item.props.value
 					});
 				}
+				this.closeDrawer();
 			}
 		}, {
 			key: 'handleLogOut',
@@ -63917,7 +63925,7 @@
 					null,
 					_react2.default.createElement(
 						_materialUi.Menu,
-						{ onItemTouchTap: this.onDrawerMenuItemSelect },
+						{ onItemTouchTap: this.onDrawerMenuItemSelect.bind(this) },
 						drawerItems
 					)
 				) : null;
@@ -64263,6 +64271,7 @@
 					var _ret = function () {
 						var rows = [];
 						_this2.state.events.forEach(function (event, index) {
+							var d = new Date(event.Date);
 							rows.push(_react2.default.createElement(
 								_materialUi.TableRow,
 								{ key: event.key },
@@ -64274,7 +64283,7 @@
 								_react2.default.createElement(
 									_materialUi.TableRowColumn,
 									null,
-									event.Date
+									d.toLocaleDateString() + ' ' + d.toLocaleTimeString()
 								),
 								_this2.props.screenWidth == 'large' && _react2.default.createElement(
 									_materialUi.TableRowColumn,
@@ -64932,12 +64941,15 @@
 	
 	        var _this = _possibleConstructorReturn(this, (EventEditor.__proto__ || Object.getPrototypeOf(EventEditor)).call(this, props));
 	
+	        var date = new Date(_this.props.event.Date);
 	        _this.state = {
 	            changedSinceSave: false,
 	            newImageURL: null,
 	            oldImageURL: null, //only set when image has been updated but not yet committed
 	            hasImage: !!_this.props.event.Image,
 	            editingText: false,
+	            datePickerVal: date,
+	            timePickerVal: date,
 	            modifications: {}
 	        };
 	        return _this;
@@ -65020,6 +65032,7 @@
 	                    (function () {
 	                        var eventRef = _eventActions2.default.getRef(event.key);
 	                        var changes = _this3.state.modifications;
+	                        changes.Sort_Date = event.Date;
 	                        eventRef.update(changes).then(function () {
 	                            console.log('Reference updated');
 	                            //update local copy
@@ -65037,6 +65050,35 @@
 	                    })();
 	                }
 	            }
+	        }
+	    }, {
+	        key: 'handleDateChange',
+	        value: function handleDateChange(e, date) {
+	            this.setState({
+	                datePickerVal: date
+	            });
+	            this.mergeTimeAndDate(date, this.state.timePickerVal);
+	        }
+	    }, {
+	        key: 'handleTimeChange',
+	        value: function handleTimeChange(e, time) {
+	            this.setState({
+	                timePickerVal: time
+	            });
+	            this.mergeTimeAndDate(this.state.datePickerVal, time);
+	        }
+	    }, {
+	        key: 'mergeTimeAndDate',
+	        value: function mergeTimeAndDate(date, time) {
+	            var modifications = this.state.modifications;
+	            // TODO consider using UTC values for better cross region compatibility
+	            var merged = new Date(date.getFullYear(), date.getMonth(), date.getDate(), time.getHours(), time.getMinutes(), 0 // no seconds
+	            );
+	            modifications.Date = merged.getTime();
+	            this.setState({
+	                changedSinceSave: true,
+	                modifications: modifications
+	            });
 	        }
 	    }, {
 	        key: 'clearChanges',
@@ -65090,13 +65132,14 @@
 	            var subtitleText = !this.state.changedSinceSave ? 'Up to date' : 'Click Save to commit your changes';
 	            var event = this.props.event;
 	
+	            var date = new Date(event.Date);
 	            var header = _react2.default.createElement(
 	                'div',
 	                null,
 	                _react2.default.createElement(_materialUi.CardTitle, {
 	                    title: event.Event_Name,
 	                    titleColor: event.Image ? '#fff' : '#000',
-	                    subtitle: event.Date,
+	                    subtitle: date.toLocaleDateString() + ' ' + date.toLocaleTimeString(),
 	                    subtitleColor: event.Image ? '#ddd' : '#222' }),
 	                _react2.default.createElement(_materialUi.CardHeader, {
 	                    title: '@ ' + event.Location,
@@ -65154,6 +65197,18 @@
 	                    multiLine: true,
 	                    defaultValue: modifications.Address || event.Address,
 	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.DatePicker, {
+	                    id: 'Date',
+	                    floatingLabelText: 'Date',
+	                    minDate: new Date(),
+	                    defaultDate: modifications.Date ? new Date(modifications.Date) : date,
+	                    onChange: this.handleDateChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TimePicker, {
+	                    id: 'Time',
+	                    floatingLabelText: 'Time',
+	                    defaultTime: modifications.Date ? new Date(modifications.Date) : date,
+	                    pedantic: true,
+	                    onChange: this.handleTimeChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'Location',
 	                    floatingLabelText: 'Location',
@@ -65345,7 +65400,9 @@
 	            potentialEvent: {},
 	            tags: [],
 	            imageName: null,
-	            image: null
+	            image: null,
+	            datePickerVal: new Date(),
+	            timePickerVal: new Date()
 	        };
 	        return _this;
 	    }
@@ -65380,8 +65437,27 @@
 	    }, {
 	        key: 'handleDateChange',
 	        value: function handleDateChange(e, date) {
+	            this.setState({
+	                datePickerVal: date
+	            });
+	            this.mergeTimeAndDate(date, this.state.timePickerVal);
+	        }
+	    }, {
+	        key: 'handleTimeChange',
+	        value: function handleTimeChange(e, time) {
+	            this.setState({
+	                timePickerVal: time
+	            });
+	            this.mergeTimeAndDate(this.state.datePickerVal, time);
+	        }
+	    }, {
+	        key: 'mergeTimeAndDate',
+	        value: function mergeTimeAndDate(date, time) {
 	            var event = this.state.potentialEvent;
-	            event.Date = date.getTime();
+	            // TODO consider using UTC values for better cross region compatibility
+	            var merged = new Date(date.getFullYear(), date.getMonth(), date.getDate(), time.getHours(), time.getMinutes(), 0 // no seconds
+	            );
+	            event.Date = merged.getTime();
 	            this.setState({
 	                potentialEvent: event
 	            });
@@ -65487,6 +65563,11 @@
 	                        floatingLabelText: 'Date',
 	                        minDate: new Date(),
 	                        onChange: this.handleDateChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.TimePicker, {
+	                        id: 'Time',
+	                        floatingLabelText: 'Time',
+	                        pedantic: true,
+	                        onChange: this.handleTimeChange.bind(this) }),
 	                    _react2.default.createElement(_materialUi.TextField, {
 	                        id: 'Location',
 	                        floatingLabelText: 'Location',
