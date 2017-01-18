@@ -1,3 +1,3 @@
 # Web Scraping Setup
-## Facebook Scraper
-To Setup the python facebook scraper first...
+To Setup the python Facebook scraper you can either directly install the dependencies using:
+  <code>pip install -r requirements.txt</code>
