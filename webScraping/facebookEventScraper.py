@@ -25,11 +25,11 @@ def searchForPlaces():
         center = '39.364283,-74.422927',
         #increase limit and distance to increase event results
         distance = '10000',
-        limit = '1000'
+        # limit = '1000'
     )
     return result
 
-def formatOutput(event):
+def formatOutput(event, user):
     #format place
     if 'place' in event:
         location = event['place']['location']
@@ -47,7 +47,7 @@ def formatOutput(event):
 
     # format Date
     dateString = event['start_time']
-    date = int(time.mktime(datetime.strptime(dateString, '%Y-%m-%dT%H:%M:%S%z').timetuple()))
+    date = int(time.mktime(datetime.strptime(dateString, '%Y-%m-%dT%H:%M:%S%z').timetuple())) * 1000
 
     # format Image
     if 'cover' in event:
@@ -92,7 +92,27 @@ def formatOutput(event):
     # print(newData)
     return newData
 
-def getEvents(result, user):
+def putTags(db, user, event, pushID):
+    if event['category'].endswith('_EVENT'):
+        event['category'] = event['category'][:-6]
+    event['category'] = event['category'][0] + event['category'][1:].lower()
+    data = {
+        event['category'] : 'true'
+    }
+    db.child("tags").child(pushID).set(data)
+
+def getAllDatabaseEvents(db, user):
+    databaseEvents = db.child("events").get()
+    listOfEvents = []
+    for singleEvent in databaseEvents.each():
+        if 'Facebook_ID' in singleEvent.val():
+            listOfEvents.append(singleEvent.val()['Facebook_ID'])
+
+    print(listOfEvents)
+    return listOfEvents
+
+
+def getEvents(result, user, db, databaseEvents):
     ids = []
     for x in result['data']:
         #GET command to get future events
@@ -104,14 +124,18 @@ def getEvents(result, user):
     counter = 0
     for id in ids:
         event = graph.get(id, fields='id,description,name,category,cover,start_time,end_time,place')
-        data = formatOutput(event)
-        db = firebase.database()
-        # Here we should check if the event already exists before pushing it into database
-        results = db.child("facebookEvents").push(data, user['idToken'])
-        counter += 1
+        data = formatOutput(event, user)
+        if data is not None:
+            # Here we should check if the event already exists before pushing it into database
+            if data['Facebook_ID'] not in databaseEvents:
+                eventsOutcome = db.child("events").push(data, user['idToken'])
+                putTags(db, user, event, eventsOutcome['name'])
+                counter += 1
 
     print("Added " + str(counter) + " events.")
 
+db = firebase.database()
 user = setup()
 result = searchForPlaces()
-getEvents(result, user)
+databaseEvents = getAllDatabaseEvents(db, user)
+getEvents(result, user, db, databaseEvents)
