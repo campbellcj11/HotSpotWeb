@@ -3,6 +3,7 @@ import time
 import pyrebase
 from datetime import datetime
 
+# Setting up the graph api and firebase connections.
 graph = GraphAPI('1738197196497592|HHscAS8uDjBcjiCgf-NZbQjjmL0')
 config = {
     "apiKey" : "AIzaSyBc6_49WEUZLKCBoR8FFIHAfVjrZasdHlc",
@@ -13,23 +14,46 @@ config = {
 firebase = pyrebase.initialize_app(config)
 
 def setup():
+    """Setup firebase and return auth user."""
     auth = firebase.auth()
     # Log the user in
     user = auth.sign_in_with_email_and_password('conor@email.sc.edu', 'password')
     return user;
 
 def searchForPlaces():
+    """Search for places within the parameters.
+
+    Edit distance, center, and limit in order to change search results.
+    """
     result = graph.search(
         term = '',
         type = 'place',
         center = '39.364283,-74.422927',
         #increase limit and distance to increase event results
-        distance = '10000',
-        # limit = '1000'
+        distance = '16093',
+        limit = '1000'
     )
     return result
 
+def getShortDescription(longDescription):
+    """Parse the short description from the long description."""
+    maxCharacterLength = 200
+    indexOfPeriod = -1
+
+    for index, match in enumerate(longDescription[:maxCharacterLength]):
+        if ((indexOfPeriod < index) and (match == '.' or match == '!' or match == '?')):
+            indexOfPeriod = index
+
+    if (indexOfPeriod == -1):
+        shortDescription = longDescription[:maxCharacterLength - 1]
+    else:
+        shortDescription = longDescription[:indexOfPeriod + 1]
+    return shortDescription
+
+
 def formatOutput(event, user):
+    """Format data to fit database scheme."""
+
     #format place
     if 'place' in event:
         location = event['place']['location']
@@ -43,6 +67,10 @@ def formatOutput(event, user):
         locationName = event['place']['name']
         state = location['state']
     else:
+        return None
+
+    #Check for category
+    if 'category' not in event:
         return None
 
     # format Date
@@ -68,6 +96,9 @@ def formatOutput(event, user):
     else:
         status = 'Active'
 
+    # Short Description parsing
+    shortDescription = getShortDescription(event['description'])
+
     newData = {
         'Facebook_ID' : event['id'],
         'Event_Name' : event['name'],
@@ -83,36 +114,41 @@ def formatOutput(event, user):
         'Long_Description' : event['description'],
         'State' : state,
         'Status' : status,
-        'Short_Description' : '',
+        'Short_Description' : shortDescription,
         'Website' : ('www.facebook.com/' + event['id']),
-        # need to find a better way for this
+        # TODO: need to find a better way for this
         'Email_Contact' : ('www.facebook.com/' + event['id']),
         'County' : ''
     }
-    # print(newData)
     return newData
 
 def putTags(db, user, event, pushID):
-    if event['category'].endswith('_EVENT'):
-        event['category'] = event['category'][:-6]
-    event['category'] = event['category'][0] + event['category'][1:].lower()
-    data = {
-        event['category'] : 'true'
-    }
-    db.child("tags").child(pushID).set(data)
+    """Put Tags for event into database."""
+
+    if event['category'] is not None:
+        if event['category'].endswith('_EVENT'):
+            event['category'] = event['category'][:-6]
+        event['category'] = event['category'][0] + event['category'][1:].lower()
+        data = {
+            event['category'] : 'true'
+        }
+        db.child("tags").child(pushID).set(data)
 
 def getAllDatabaseEvents(db, user):
+    """Get all the database events to check to see if events exist already."""
+
     databaseEvents = db.child("events").get()
     listOfEvents = []
     for singleEvent in databaseEvents.each():
         if 'Facebook_ID' in singleEvent.val():
             listOfEvents.append(singleEvent.val()['Facebook_ID'])
 
-    print(listOfEvents)
     return listOfEvents
 
 
 def getEvents(result, user, db, databaseEvents):
+    """Get event by using event ID. Then put event into database."""
+
     ids = []
     for x in result['data']:
         #GET command to get future events
@@ -126,13 +162,13 @@ def getEvents(result, user, db, databaseEvents):
         event = graph.get(id, fields='id,description,name,category,cover,start_time,end_time,place')
         data = formatOutput(event, user)
         if data is not None:
-            # Here we should check if the event already exists before pushing it into database
+            # Checking if event already exists in database
             if data['Facebook_ID'] not in databaseEvents:
                 eventsOutcome = db.child("events").push(data, user['idToken'])
                 putTags(db, user, event, eventsOutcome['name'])
                 counter += 1
 
-    print("Added " + str(counter) + " events.")
+    print("Added " + str(counter) + " events. ")
 
 db = firebase.database()
 user = setup()
