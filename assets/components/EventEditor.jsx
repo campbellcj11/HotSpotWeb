@@ -274,6 +274,14 @@ class EventEditor extends Component {
         let body = this.state.editingText ? (
             <div style={styles.fields}>
                 <TextField
+                    id="Event_Name"
+                    floatingLabelText="Event Name"
+                    disabled={!this.state.editingText}
+                    fullWidth={true}
+                    multiLine={true}
+                    defaultValue={modifications.Event_Name || event.Event_Name}
+                    onChange={this.handleInputChange.bind(this)} />
+                <TextField
                     id="Address"
                     floatingLabelText="Address"
                     disabled={!this.state.editingText}

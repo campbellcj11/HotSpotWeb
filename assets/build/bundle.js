@@ -65190,6 +65190,14 @@
 	                'div',
 	                { style: styles.fields },
 	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'Event_Name',
+	                    floatingLabelText: 'Event Name',
+	                    disabled: !this.state.editingText,
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.Event_Name || event.Event_Name,
+	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'Address',
 	                    floatingLabelText: 'Address',
 	                    disabled: !this.state.editingText,
@@ -65552,6 +65560,12 @@
 	                _react2.default.createElement(
 	                    'div',
 	                    { style: styles.fields },
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'Event_Name',
+	                        floatingLabelText: 'Event Name',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) }),
 	                    _react2.default.createElement(_materialUi.TextField, {
 	                        id: 'Address',
 	                        floatingLabelText: 'Address',

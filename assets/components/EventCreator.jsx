@@ -188,6 +188,12 @@ class EventCreator extends Component {
                 </div>
                 <div style={styles.fields}>
                     <TextField
+                        id="Event_Name"
+                        floatingLabelText="Event Name"
+                        fullWidth={true}
+                        multiLine={true}
+                        onChange={this.handleInputChange.bind(this)} />
+                    <TextField
                         id="Address"
                         floatingLabelText="Address"
                         fullWidth={true}
