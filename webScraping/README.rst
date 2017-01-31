@@ -10,8 +10,14 @@ Then go ahead and run the scraper using:
 
 .. code:: bash
 
-    $ python3 facebookEventScraper.py 
+    $ python3 facebookEventScraper.py latitude longitude distance limit
 
+The command line arguements are all required and are as follows:
+    - Latitude - coordinate for center
+    - Longitude - coordinate for center
+    - Distance - distance to search around center
+    - Limit - limiting number on results, which will affect speed
+    
 This will output the amount of events it has uploaded to the database.
 
 
@@ -33,4 +39,4 @@ Now install the dependencies:
 .. code:: bash
     $ pip install -r requirements.txt
     
-Let us know if you have any questions. 
+Next, follow the instructions above to run the scraper. Let us know if you have any questions. 
