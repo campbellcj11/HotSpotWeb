@@ -1,4 +1,4 @@
-//import * as firebase from 'firebase'; //using cdn based import from google ver 3.5.1 til blob issue resolved
+import * as firebase from 'firebase' //using cdn based import from google ver 3.5.1 til blob issue resolved
 
 //initialize firebase TODO: pull from a credentials file
 const firebaseConfig = {
