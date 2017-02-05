@@ -182,6 +182,7 @@ class UploadForm extends React.Component {
             //populate table
             previewTable = (
                 <EventTable
+                    mode="potential"
                     potentialEvents={this.state.potentialEvents}
                     screenWidth={this.props.screenWidth} 
                     hideCheckboxes={true} />

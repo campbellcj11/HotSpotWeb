@@ -69,7 +69,7 @@
 	
 	var _Main2 = _interopRequireDefault(_Main);
 	
-	var _reactTapEventPlugin = __webpack_require__(/*! react-tap-event-plugin */ 565);
+	var _reactTapEventPlugin = __webpack_require__(/*! react-tap-event-plugin */ 566);
 	
 	var _reactTapEventPlugin2 = _interopRequireDefault(_reactTapEventPlugin);
 	
@@ -22039,19 +22039,23 @@
 	
 	var _EventTable2 = _interopRequireDefault(_EventTable);
 	
-	var _UploadForm = __webpack_require__(/*! ./UploadForm */ 560);
+	var _EventApprovalTable = __webpack_require__(/*! ./EventApprovalTable */ 560);
+	
+	var _EventApprovalTable2 = _interopRequireDefault(_EventApprovalTable);
+	
+	var _UploadForm = __webpack_require__(/*! ./UploadForm */ 561);
 	
 	var _UploadForm2 = _interopRequireDefault(_UploadForm);
 	
-	var _EventEditor = __webpack_require__(/*! ./EventEditor */ 562);
+	var _EventEditor = __webpack_require__(/*! ./EventEditor */ 563);
 	
 	var _EventEditor2 = _interopRequireDefault(_EventEditor);
 	
-	var _EventCreator = __webpack_require__(/*! ./EventCreator */ 563);
+	var _EventCreator = __webpack_require__(/*! ./EventCreator */ 564);
 	
 	var _EventCreator2 = _interopRequireDefault(_EventCreator);
 	
-	var _Login = __webpack_require__(/*! ./Login */ 564);
+	var _Login = __webpack_require__(/*! ./Login */ 565);
 	
 	var _Login2 = _interopRequireDefault(_Login);
 	
@@ -22110,13 +22114,17 @@
 	
 			var _this = _possibleConstructorReturn(this, (Main.__proto__ || Object.getPrototypeOf(Main)).call(this, props, context));
 	
+			var view = _this.parseURL();
+	
 			_this.state = {
 				logged_in: false,
 				currentUser: null,
 				width: window.innerWidth,
-				view: 'manage',
-				viewingEvent: null
+				view: view,
+				viewParams: {}
 			};
+	
+			_this.lastView = view;
 	
 			_this.handleResize = _this.handleResize.bind(_this);
 			_this.componentDidMount = _this.componentDidMount.bind(_this);
@@ -22125,6 +22133,14 @@
 		}
 	
 		_createClass(Main, [{
+			key: 'parseURL',
+			value: function parseURL() {
+				if (location.hash && location.hash !== '#/individual_edit') {
+					return location.hash.split('/')[1];
+				}
+				return 'manage';
+			}
+		}, {
 			key: 'handleResize',
 			value: function handleResize(e) {
 				this.setState({
@@ -22141,10 +22157,24 @@
 			value: function componentWillUnmount() {
 				window.removeEventListener('resize', this.handleResize);
 			}
+	
+			// make this more advanced
+	
+		}, {
+			key: 'setHref',
+			value: function setHref(state) {
+				var string = location.origin + location.pathname + '#/' + state.view;
+				window.location.href = string;
+			}
 		}, {
 			key: 'render',
 			value: function render() {
 				var screenWidth = this.state.width >= 800 ? 'large' : this.state.width >= 600 ? 'medium' : 'small';
+	
+				if (this.lastView !== this.state.view) {
+					this.setHref(this.state);
+				}
+				this.lastView = this.state.view;
 	
 				var container = null;
 				var content = null;
@@ -22157,7 +22187,17 @@
 								_react2.default.createElement(_materialUi.CardTitle, {
 									title: 'Manage Events',
 									subtitle: 'View and edit pre-existing events' }),
-								_react2.default.createElement(_EventTable2.default, { manage: true, screenWidth: screenWidth })
+								_react2.default.createElement(_EventTable2.default, { mode: 'manage', screenWidth: screenWidth })
+							);
+							break;
+						case 'pending':
+							content = _react2.default.createElement(
+								'div',
+								null,
+								_react2.default.createElement(_materialUi.CardTitle, {
+									title: 'Pending Events',
+									subtitle: 'Manage pending user submitted events' }),
+								_react2.default.createElement(_EventApprovalTable2.default, { screenWidth: screenWidth })
 							);
 							break;
 						case 'import':
@@ -22175,7 +22215,7 @@
 							break;
 						case 'individual_edit':
 							{
-								content = _react2.default.createElement(_EventEditor2.default, { event: this.state.viewingEvent, screenWidth: screenWidth });
+								content = _react2.default.createElement(_EventEditor2.default, { event: this.state.viewParams.event, pending: this.state.viewParams.pending, screenWidth: screenWidth });
 								break;
 							}
 						case 'metrics':
@@ -63887,6 +63927,17 @@
 					_materialUi.MenuItem,
 					{
 						key: 2,
+						value: 'pending',
+						leftIcon: _react2.default.createElement(
+							'i',
+							{ className: 'material-icons' },
+							'done_all'
+						) },
+					'Pending'
+				), _react2.default.createElement(
+					_materialUi.MenuItem,
+					{
+						key: 3,
 						value: 'import',
 						leftIcon: _react2.default.createElement(
 							'i',
@@ -63897,7 +63948,7 @@
 				), _react2.default.createElement(
 					_materialUi.MenuItem,
 					{
-						key: 3,
+						key: 4,
 						value: 'create',
 						leftIcon: _react2.default.createElement(
 							'i',
@@ -64864,14 +64915,29 @@
 		value: true
 	});
 	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var ApplicationState = function ApplicationState() {
-		_classCallCheck(this, ApplicationState);
+	var ApplicationState = function () {
+		function ApplicationState() {
+			_classCallCheck(this, ApplicationState);
 	
-		this.controller = 'unitialized';
-		Object.seal(this);
-	};
+			this.controller = 'unitialized';
+			Object.seal(this);
+			this.set.bind(this);
+		}
+	
+		_createClass(ApplicationState, [{
+			key: 'set',
+			value: function set(state) {
+				//window.location.href = window.location.origin + window.location.pathname + '#/' + state.view
+				State.controller.setState(state);
+			}
+		}]);
+	
+		return ApplicationState;
+	}();
 	
 	var State = exports.State = new ApplicationState();
 
@@ -64944,28 +65010,46 @@
 		_createClass(EventTable, [{
 			key: 'componentDidMount',
 			value: function componentDidMount() {
-				if (this.props.manage) {
-					_eventActions2.default.getAllSnapshots(function (collection) {
-						var eventArray = [];
-						Object.keys(collection).forEach(function (key, index) {
-							var event = collection[key];
-							event.key = key;
-							eventArray.push(event);
-						});
-						this.addEventArray(eventArray);
-						this.setState({
-							loading: false
-						});
-					}.bind(this));
-				} else if (this.props.potentialEvents) {
+				this.loadEvents.call(this, this.props);
+			}
+	
+			/*componentWillReceiveProps(nextProps) {
+	  	if (nextProps.mode != this.props.mode) {
+	  		this.setState({
+	  			loading: true
+	  		})
+	  		this.loadEvents.call(this, nextProps)
+	  	}
+	  }*/
+	
+		}, {
+			key: 'loadEvents',
+			value: function loadEvents(props) {
+				var _this2 = this;
+	
+				if (props.mode == 'potential') {
 					this.addEventArray(this.props.potentialEvents);
+				} else {
+					_eventActions2.default.eventTable.orderByChild('Date').on('value', function (snapshot) {
+						var eventArray = [];
+						snapshot.forEach(function (child) {
+							var event = child.val();
+							event.key = child.key;
+							eventArray.unshift(event);
+						});
+						_this2.addEventArray(eventArray);
+						console.log(eventArray.length + ' events found');
+					}, function (error) {
+						console.log("Read error:" + error.code);
+					});
 				}
 			}
 		}, {
 			key: 'addEventArray',
 			value: function addEventArray(eventArray) {
 				this.setState({
-					events: eventArray
+					events: eventArray,
+					loading: false
 				});
 			}
 		}, {
@@ -64984,9 +65068,328 @@
 			value: function handleRowSelection(selectedRows) {
 				var index = selectedRows[0];
 				var event = this.state.events[index];
-				_ApplicationState.State.controller.setState({
+				_ApplicationState.State.set({
 					view: 'individual_edit',
-					viewingEvent: event
+					viewParams: {
+						event: event
+					}
+				});
+			}
+		}, {
+			key: 'render',
+			value: function render() {
+				var _this3 = this;
+	
+				if (!this.props.potentialEvents && this.state.loading) {
+					return _react2.default.createElement(
+						'div',
+						{ style: styles.progressContainer },
+						_react2.default.createElement(_materialUi.CircularProgress, {
+							size: 40,
+							style: styles.loadIndicator })
+					);
+				}
+				if (this.state.events.length) {
+					var _ret = function () {
+						var rows = [];
+						_this3.state.events.forEach(function (event, index) {
+							var d = new Date(event.Date);
+							rows.push(_react2.default.createElement(
+								_materialUi.TableRow,
+								{ key: event.key },
+								_react2.default.createElement(
+									_materialUi.TableRowColumn,
+									null,
+									event.Event_Name
+								),
+								_react2.default.createElement(
+									_materialUi.TableRowColumn,
+									null,
+									d.toLocaleDateString() + ' ' + d.toLocaleTimeString()
+								),
+								_this3.props.screenWidth == 'large' && _react2.default.createElement(
+									_materialUi.TableRowColumn,
+									null,
+									event.Location
+								),
+								_this3.props.screenWidth == 'large' && _react2.default.createElement(
+									_materialUi.TableRowColumn,
+									null,
+									event.Address
+								),
+								_this3.props.screenWidth == 'large' && _react2.default.createElement(
+									_materialUi.TableRowColumn,
+									null,
+									event.Short_Description
+								)
+							));
+						});
+	
+						//TODO reenable multiSelectable and selectAll
+						return {
+							v: _react2.default.createElement(
+								_materialUi.Table,
+								{ multiSelectable: false, onRowSelection: _this3.handleRowSelection.bind(_this3) },
+								_react2.default.createElement(
+									_materialUi.TableHeader,
+									{ enableSelectAll: false, displaySelectAll: !_this3.props.potentialEvents },
+									_react2.default.createElement(
+										_materialUi.TableRow,
+										null,
+										_react2.default.createElement(
+											_materialUi.TableHeaderColumn,
+											null,
+											'Event Name'
+										),
+										_react2.default.createElement(
+											_materialUi.TableHeaderColumn,
+											null,
+											'Date'
+										),
+										_this3.props.screenWidth == 'large' && _react2.default.createElement(
+											_materialUi.TableHeaderColumn,
+											null,
+											'Location'
+										),
+										_this3.props.screenWidth == 'large' && _react2.default.createElement(
+											_materialUi.TableHeaderColumn,
+											null,
+											'Address'
+										),
+										_this3.props.screenWidth == 'large' && _react2.default.createElement(
+											_materialUi.TableHeaderColumn,
+											null,
+											'Description'
+										)
+									)
+								),
+								_react2.default.createElement(
+									_materialUi.TableBody,
+									{ displayRowCheckbox: !_this3.props.potentialEvents },
+									rows
+								)
+							)
+						};
+					}();
+	
+					if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+				} else {
+					return null;
+				}
+			}
+		}]);
+	
+		return EventTable;
+	}(_react2.default.Component);
+	
+	exports.default = EventTable;
+
+/***/ },
+/* 559 */
+/*!*****************************************!*\
+  !*** ./assets/actions/eventActions.jsx ***!
+  \*****************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _firebaseInit = __webpack_require__(/*! ./firebaseInit */ 550);
+	
+	var _firebaseInit2 = _interopRequireDefault(_firebaseInit);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	//initialize database
+	var database = _firebaseInit2.default.database();
+	
+	var eventTable = database.ref("events");
+	
+	var EventActions = {
+	
+		eventTable: eventTable,
+	
+		// get all events
+		//	callback args: events, keys
+		getAllSnapshots: function getAllSnapshots(callback, alternateTable) {
+			var table = alternateTable ? database.ref(alternateTable) : eventTable;
+			table.on("value", function (snapshot) {
+				var collection = snapshot.val();
+				callback(collection);
+			}, function (error) {
+				console.log("Read error:" + error.code);
+			});
+		},
+	
+		// get a specific event ref
+		getRef: function getRef(eventId, alternateTable) {
+			var tableName = alternateTable || 'events';
+			return database.ref(tableName + '/' + eventId);
+		},
+	
+		// get snapshot for event value
+		getSnapshot: function getSnapshot(eventId, callback, alternateTable) {
+			undefined.getRef(eventId, alternateTable).once('value', function (snapshot) {
+				callback(snapshot.val());
+			});
+		},
+	
+		// remove a specific event entry
+		// TODO also remove image
+		remove: function remove(eventId, alternateTable) {
+			var event = undefined.getRef(eventId, alternateTable);
+			event.remove().then(function () {
+				console.log('Removed');
+			}).catch(function () {
+				console.log('Removal failed');
+			});
+			return event;
+		},
+	
+		// create new event
+		//  callback args: didSucceed, event, eventRef
+		createEvent: function createEvent(event, callback, alternateTable) {
+			var table = alternateTable ? database.ref(alternateTable) : eventTable;
+			var ref = table.push();
+			ref.set(event, function (error) {
+				callback(!error, event, ref);
+			});
+		}
+	
+	};
+	
+	//export all event related functionality as a single object
+	exports.default = EventActions;
+
+/***/ },
+/* 560 */
+/*!**************************************************!*\
+  !*** ./assets/components/EventApprovalTable.jsx ***!
+  \**************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _materialUi = __webpack_require__(/*! material-ui */ 180);
+	
+	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 559);
+	
+	var _eventActions2 = _interopRequireDefault(_eventActions);
+	
+	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 557);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var styles = {
+		progressContainer: {
+			width: '100%',
+			position: 'relative'
+		},
+		loadIndicator: {
+			marginLeft: '50%',
+			left: '-20px'
+		}
+	};
+	
+	var EventApprovalTable = function (_React$Component) {
+		_inherits(EventApprovalTable, _React$Component);
+	
+		function EventApprovalTable(props) {
+			_classCallCheck(this, EventApprovalTable);
+	
+			var _this = _possibleConstructorReturn(this, (EventApprovalTable.__proto__ || Object.getPrototypeOf(EventApprovalTable)).call(this, props));
+	
+			_this.state = {
+				events: [],
+				loading: true
+			};
+	
+			_this.addEvent.bind(_this);
+			_this.removeEvent.bind(_this);
+			return _this;
+		}
+	
+		_createClass(EventApprovalTable, [{
+			key: 'componentDidMount',
+			value: function componentDidMount() {
+				this.loadEvents.call(this, this.props);
+			}
+	
+			/*componentWillReceiveProps(nextProps) {
+	  	if (nextProps.mode != this.props.mode) {
+	  		this.setState({
+	  			loading: true
+	  		})
+	  		this.loadEvents.call(this, nextProps)
+	  	}
+	  }*/
+	
+		}, {
+			key: 'loadEvents',
+			value: function loadEvents(props) {
+				_eventActions2.default.getAllSnapshots(function (collection) {
+					var eventArray = [];
+					Object.keys(collection).forEach(function (key, index) {
+						var event = collection[key];
+						event.key = key;
+						if (event.approvalStatus !== 'approved') {
+							eventArray.push(event);
+						}
+					});
+					this.addEventArray(eventArray);
+				}.bind(this), 'approvalQueue');
+			}
+		}, {
+			key: 'addEventArray',
+			value: function addEventArray(eventArray) {
+				this.setState({
+					events: eventArray,
+					loading: false
+				});
+			}
+		}, {
+			key: 'addEvent',
+			value: function addEvent(event, key) {
+				event.key = key;
+				this.setState({
+					events: this.state.events.concat(event)
+				});
+			}
+		}, {
+			key: 'removeEvent',
+			value: function removeEvent(event) {}
+		}, {
+			key: 'handleRowSelection',
+			value: function handleRowSelection(selectedRows) {
+				var index = selectedRows[0];
+				var event = this.state.events[index];
+				_ApplicationState.State.set({
+					view: 'individual_edit',
+					viewParams: {
+						event: event,
+						pending: true
+					}
 				});
 			}
 		}, {
@@ -64994,7 +65397,7 @@
 			value: function render() {
 				var _this2 = this;
 	
-				if (this.props.manage && this.state.loading) {
+				if (!this.props.potentialEvents && this.state.loading) {
 					return _react2.default.createElement(
 						'div',
 						{ style: styles.progressContainer },
@@ -65093,82 +65496,13 @@
 			}
 		}]);
 	
-		return EventTable;
+		return EventApprovalTable;
 	}(_react2.default.Component);
 	
-	exports.default = EventTable;
+	exports.default = EventApprovalTable;
 
 /***/ },
-/* 559 */
-/*!*****************************************!*\
-  !*** ./assets/actions/eventActions.jsx ***!
-  \*****************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	
-	var _firebaseInit = __webpack_require__(/*! ./firebaseInit */ 550);
-	
-	var _firebaseInit2 = _interopRequireDefault(_firebaseInit);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	//initialize database
-	var database = _firebaseInit2.default.database();
-	
-	var eventTable = database.ref("events");
-	
-	var EventActions = {
-		// get all events
-		//	callback args: events, keys
-		getAllSnapshots: function getAllSnapshots(callback) {
-			eventTable.on("value", function (snapshot) {
-				var collection = snapshot.val();
-				callback(collection);
-			}, function (error) {
-				console.log("Read error:" + error.code);
-			});
-		},
-	
-		// get a specific event ref
-		getRef: function getRef(eventId) {
-			return database.ref('events/' + eventId);
-		},
-	
-		// get snapshot for event value
-		getSnapshot: function getSnapshot(eventId, callback) {
-			undefined.getRef().once('value', function (snapshot) {
-				callback(snapshot.val());
-			});
-		},
-	
-		// remove a specific event entry
-		// TODO also remove image
-		remove: function remove(eventId) {
-			var event = undefined.getRef(eventId);
-			event.remove();
-			return event;
-		},
-	
-		// create new event
-		//  callback args: didSucceed, event, eventRef
-		createEvent: function createEvent(event, callback) {
-			var ref = eventTable.push();
-			ref.set(event, function (error) {
-				callback(!error, event, ref);
-			});
-		}
-	};
-	
-	//export all event related functionality as a single object
-	exports.default = EventActions;
-
-/***/ },
-/* 560 */
+/* 561 */
 /*!******************************************!*\
   !*** ./assets/components/UploadForm.jsx ***!
   \******************************************/
@@ -65190,7 +65524,7 @@
 	
 	var _EventTable2 = _interopRequireDefault(_EventTable);
 	
-	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 561);
+	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 562);
 	
 	var _storageActions2 = _interopRequireDefault(_storageActions);
 	
@@ -65400,6 +65734,7 @@
 	            if (this.state.status == 'FILE_VERIFIED' && this.state.potentialEvents.length) {
 	                //populate table
 	                previewTable = _react2.default.createElement(_EventTable2.default, {
+	                    mode: 'potential',
 	                    potentialEvents: this.state.potentialEvents,
 	                    screenWidth: this.props.screenWidth,
 	                    hideCheckboxes: true });
@@ -65544,7 +65879,7 @@
 	};
 
 /***/ },
-/* 561 */
+/* 562 */
 /*!*******************************************!*\
   !*** ./assets/actions/storageActions.jsx ***!
   \*******************************************/
@@ -65606,7 +65941,7 @@
 	exports.default = StorageActions;
 
 /***/ },
-/* 562 */
+/* 563 */
 /*!*******************************************!*\
   !*** ./assets/components/EventEditor.jsx ***!
   \*******************************************/
@@ -65630,9 +65965,11 @@
 	
 	var _eventActions2 = _interopRequireDefault(_eventActions);
 	
-	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 561);
+	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 562);
 	
 	var _storageActions2 = _interopRequireDefault(_storageActions);
+	
+	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 557);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -65710,9 +66047,6 @@
 	            }.bind(this);
 	            fr.readAsDataURL(newImage);
 	        }
-	
-	        //TODO only updates image for now
-	
 	    }, {
 	        key: 'onSave',
 	        value: function onSave() {
@@ -65786,6 +66120,34 @@
 	                    })();
 	                }
 	            }
+	        }
+	    }, {
+	        key: 'onApprove',
+	        value: function onApprove() {
+	            // Copy new event to event table from approval queue
+	            var potentialEvent = this.props.event;
+	            var key = potentialEvent.key;
+	            delete potentialEvent.key;
+	            _eventActions2.default.createEvent(potentialEvent, function (success, event, ref) {
+	                if (success) {
+	                    // redirect to regular event editor page for this event
+	                    event.key = ref.key;
+	                    _ApplicationState.State.set({
+	                        viewParams: {
+	                            event: event
+	                        },
+	                        view: 'individual_edit'
+	                    });
+	                    // mark approved
+	                    _eventActions2.default.getRef(key, 'approvalQueue').update({
+	                        approvalStatus: 'approved'
+	                    });
+	                } else {
+	                    // report failure
+	                    console.error('Failed to create event:');
+	                    console.error(JSON.stringify(potentialEvent, null, '\t'));
+	                }
+	            });
 	        }
 	    }, {
 	        key: 'handleDateChange',
@@ -65905,6 +66267,7 @@
 	                    {
 	                        label: chooseImgText,
 	                        secondary: true,
+	                        disabled: this.props.pending,
 	                        style: styles.rowItem,
 	                        containerElement: 'label' },
 	                    _react2.default.createElement('input', {
@@ -65915,7 +66278,7 @@
 	                        style: styles.fileInput })
 	                ),
 	                _react2.default.createElement(_materialUi.FlatButton, {
-	                    label: 'Edit Properties',
+	                    label: this.props.pending ? "View Properties" : "Edit Properties",
 	                    primary: true,
 	                    style: styles.rowItem,
 	                    onClick: this.enterEditTextMode.bind(this) })
@@ -65928,7 +66291,7 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'Event_Name',
 	                    floatingLabelText: 'Event Name',
-	                    disabled: !this.state.editingText,
+	                    disabled: !this.state.editingText || this.props.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.Event_Name || event.Event_Name,
@@ -65936,7 +66299,7 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'Address',
 	                    floatingLabelText: 'Address',
-	                    disabled: !this.state.editingText,
+	                    disabled: !this.state.editingText || this.props.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.Address || event.Address,
@@ -65944,18 +66307,21 @@
 	                _react2.default.createElement(_materialUi.DatePicker, {
 	                    id: 'Date',
 	                    floatingLabelText: 'Date',
+	                    disabled: this.props.pending,
 	                    minDate: new Date(),
 	                    defaultDate: modifications.Date ? new Date(modifications.Date) : date,
 	                    onChange: this.handleDateChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TimePicker, {
 	                    id: 'Time',
 	                    floatingLabelText: 'Time',
+	                    disabled: this.props.pending,
 	                    defaultTime: modifications.Date ? new Date(modifications.Date) : date,
 	                    pedantic: true,
 	                    onChange: this.handleTimeChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'Location',
 	                    floatingLabelText: 'Location',
+	                    disabled: !this.state.editingText || this.props.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.Location || event.Location,
@@ -65963,7 +66329,7 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'Short_Description',
 	                    floatingLabelText: 'Short Description',
-	                    disabled: !this.state.editingText,
+	                    disabled: !this.state.editingText || this.props.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.Short_Description || event.Short_Description,
@@ -65971,7 +66337,7 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'Long_Description',
 	                    floatingLabelText: 'Long Description',
-	                    disabled: !this.state.editingText,
+	                    disabled: !this.state.editingText || this.props.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.Long_Description || event.Long_Description,
@@ -65979,7 +66345,7 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'Website',
 	                    floatingLabelText: 'Website',
-	                    disabled: !this.state.editingText,
+	                    disabled: !this.state.editingText || this.props.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.Website || event.Website,
@@ -65987,7 +66353,7 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'Email_Contact',
 	                    floatingLabelText: 'Email Contact',
-	                    disabled: !this.state.editingText,
+	                    disabled: !this.state.editingText || this.props.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.Email_Contact || event.Email_Contact,
@@ -65995,7 +66361,7 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'City',
 	                    floatingLabelText: 'City',
-	                    disabled: !this.state.editingText,
+	                    disabled: !this.state.editingText || this.props.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.City || event.City,
@@ -66003,7 +66369,7 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'County',
 	                    floatingLabelText: 'County',
-	                    disabled: !this.state.editingText,
+	                    disabled: !this.state.editingText || this.props.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.County || event.County,
@@ -66011,7 +66377,7 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'State',
 	                    floatingLabelText: 'State',
-	                    disabled: !this.state.editingText,
+	                    disabled: !this.state.editingText || this.props.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.State || event.State,
@@ -66019,7 +66385,7 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'Status',
 	                    floatingLabelText: 'Status',
-	                    disabled: !this.state.editingText,
+	                    disabled: !this.state.editingText || this.props.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.Status || event.Status,
@@ -66027,7 +66393,7 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'Event_Type',
 	                    floatingLabelText: 'Type',
-	                    disabled: !this.state.editingText,
+	                    disabled: !this.state.editingText || this.props.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.Event_Type || event.Event_Type,
@@ -66052,10 +66418,10 @@
 	                        disabled: !this.state.changedSinceSave && !this.state.editingText,
 	                        onClick: this.clearChanges.bind(this) }),
 	                    _react2.default.createElement(_materialUi.RaisedButton, {
-	                        label: 'Save',
+	                        label: this.props.pending ? "Approve" : "Save",
 	                        primary: true,
-	                        disabled: !this.state.changedSinceSave,
-	                        onClick: this.onSave.bind(this) })
+	                        disabled: !this.props.pending && !this.state.changedSinceSave,
+	                        onClick: this.props.pending ? this.onApprove.bind(this) : this.onSave.bind(this) })
 	                )
 	            );
 	        }
@@ -66067,7 +66433,7 @@
 	exports.default = EventEditor;
 
 /***/ },
-/* 563 */
+/* 564 */
 /*!********************************************!*\
   !*** ./assets/components/EventCreator.jsx ***!
   \********************************************/
@@ -66091,7 +66457,7 @@
 	
 	var _eventActions2 = _interopRequireDefault(_eventActions);
 	
-	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 561);
+	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 562);
 	
 	var _storageActions2 = _interopRequireDefault(_storageActions);
 	
@@ -66397,7 +66763,7 @@
 	exports.default = EventCreator;
 
 /***/ },
-/* 564 */
+/* 565 */
 /*!*************************************!*\
   !*** ./assets/components/Login.jsx ***!
   \*************************************/
@@ -66508,7 +66874,7 @@
 	                        user: null,
 	                        errorText: {}
 	                    });
-	                    _ApplicationState.State.controller.setState({
+	                    _ApplicationState.State.set({
 	                        logged_in: true,
 	                        currentUser: content
 	                    });
@@ -66561,7 +66927,7 @@
 	                        user: null,
 	                        errorText: {}
 	                    });
-	                    _ApplicationState.State.controller.setState({
+	                    _ApplicationState.State.set({
 	                        logged_in: true,
 	                        currentUser: content
 	                    });
@@ -66621,7 +66987,8 @@
 	                            floatingLabelText: 'Password',
 	                            fullWidth: true,
 	                            type: 'password',
-	                            onChange: this.onPasswordChange.bind(this), onKeyDown: this.checkForEnter.bind(this)
+	                            onChange: this.onPasswordChange.bind(this),
+	                            onKeyDown: this.checkForEnter.bind(this)
 	                        }, _defineProperty(_React$createElement, 'onKeyDown', this.checkForEnter.bind(this)), _defineProperty(_React$createElement, 'errorText', this.state.errorText.auth), _React$createElement))
 	                    ),
 	                    _react2.default.createElement(
@@ -66650,14 +67017,14 @@
 	exports.default = Login;
 
 /***/ },
-/* 565 */
+/* 566 */
 /*!**************************************************************!*\
   !*** ./~/react-tap-event-plugin/src/injectTapEventPlugin.js ***!
   \**************************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {var invariant = __webpack_require__(/*! fbjs/lib/invariant */ 566);
-	var defaultClickRejectionStrategy = __webpack_require__(/*! ./defaultClickRejectionStrategy */ 567);
+	/* WEBPACK VAR INJECTION */(function(process) {var invariant = __webpack_require__(/*! fbjs/lib/invariant */ 567);
+	var defaultClickRejectionStrategy = __webpack_require__(/*! ./defaultClickRejectionStrategy */ 568);
 	
 	var alreadyInjected = false;
 	
@@ -66679,14 +67046,14 @@
 	  alreadyInjected = true;
 	
 	  __webpack_require__(/*! react-dom/lib/EventPluginHub */ 43).injection.injectEventPluginsByName({
-	    'TapEventPlugin':       __webpack_require__(/*! ./TapEventPlugin.js */ 568)(shouldRejectClick)
+	    'TapEventPlugin':       __webpack_require__(/*! ./TapEventPlugin.js */ 569)(shouldRejectClick)
 	  });
 	};
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./~/process/browser.js */ 4)))
 
 /***/ },
-/* 566 */
+/* 567 */
 /*!**********************************************************!*\
   !*** ./~/react-tap-event-plugin/~/fbjs/lib/invariant.js ***!
   \**********************************************************/
@@ -66744,7 +67111,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./~/process/browser.js */ 4)))
 
 /***/ },
-/* 567 */
+/* 568 */
 /*!***********************************************************************!*\
   !*** ./~/react-tap-event-plugin/src/defaultClickRejectionStrategy.js ***!
   \***********************************************************************/
@@ -66758,7 +67125,7 @@
 
 
 /***/ },
-/* 568 */
+/* 569 */
 /*!********************************************************!*\
   !*** ./~/react-tap-event-plugin/src/TapEventPlugin.js ***!
   \********************************************************/
@@ -66789,10 +67156,10 @@
 	var EventPluginUtils = __webpack_require__(/*! react-dom/lib/EventPluginUtils */ 45);
 	var EventPropagators = __webpack_require__(/*! react-dom/lib/EventPropagators */ 42);
 	var SyntheticUIEvent = __webpack_require__(/*! react-dom/lib/SyntheticUIEvent */ 76);
-	var TouchEventUtils = __webpack_require__(/*! ./TouchEventUtils */ 569);
+	var TouchEventUtils = __webpack_require__(/*! ./TouchEventUtils */ 570);
 	var ViewportMetrics = __webpack_require__(/*! react-dom/lib/ViewportMetrics */ 77);
 	
-	var keyOf = __webpack_require__(/*! fbjs/lib/keyOf */ 570);
+	var keyOf = __webpack_require__(/*! fbjs/lib/keyOf */ 571);
 	var topLevelTypes = EventConstants.topLevelTypes;
 	
 	var isStartish = EventPluginUtils.isStartish;
@@ -66938,7 +67305,7 @@
 
 
 /***/ },
-/* 569 */
+/* 570 */
 /*!*********************************************************!*\
   !*** ./~/react-tap-event-plugin/src/TouchEventUtils.js ***!
   \*********************************************************/
@@ -66989,7 +67356,7 @@
 
 
 /***/ },
-/* 570 */
+/* 571 */
 /*!******************************************************!*\
   !*** ./~/react-tap-event-plugin/~/fbjs/lib/keyOf.js ***!
   \******************************************************/

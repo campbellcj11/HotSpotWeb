@@ -75,7 +75,7 @@ class Login extends Component {
                     user: null,
                     errorText: {}
                 })
-                State.controller.setState({
+                State.set({
                     logged_in: true,
                     currentUser: content
                 })
@@ -122,7 +122,7 @@ class Login extends Component {
                     user: null,
                     errorText: {}
                 })
-                State.controller.setState({
+                State.set({
                     logged_in: true,
                     currentUser: content
                 })
@@ -177,7 +177,8 @@ class Login extends Component {
                             floatingLabelText="Password"
                             fullWidth={true}
                             type="password"
-                            onChange={this.onPasswordChange.bind(this)}                            onKeyDown={this.checkForEnter.bind(this)}
+                            onChange={this.onPasswordChange.bind(this)}                            
+                            onKeyDown={this.checkForEnter.bind(this)}
                             onKeyDown={this.checkForEnter.bind(this)}
                             errorText={this.state.errorText.auth} />
                     </div>

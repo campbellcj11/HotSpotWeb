@@ -5,10 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-	"build": "webpack -d",
-	"build-serve": "webpack -d && firebase serve",
-	"build-release": "webpack",
-	"deploy": "webpack && firebase deploy"
+    "build": "webpack -d",
+    "build-serve": "webpack -d && firebase serve",
+    "build-release": "webpack",
+    "deploy": "webpack && firebase deploy"
   },
   "repository": {
     "type": "git",

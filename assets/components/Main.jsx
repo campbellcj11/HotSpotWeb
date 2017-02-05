@@ -20,6 +20,7 @@ import getMuiTheme from 'material-ui/styles/getMuiTheme'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 // First Party
 import EventTable from './EventTable'
+import EventApprovalTable from './EventApprovalTable'
 import UploadForm from './UploadForm'
 import EventEditor from './EventEditor'
 import EventCreator from './EventCreator'
@@ -59,17 +60,28 @@ class Main extends Component {
 	constructor(props, context) {
 		super(props, context)
 		
+		let view = this.parseURL()
+
 		this.state = {
 			logged_in: false,
 			currentUser: null,
 			width: window.innerWidth,
-			view: 'manage',
-			viewingEvent: null
+			view: view,
+			viewParams: {}
 		}
+
+		this.lastView = view
 
 		this.handleResize = this.handleResize.bind(this)
 		this.componentDidMount = this.componentDidMount.bind(this)
 		this.componentWillUnmount = this.componentWillUnmount.bind(this)
+	}
+
+	parseURL() {
+		if (location.hash && location.hash !== '#/individual_edit') {
+			return location.hash.split('/')[1]
+		}
+		return 'manage'
 	}
 
 	handleResize(e) {
@@ -77,7 +89,7 @@ class Main extends Component {
 			width: window.innerWidth
 		})
 	}
-	
+
 	componentDidMount() {
 		window.addEventListener('resize', this.handleResize)
 	}
@@ -86,9 +98,20 @@ class Main extends Component {
 		window.removeEventListener('resize', this.handleResize)
 	}
 
+	// make this more advanced
+	setHref(state) {
+		let string = location.origin + location.pathname + '#/' + state.view
+		window.location.href = string
+	}
+
 	render() {
 		let screenWidth = this.state.width >= 800 ? 'large' : this.state.width >= 600 ? 'medium' : 'small'
 		
+		if (this.lastView !== this.state.view) {
+			this.setHref(this.state)
+		}
+		this.lastView = this.state.view
+
 		let container = null
 		let content = null
 		if (this.state.logged_in) {
@@ -99,7 +122,17 @@ class Main extends Component {
 							<CardTitle
 								title="Manage Events"
 								subtitle="View and edit pre-existing events"							/>
-							<EventTable manage={true} screenWidth={screenWidth} />
+							<EventTable mode="manage" screenWidth={screenWidth} />
+						</div>
+					)
+					break
+				case 'pending':
+					content = (
+						<div>
+							<CardTitle
+								title="Pending Events"
+								subtitle="Manage pending user submitted events" />
+							<EventApprovalTable screenWidth={screenWidth} />
 						</div>
 					)
 					break
@@ -120,7 +153,7 @@ class Main extends Component {
 					break
 				case 'individual_edit': {
 					content = (
-						<EventEditor event={this.state.viewingEvent} screenWidth={screenWidth} />
+						<EventEditor event={this.state.viewParams.event} pending={this.state.viewParams.pending} screenWidth={screenWidth} />
 					)
 					break
 				}

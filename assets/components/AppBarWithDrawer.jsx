@@ -84,12 +84,19 @@ export default class AppBarWithDrawer extends Component {
 			</MenuItem>),
 			(<MenuItem
 				key={2}
+				value="pending"
+				leftIcon={<i className="material-icons">done_all</i>}>
+				Pending
+			</MenuItem>
+			),
+			(<MenuItem
+				key={3}
 				value="import"
 				leftIcon={<i className="material-icons">file_upload</i>}>
 				Import
 			</MenuItem>),
 			(<MenuItem
-				key={3}
+				key={4}
 				value="create"
 				leftIcon={<i className="material-icons">note_add</i>}>
 				Create

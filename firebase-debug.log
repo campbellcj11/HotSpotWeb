@@ -2,8 +2,8 @@
 [debug] Command:      /usr/bin/node /usr/bin/firebase serve
 [debug] CLI Version:  3.2.0
 [debug] Platform:     linux
-[debug] Node Version: v7.4.0
-[debug] Time:         Fri Feb 03 2017 11:59:59 GMT-0500 (EST)
+[debug] Node Version: v7.5.0
+[debug] Time:         Sun Feb 05 2017 09:48:18 GMT-0500 (EST)
 [debug] ----------------------------------------------------------------------
 [debug] 
 [info] Starting Firebase development server...

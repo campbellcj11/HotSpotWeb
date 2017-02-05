@@ -22,10 +22,9 @@ const styles = {
     }
 }
 
-class EventTable extends React.Component {
+class EventApprovalTable extends React.Component {
 	constructor(props) {
 		super(props)
-		
 		this.state = {
 			events: [],
 			loading: true
@@ -34,7 +33,7 @@ class EventTable extends React.Component {
 		this.addEvent.bind(this)
 		this.removeEvent.bind(this)
 	}
-
+	
 	componentDidMount() {
 		this.loadEvents.call(this, this.props)
 	}
@@ -49,22 +48,17 @@ class EventTable extends React.Component {
 	}*/
 
 	loadEvents(props) {
-		if (props.mode == 'potential') {
-			this.addEventArray(this.props.potentialEvents)
-		} else {
-			EventActions.eventTable.orderByChild('Date').on('value', (snapshot) => {
-					let eventArray = []
-					snapshot.forEach((child) => {
-						let event = child.val()
-						event.key = child.key
-						eventArray.unshift(event)
-					})
-					this.addEventArray(eventArray)
-					console.log(eventArray.length + ' events found')
-				}, (error) => {
-					console.log("Read error:" + error.code);
-			})
-		}
+        EventActions.getAllSnapshots((function(collection) {
+            let eventArray = []
+            Object.keys(collection).forEach((key, index) => {
+                let event = collection[key]
+                event.key = key
+				if (event.approvalStatus !== 'approved') {
+					eventArray.push(event)
+				}
+            })
+            this.addEventArray(eventArray)
+        }).bind(this), 'approvalQueue')
 	}
 
 	addEventArray(eventArray) {
@@ -91,7 +85,8 @@ class EventTable extends React.Component {
 		State.set({
 			view: 'individual_edit',
 			viewParams: {
-				event: event
+				event: event,
+				pending: true
 			}
 		})
 	}
@@ -144,4 +139,4 @@ class EventTable extends React.Component {
 	}
 }
 
-export default EventTable
+export default EventApprovalTable

@@ -14,6 +14,7 @@ import {
 } from 'material-ui'
 import EventActions from '../actions/eventActions'
 import StorageActions from '../actions/storageActions'
+import {State} from './ApplicationState'
 
 const styles = {
     row: {
@@ -74,7 +75,6 @@ class EventEditor extends Component {
         fr.readAsDataURL(newImage)
     }
 
-    //TODO only updates image for now
     onSave() {
         let newImage = this.state.newImage
         let event = this.props.event
@@ -140,6 +140,34 @@ class EventEditor extends Component {
                 })
             }
         }
+    }
+
+    onApprove() {
+        // Copy new event to event table from approval queue
+        let potentialEvent = this.props.event
+        let key = potentialEvent.key
+        delete potentialEvent.key
+        EventActions.createEvent(potentialEvent, (success, event, ref) => {
+            if (success) {
+                // redirect to regular event editor page for this event
+                event.key = ref.key
+                State.set({
+                    viewParams: {
+                        event: event
+                    },
+                    view: 'individual_edit'
+                })
+                // mark approved
+                EventActions.getRef(key, 'approvalQueue')
+                    .update({
+                        approvalStatus: 'approved'
+                    })
+            } else {
+                // report failure
+                console.error('Failed to create event:')
+                console.error(JSON.stringify(potentialEvent, null, '\t'))
+            }
+        })
     }
 
     handleDateChange(e, date) {
@@ -253,7 +281,8 @@ class EventEditor extends Component {
                 <FlatButton
                     label={chooseImgText}
                     secondary={true}
-                    style={styles.rowItem} 
+                    disabled={this.props.pending}
+                    style={styles.rowItem}
                     containerElement="label" >
                         <input
                             id="chooseImageInput"
@@ -263,7 +292,7 @@ class EventEditor extends Component {
                             style={styles.fileInput} /> 
                 </FlatButton>
                 <FlatButton
-                    label="Edit Properties"
+                    label={this.props.pending ? "View Properties" : "Edit Properties"}
                     primary={true}
                     style={styles.rowItem}
                     onClick={this.enterEditTextMode.bind(this)} />
@@ -276,7 +305,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Event_Name"
                     floatingLabelText="Event Name"
-                    disabled={!this.state.editingText}
+                    disabled={!this.state.editingText || this.props.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Event_Name || event.Event_Name}
@@ -284,7 +313,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Address"
                     floatingLabelText="Address"
-                    disabled={!this.state.editingText}
+                    disabled={!this.state.editingText || this.props.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Address || event.Address}
@@ -292,6 +321,7 @@ class EventEditor extends Component {
                 <DatePicker
                     id="Date"
                     floatingLabelText="Date"
+                    disabled={this.props.pending}
                     minDate={new Date()}
                     defaultDate={modifications.Date ? 
                         new Date(modifications.Date) : date}
@@ -299,6 +329,7 @@ class EventEditor extends Component {
                 <TimePicker
                     id="Time"
                     floatingLabelText="Time"
+                    disabled={this.props.pending}
                     defaultTime={modifications.Date ? 
                         new Date(modifications.Date) : date}
                     pedantic={true}
@@ -306,6 +337,7 @@ class EventEditor extends Component {
                  <TextField
                     id="Location"
                     floatingLabelText="Location"
+                    disabled={!this.state.editingText || this.props.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Location || event.Location}
@@ -313,7 +345,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Short_Description"
                     floatingLabelText="Short Description"
-                    disabled={!this.state.editingText}
+                    disabled={!this.state.editingText || this.props.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Short_Description || event.Short_Description}
@@ -321,7 +353,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Long_Description"
                     floatingLabelText="Long Description"
-                    disabled={!this.state.editingText}
+                    disabled={!this.state.editingText || this.props.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Long_Description || event.Long_Description}
@@ -329,7 +361,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Website"
                     floatingLabelText="Website"
-                    disabled={!this.state.editingText}
+                    disabled={!this.state.editingText || this.props.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Website || event.Website}
@@ -337,7 +369,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Email_Contact"
                     floatingLabelText="Email Contact"
-                    disabled={!this.state.editingText}
+                    disabled={!this.state.editingText || this.props.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Email_Contact || event.Email_Contact}
@@ -345,7 +377,7 @@ class EventEditor extends Component {
                 <TextField
                     id="City"
                     floatingLabelText="City"
-                    disabled={!this.state.editingText}
+                    disabled={!this.state.editingText || this.props.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.City || event.City}
@@ -353,7 +385,7 @@ class EventEditor extends Component {
                 <TextField
                     id="County"
                     floatingLabelText="County"
-                    disabled={!this.state.editingText}
+                    disabled={!this.state.editingText || this.props.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.County || event.County}
@@ -361,7 +393,7 @@ class EventEditor extends Component {
                 <TextField
                     id="State"
                     floatingLabelText="State"
-                    disabled={!this.state.editingText}
+                    disabled={!this.state.editingText || this.props.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.State || event.State}
@@ -369,7 +401,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Status"
                     floatingLabelText="Status"
-                    disabled={!this.state.editingText}
+                    disabled={!this.state.editingText || this.props.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Status || event.Status}
@@ -377,7 +409,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Event_Type"
                     floatingLabelText="Type"
-                    disabled={!this.state.editingText}
+                    disabled={!this.state.editingText || this.props.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Event_Type || event.Event_Type}
@@ -400,10 +432,10 @@ class EventEditor extends Component {
                         disabled={!this.state.changedSinceSave && !this.state.editingText}
                         onClick={this.clearChanges.bind(this)} />
                     <RaisedButton
-                        label="Save"
+                        label={this.props.pending ? "Approve" : "Save"}
                         primary={true}
-                        disabled={!this.state.changedSinceSave}
-                        onClick={this.onSave.bind(this)} />
+                        disabled={!this.props.pending && !this.state.changedSinceSave}
+                        onClick={this.props.pending ? this.onApprove.bind(this) : this.onSave.bind(this)} />
                 </CardActions>
             </Card>
         )
