@@ -8,7 +8,7 @@ from facepy import GraphAPI
 #      python3 facebookEventScraper.py 39.364283 -74.422927 16093 1000
 
 # Setting up the graph api and firebase connections.
-graph = GraphAPI('1738197196497592|HHscAS8uDjBcjiCgf-NZbQjjmL0')
+graph = GraphAPI('1738197196497592|RpbqD1owgCZ6aT7s5JOrGvp9_7Q')
 config = {
     "apiKey" : "AIzaSyBc6_49WEUZLKCBoR8FFIHAfVjrZasdHlc",
     "authDomain" : "projectnow-964ba.firebaseapp.com",
@@ -73,7 +73,7 @@ def formatOutput(event, user):
     """Format data to fit database scheme."""
 
     #format place
-    if 'place' in event:
+    if 'place' in event and 'location' in event['place']:
         location = event['place']['location']
         if 'street' not in location:
             return None
