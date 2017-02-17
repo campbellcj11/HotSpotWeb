@@ -52,7 +52,7 @@ class EventTable extends React.Component {
 		if (props.mode == 'potential') {
 			this.addEventArray(this.props.potentialEvents)
 		} else {
-			EventActions.eventTable.orderByChild('Date').on('value', (snapshot) => {
+			EventActions.eventTable.orderByChild('Date').limitToLast(50).on('value', (snapshot) => {
 					let eventArray = []
 					snapshot.forEach((child) => {
 						let event = child.val()

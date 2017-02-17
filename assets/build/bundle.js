@@ -65030,7 +65030,7 @@
 				if (props.mode == 'potential') {
 					this.addEventArray(this.props.potentialEvents);
 				} else {
-					_eventActions2.default.eventTable.orderByChild('Date').on('value', function (snapshot) {
+					_eventActions2.default.eventTable.orderByChild('Date').limitToLast(50).on('value', function (snapshot) {
 						var eventArray = [];
 						snapshot.forEach(function (child) {
 							var event = child.val();
