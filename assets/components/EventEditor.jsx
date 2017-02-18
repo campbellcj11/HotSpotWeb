@@ -15,6 +15,7 @@ import {
 import EventActions from '../actions/eventActions'
 import StorageActions from '../actions/storageActions'
 import {State} from './ApplicationState'
+import {global as globalStyles} from '../Styles'
 
 const styles = {
     row: {
@@ -46,16 +47,41 @@ let inputTimeouts = {}
 class EventEditor extends Component {
     constructor(props) {
         super(props)
-        let date = new Date(this.props.event.Date)
+        
+        this.pending = !!this.props.router.location.query.pending
+
+        //let date = new Date(this.event.Date)
         this.state = {
             changedSinceSave: false,
             newImageURL: null,
             oldImageURL: null, //only set when image has been updated but not yet committed
-            hasImage: !!this.props.event.Image,
+            //hasImage: !!this.event.Image,
             editingText: false,
-            datePickerVal: date,
-            timePickerVal: date,
+            //datePickerVal: //date,
+            //timePickerVal: //date,
             modifications: {}
+        }
+    }
+
+    componentWillMount() {
+        if (this.props.router.location.state) {
+            this.event = this.props.router.location.state
+            let date = new Date(this.event.Date)
+            this.setState({
+                hasImage: !!this.event.Image,
+                datePickerVal: date,
+                timePickerVal: date
+            })
+        } else {
+            EventActions.getSnapshot(this.props.router.location.query.id, (function(snapshot) {
+                this.event = snapshot
+                let date = new Date(this.event.Date)
+                this.setState({
+                    hasImage: !!this.event.Image,
+                    datePickerVal: date,
+                    timePickerVal: date
+                })
+            }).bind(this), this.pending ? 'approvalQueue' : 'events')
         }
     }
 
@@ -63,8 +89,8 @@ class EventEditor extends Component {
         let newImage = e.target.files[0]
         let fr = new FileReader()
         fr.onload = ((e) => {
-            let old = this.props.event.Image || null
-            this.props.event.Image = fr.result
+            let old = this.event.Image || null
+            this.event.Image = fr.result
             this.setState({
                 changedSinceSave: true,
                 newImage: newImage,
@@ -77,7 +103,7 @@ class EventEditor extends Component {
 
     onSave() {
         let newImage = this.state.newImage
-        let event = this.props.event
+        let event = this.event
         if (this.state.newImage) {
             if (this.state.hasImage) {
                 // delete old image
@@ -104,7 +130,7 @@ class EventEditor extends Component {
                     console.log('Reference updated')
                     // update local copy
                     for (let field in changes) {
-                        this.props.event[field] = changes[field]
+                        this.event[field] = changes[field]
                     }
                     this.setState({
                         changedSinceSave: false,
@@ -128,7 +154,7 @@ class EventEditor extends Component {
                     console.log('Reference updated')
                     //update local copy
                     for (let field in changes) {
-                        this.props.event[field] = changes[field]
+                        this.event[field] = changes[field]
                     }
                     this.setState({
                         changedSinceSave: false,
@@ -144,18 +170,19 @@ class EventEditor extends Component {
 
     onApprove() {
         // Copy new event to event table from approval queue
-        let potentialEvent = this.props.event
+        let potentialEvent = this.event
         let key = potentialEvent.key
         delete potentialEvent.key
         EventActions.createEvent(potentialEvent, (success, event, ref) => {
             if (success) {
                 // redirect to regular event editor page for this event
                 event.key = ref.key
-                State.set({
-                    viewParams: {
-                        event: event
+                State.router.push({
+                    pathname: 'edit',
+                    query: {
+                        id: event.key
                     },
-                    view: 'individual_edit'
+                    state: event
                 })
                 // mark approved
                 EventActions.getRef(key, 'approvalQueue')
@@ -168,6 +195,16 @@ class EventEditor extends Component {
                 console.error(JSON.stringify(potentialEvent, null, '\t'))
             }
         })
+    }
+
+    onDeny() {
+        let potentialEvent = this.event
+        let key = potentialEvent.key
+        EventActions.getRef(key, 'approvalQueue')
+            .update({
+                approvalStatus: 'denied'
+            })
+        State.router.push('/pending')
     }
 
     handleDateChange(e, date) {
@@ -205,7 +242,7 @@ class EventEditor extends Component {
     clearChanges() {
         if (!this.state.editingText) {
             if (this.state.oldImageURL) {
-                this.props.event.Image = this.state.oldImageURL
+                this.event.Image = this.state.oldImageURL
             }
             this.setState({
                 changedSinceSave: false,
@@ -244,9 +281,13 @@ class EventEditor extends Component {
     }
 
     render() {
-        let subtitleText = !this.state.changedSinceSave ? 'Up to date' : 'Click Save to commit your changes'
-        let event = this.props.event
+        let screenWidth = State.get('screenWidth')
+        if (!this.event) {
+            return null
+        }
+        let event = this.event
         
+        let subtitleText = !this.state.changedSinceSave ? 'Up to date' : 'Click Save to commit your changes'
         let date = new Date(event.Date)
         let header = (
             <div>
@@ -281,7 +322,7 @@ class EventEditor extends Component {
                 <FlatButton
                     label={chooseImgText}
                     secondary={true}
-                    disabled={this.props.pending}
+                    disabled={this.pending}
                     style={styles.rowItem}
                     containerElement="label" >
                         <input
@@ -292,10 +333,14 @@ class EventEditor extends Component {
                             style={styles.fileInput} /> 
                 </FlatButton>
                 <FlatButton
-                    label={this.props.pending ? "View Properties" : "Edit Properties"}
+                    label={this.pending ? "View Properties" : "Edit Properties"}
                     primary={true}
                     style={styles.rowItem}
                     onClick={this.enterEditTextMode.bind(this)} />
+                <FlatButton
+                    label="Delete event"
+                    disabled={true}
+                    style={styles.rowItem} />
             </div>
         )
 
@@ -305,7 +350,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Event_Name"
                     floatingLabelText="Event Name"
-                    disabled={!this.state.editingText || this.props.pending}
+                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Event_Name || event.Event_Name}
@@ -313,7 +358,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Address"
                     floatingLabelText="Address"
-                    disabled={!this.state.editingText || this.props.pending}
+                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Address || event.Address}
@@ -321,7 +366,7 @@ class EventEditor extends Component {
                 <DatePicker
                     id="Date"
                     floatingLabelText="Date"
-                    disabled={this.props.pending}
+                    disabled={this.pending}
                     minDate={new Date()}
                     defaultDate={modifications.Date ? 
                         new Date(modifications.Date) : date}
@@ -329,7 +374,7 @@ class EventEditor extends Component {
                 <TimePicker
                     id="Time"
                     floatingLabelText="Time"
-                    disabled={this.props.pending}
+                    disabled={this.pending}
                     defaultTime={modifications.Date ? 
                         new Date(modifications.Date) : date}
                     pedantic={true}
@@ -337,7 +382,7 @@ class EventEditor extends Component {
                  <TextField
                     id="Location"
                     floatingLabelText="Location"
-                    disabled={!this.state.editingText || this.props.pending}
+                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Location || event.Location}
@@ -345,7 +390,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Short_Description"
                     floatingLabelText="Short Description"
-                    disabled={!this.state.editingText || this.props.pending}
+                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Short_Description || event.Short_Description}
@@ -353,7 +398,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Long_Description"
                     floatingLabelText="Long Description"
-                    disabled={!this.state.editingText || this.props.pending}
+                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Long_Description || event.Long_Description}
@@ -361,7 +406,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Website"
                     floatingLabelText="Website"
-                    disabled={!this.state.editingText || this.props.pending}
+                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Website || event.Website}
@@ -369,7 +414,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Email_Contact"
                     floatingLabelText="Email Contact"
-                    disabled={!this.state.editingText || this.props.pending}
+                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Email_Contact || event.Email_Contact}
@@ -377,7 +422,7 @@ class EventEditor extends Component {
                 <TextField
                     id="City"
                     floatingLabelText="City"
-                    disabled={!this.state.editingText || this.props.pending}
+                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.City || event.City}
@@ -385,7 +430,7 @@ class EventEditor extends Component {
                 <TextField
                     id="County"
                     floatingLabelText="County"
-                    disabled={!this.state.editingText || this.props.pending}
+                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.County || event.County}
@@ -393,7 +438,7 @@ class EventEditor extends Component {
                 <TextField
                     id="State"
                     floatingLabelText="State"
-                    disabled={!this.state.editingText || this.props.pending}
+                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.State || event.State}
@@ -401,7 +446,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Status"
                     floatingLabelText="Status"
-                    disabled={!this.state.editingText || this.props.pending}
+                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Status || event.Status}
@@ -409,7 +454,7 @@ class EventEditor extends Component {
                 <TextField
                     id="Event_Type"
                     floatingLabelText="Type"
-                    disabled={!this.state.editingText || this.props.pending}
+                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.Event_Type || event.Event_Type}
@@ -418,7 +463,7 @@ class EventEditor extends Component {
         ) : null
 
         return (
-            <Card>
+            <Card style={globalStyles.content.edit[screenWidth]}>
                 <CardTitle
                     title={'Edit Event'}
                     subtitle={subtitleText} />
@@ -431,11 +476,17 @@ class EventEditor extends Component {
                         label={this.state.editingText ? 'Close Editor' : 'Clear Changes'}
                         disabled={!this.state.changedSinceSave && !this.state.editingText}
                         onClick={this.clearChanges.bind(this)} />
+                    {this.pending && (
+                        <RaisedButton
+                            label="Deny"
+                            secondary={true}
+                            onClick={this.onDeny.bind(this)} />
+                    )}
                     <RaisedButton
-                        label={this.props.pending ? "Approve" : "Save"}
+                        label={this.pending ? "Approve" : "Save"}
                         primary={true}
-                        disabled={!this.props.pending && !this.state.changedSinceSave}
-                        onClick={this.props.pending ? this.onApprove.bind(this) : this.onSave.bind(this)} />
+                        disabled={!this.pending && !this.state.changedSinceSave}
+                        onClick={this.pending ? this.onApprove.bind(this) : this.onSave.bind(this)} />
                 </CardActions>
             </Card>
         )

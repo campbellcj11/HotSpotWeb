@@ -4,6 +4,7 @@ var path = require('path')
 var BUILD_DIR = path.resolve(__dirname, 'assets/build')
 var APP_DIR = path.resolve(__dirname, 'assets/components')
 var ACTIONS_DIR = path.resolve(__dirname, 'assets/actions')
+var MAIN_DIR = path.resolve(__dirname, 'assets')
 
 var config = {
 	entry: [
@@ -20,7 +21,7 @@ var config = {
 		loaders: [
 			{
 				test: /\.jsx?/,
-				include: [APP_DIR, ACTIONS_DIR],
+				include: [MAIN_DIR, APP_DIR, ACTIONS_DIR],
 				loader: 'babel-loader',
 				query: {
 					presets: ['es2015', 'react']

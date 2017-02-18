@@ -16,6 +16,7 @@ import {
 import EventActions from '../actions/eventActions'
 import StorageActions from '../actions/storageActions'
 import {State} from './ApplicationState'
+import {global as globalStyles} from '../Styles'
 
 const styles = {
     row: {
@@ -161,9 +162,10 @@ class EventCreator extends Component {
 
     render() {
         let event = this.state.potentialEvent
+        let screenWidth = State.get('screenWidth')
 
         return (
-            <Card>
+            <Card style={globalStyles.content[screenWidth]}>
                 <CardTitle
                     title={'Create Event'}
                     subtitle='Create a new event' />

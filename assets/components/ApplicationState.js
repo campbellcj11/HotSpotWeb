@@ -1,6 +1,7 @@
 class ApplicationState {
 	constructor() {
 		this.delegator = 'unitialized'
+		this.router = 'unitialized'
 		Object.seal(this)
 		this.set.bind(this)
 	}

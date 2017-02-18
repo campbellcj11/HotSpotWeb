@@ -28,7 +28,7 @@ const EventActions = {
 	},
 
 	// get snapshot for event value
-	getSnapshot: (eventId, callback, alternateTable) => {
+	getSnapshot: function(eventId, callback, alternateTable) {
 		this.getRef(eventId, alternateTable).once('value', (snapshot) => {
 			callback(snapshot.val())
 		})
@@ -36,7 +36,7 @@ const EventActions = {
 
 	// remove a specific event entry
 	// TODO also remove image
-	remove: (eventId, alternateTable) => {
+	remove: function(eventId, alternateTable) {
 		let event = this.getRef(eventId, alternateTable)
 		event.remove()
 			.then(() => {
