@@ -70125,11 +70125,8 @@
 				if (this.mode == 'potential') {
 					this.addEventArray(this.props.potentialEvents);
 				} else {
-<<<<<<< HEAD
-=======
-					// TODO limit, filter, reduce # of queries
->>>>>>> router
-					_eventActions2.default.eventTable.orderByChild('Date').limitToLast(50).on('value', function (snapshot) {
+					// TODO limit, filter, reduce # of queries // limit to last 50 during testing
+					_eventActions2.default.eventTable.orderByChild('Date').on('value', function (snapshot) {
 						var eventArray = [];
 						snapshot.forEach(function (child) {
 							var event = child.val();
