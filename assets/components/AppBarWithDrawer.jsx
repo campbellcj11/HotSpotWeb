@@ -1,11 +1,12 @@
 import React, {Component} from 'react'
+import {Link} from 'react-router' 
 import {AppBar, Drawer, Menu, FlatButton, MenuItem} from 'material-ui'
 import UserActions from '../actions/userActions'
 import {State} from './ApplicationState'
 
 const styles = {
 	all: {
-		//height: '50px' TODO look into thisf
+		//height: '50px'
 	},
 	large: {
 		paddingLeft: '276px'
@@ -26,7 +27,6 @@ export default class AppBarWithDrawer extends Component {
 			drawer: false
 		}
 		
-		this.onLeftIconButtonTap = this.onLeftIconButtonTap.bind(this)
 		this.closeDrawer = this.closeDrawer.bind(this)
 	}
 	
@@ -44,9 +44,7 @@ export default class AppBarWithDrawer extends Component {
 	
 	onDrawerMenuItemSelect(event, item, index) {
 		if (item.props.value) {
-			State.controller.setState({
-				view: item.props.value
-			})
+			State.router.push('/' + item.props.value)
 		}
 		this.closeDrawer()
 	}
@@ -54,8 +52,9 @@ export default class AppBarWithDrawer extends Component {
 	handleLogOut() {
 		UserActions.logoutUser((success, errMessage) => {
 			if (success) {
-				State.controller.setState({
-					logged_in: false,
+				State.router.push('/login')
+				State.set({
+					loggedIn: false,
 					currentUser: null
 				})
 			} else {
@@ -65,7 +64,7 @@ export default class AppBarWithDrawer extends Component {
 	}
 	
 	render() {
-		let fullSize = this.props.screenWidth >= 800
+		let fullSize = State.get('screenWidth') == 'large'
 		// apply global styles and view port specific styles
 		let currentStyle = Object.assign({}, styles.all, styles[fullSize ? 'large' : 'medium'])
 		
@@ -83,10 +82,10 @@ export default class AppBarWithDrawer extends Component {
 				Manage
 			</MenuItem>),
 			(<MenuItem
-				key={2}
-				value="pending"
-				leftIcon={<i className="material-icons">done_all</i>}>
-				Pending
+					key={2}
+					value="pending"
+					leftIcon={<i className="material-icons">done_all</i>}>
+					Pending
 			</MenuItem>
 			),
 			(<MenuItem
@@ -129,7 +128,7 @@ export default class AppBarWithDrawer extends Component {
 							Log out
 						</FlatButton>}
 					showMenuIconButton={!fullSize}
-					onLeftIconButtonTouchTap={this.onLeftIconButtonTap} />
+					onLeftIconButtonTouchTap={this.onLeftIconButtonTap.bind(this)} />
 				{drawer}
 			</div>
 		)

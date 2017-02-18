@@ -6,10 +6,13 @@ import {
 	TableHeaderColumn,
 	TableRow,
 	TableRowColumn,
-	CircularProgress
+	CircularProgress,
+	Card,
+	CardTitle
 } from 'material-ui';
 import EventActions from '../actions/eventActions'
 import {State} from './ApplicationState'
+import {global as globalStyles} from '../Styles'
 
 const styles = {
 	progressContainer: {
@@ -30,6 +33,8 @@ class EventApprovalTable extends React.Component {
 			loading: true
 		}
 
+		this.mode = 'pending'
+
 		this.addEvent.bind(this)
 		this.removeEvent.bind(this)
 	}
@@ -38,14 +43,13 @@ class EventApprovalTable extends React.Component {
 		this.loadEvents.call(this, this.props)
 	}
 
-	/*componentWillReceiveProps(nextProps) {
-		if (nextProps.mode != this.props.mode) {
-			this.setState({
-				loading: true
-			})
-			this.loadEvents.call(this, nextProps)
-		}
-	}*/
+	componentWillReceiveProps(nextProps) {
+		this.mode = this.props.router.location.query.mode || 'pending'
+		this.setState({
+			loading: true
+		})
+		this.loadEvents.call(this)
+	}
 
 	loadEvents(props) {
         EventActions.getAllSnapshots((function(collection) {
@@ -53,7 +57,7 @@ class EventApprovalTable extends React.Component {
             Object.keys(collection).forEach((key, index) => {
                 let event = collection[key]
                 event.key = key
-				if (event.approvalStatus !== 'approved') {
+				if (event.approvalStatus !== 'approved' && event.approvalStatus !== 'denied') {
 					eventArray.push(event)
 				}
             })
@@ -82,16 +86,18 @@ class EventApprovalTable extends React.Component {
 	handleRowSelection(selectedRows) {
 		let index = selectedRows[0]
 		let event = this.state.events[index]
-		State.set({
-			view: 'individual_edit',
-			viewParams: {
-				event: event,
-				pending: true
-			}
+		State.router.push({
+			pathname: 'edit',
+			query: {
+				id: event.key,
+				pending: true,
+			},
+			state: event
 		})
 	}
 
 	render() {	
+		let screenWidth = State.get('screenWidth')
 		if (!this.props.potentialEvents && this.state.loading) {
 			return (
 				<div style={styles.progressContainer}>
@@ -109,29 +115,34 @@ class EventApprovalTable extends React.Component {
 					<TableRow key={event.key}>
 						<TableRowColumn>{event.Event_Name}</TableRowColumn>
 						<TableRowColumn>{d.toLocaleDateString() + ' ' + d.toLocaleTimeString()}</TableRowColumn>
-						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Location}</TableRowColumn>}
-						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Address}</TableRowColumn>}
-						{this.props.screenWidth == 'large' && <TableRowColumn>{event.Short_Description}</TableRowColumn>}
+						{screenWidth == 'large' && <TableRowColumn>{event.Location}</TableRowColumn>}
+						{screenWidth == 'large' && <TableRowColumn>{event.Address}</TableRowColumn>}
+						{screenWidth == 'large' && <TableRowColumn>{event.Short_Description}</TableRowColumn>}
 					</TableRow>
 				)
 			})
 		
 			//TODO reenable multiSelectable and selectAll
 			return (
-				<Table multiSelectable={false} onRowSelection={this.handleRowSelection.bind(this)}>
-					<TableHeader enableSelectAll={false} displaySelectAll={!this.props.potentialEvents}>
-						<TableRow>
-							<TableHeaderColumn>Event Name</TableHeaderColumn>
-							<TableHeaderColumn>Date</TableHeaderColumn>
-							{this.props.screenWidth == 'large' && <TableHeaderColumn>Location</TableHeaderColumn>}
-							{this.props.screenWidth == 'large' && <TableHeaderColumn>Address</TableHeaderColumn>}
-							{this.props.screenWidth == 'large' && <TableHeaderColumn>Description</TableHeaderColumn>}
-						</TableRow>
-					</TableHeader>
-					<TableBody displayRowCheckbox={!this.props.potentialEvents}>
-						{rows}
-					</TableBody>
-				</Table>
+				<Card style={globalStyles.content[screenWidth]}>
+					<CardTitle
+						title="Pending Events"
+						subtitle="Manage pending user submitted events" />
+					<Table multiSelectable={false} onRowSelection={this.handleRowSelection.bind(this)}>
+						<TableHeader enableSelectAll={false} displaySelectAll={!this.props.potentialEvents}>
+							<TableRow>
+								<TableHeaderColumn>Event Name</TableHeaderColumn>
+								<TableHeaderColumn>Date</TableHeaderColumn>
+								{screenWidth == 'large' && <TableHeaderColumn>Location</TableHeaderColumn>}
+								{screenWidth == 'large' && <TableHeaderColumn>Address</TableHeaderColumn>}
+								{screenWidth == 'large' && <TableHeaderColumn>Description</TableHeaderColumn>}
+							</TableRow>
+						</TableHeader>
+						<TableBody displayRowCheckbox={!this.props.potentialEvents}>
+							{rows}
+						</TableBody>
+					</Table>
+				</Card>
 			)
 		} else {
 			return null

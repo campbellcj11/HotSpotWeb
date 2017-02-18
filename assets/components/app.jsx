@@ -8,4 +8,4 @@ import {State} from './ApplicationState'
 // For material-ui
 injectTapEventPlugin()
 
-State.controller = render(<Main/>, document.getElementById('main'))
+State.delegator = render(<Main/>, document.getElementById('main'))

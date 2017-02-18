@@ -9,6 +9,8 @@ import {
     CardTitle,
     Snackbar
 } from 'material-ui'
+import {State} from './ApplicationState'
+import {global as globalStyles} from '../Styles'
 
 const styles = {
     row: {
@@ -165,6 +167,7 @@ class UploadForm extends React.Component {
     }
 
     render() {
+        let screenWidth = State.get('screenWidth')
         let chip = null
         if (this.state.status != 'NO_FILE_SELECTED') {
             chip = (
@@ -184,7 +187,7 @@ class UploadForm extends React.Component {
                 <EventTable
                     mode="potential"
                     potentialEvents={this.state.potentialEvents}
-                    screenWidth={this.props.screenWidth} 
+                    screenWidth={screenWidth} 
                     hideCheckboxes={true} />
             )
 
@@ -204,32 +207,37 @@ class UploadForm extends React.Component {
 
         return (
             <div>
-                <div style={styles.row}>
-                    <RaisedButton
-                        primary={true}
-                        label="Select file for event import"
-                        containerElement="label"
-                        style={styles.rowItem}>
-                        <input
-                            id="uploadFileInput"
-                            onChange={this.onInputChange}
-                            type="file"
-                            accept=".csv, .dsv, .tsv"
-                            style={styles.fileInput} />   
-                    </RaisedButton>
-                    {chip}
-                    <RaisedButton
-                        disabled={!enableUpload}
-                        label={uploadButtonLabel}
-                        secondary={true}
-                        style={styles.rowItem} 
-                        onClick={this.handleUpload} />
-                    <Snackbar
-                        open={true}
-                        message={'state: ' + this.state.status}
-                        autoHideDuration={5000} />
-                </div>
-            {previewTable}
+                <Card style={globalStyles.content[screenWidth]}>
+                    <CardTitle
+                        title="Import Events"
+                        subtitle="Upload new events to the database in bulk" />							/>
+                    <div style={styles.row}>
+                        <RaisedButton
+                            primary={true}
+                            label="Select file for event import"
+                            containerElement="label"
+                            style={styles.rowItem}>
+                            <input
+                                id="uploadFileInput"
+                                onChange={this.onInputChange}
+                                type="file"
+                                accept=".csv, .dsv, .tsv"
+                                style={styles.fileInput} />   
+                        </RaisedButton>
+                        {chip}
+                        <RaisedButton
+                            disabled={!enableUpload}
+                            label={uploadButtonLabel}
+                            secondary={true}
+                            style={styles.rowItem} 
+                            onClick={this.handleUpload} />
+                        <Snackbar
+                            open={true}
+                            message={'state: ' + this.state.status}
+                            autoHideDuration={5000} />
+                    </div>
+                </Card>
+                {previewTable}
             </div>
         )
     }

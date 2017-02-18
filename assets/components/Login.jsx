@@ -67,7 +67,7 @@ class Login extends Component {
         }
     }
 
-    componentWillMount() {
+    componentWillMount() {        
         UserActions.getCurrentUser((success, content) => {
             if (success) {
                 this.setState({
@@ -76,9 +76,14 @@ class Login extends Component {
                     errorText: {}
                 })
                 State.set({
-                    logged_in: true,
+                    loggedIn: true,
                     currentUser: content
                 })
+                if (State.router.location.state && State.router.location.state.redirect && State.router.location.state.redirect.pathname !== '/') {
+                    State.router.push(State.router.location.state.redirect)
+                } else {
+                    State.router.push('/manage')
+                }
             } else {
                 this.setState({
                     loading: false
@@ -115,7 +120,7 @@ class Login extends Component {
         this.setState({
             status: 'LOGGING_IN',
         })
-        UserActions.loginUser(this.state.user, (success, content, authResponse) => {
+        UserActions.loginUser(this.state.user, ((success, content, authResponse) => {
             if (success) {
                 this.setState({
                     status: 'LOGIN_SUCCEEDED',
@@ -123,9 +128,14 @@ class Login extends Component {
                     errorText: {}
                 })
                 State.set({
-                    logged_in: true,
+                    loggedIn: true,
                     currentUser: content
                 })
+                if (State.router.location.state.redirect && State.router.location.state.redirect.pathname !== '/') {
+                    State.router.push(State.router.location.state.redirect)
+                } else {
+                    State.router.push('/manage')
+                }
             } else {
                 if (content == 'AUTH') {
                     this.setState({
@@ -143,7 +153,7 @@ class Login extends Component {
                     })
                 }
             }
-        })
+        }).bind(this))
     }
 
     onSignUpClick() {
@@ -161,8 +171,9 @@ class Login extends Component {
                 </div>
             )
         } else {
+            let screenWidth = State.get('screenWidth')
             return (
-                <Card style={styles.login[this.props.screenWidth]}>
+                <Card style={styles.login[screenWidth]}>
                     <CardTitle
                         title="Log in"
                         subtitle="Log in to the administrative panel" />
