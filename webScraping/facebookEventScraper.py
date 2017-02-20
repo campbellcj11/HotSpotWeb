@@ -12,20 +12,20 @@ from facepy import GraphAPI
 
 # Setting up the graph api and firebase connections.
 graph = GraphAPI('1738197196497592|RpbqD1owgCZ6aT7s5JOrGvp9_7Q')
-# config = {
-#     "apiKey" : "AIzaSyBc6_49WEUZLKCBoR8FFIHAfVjrZasdHlc",
-#     "authDomain" : "projectnow-964ba.firebaseapp.com",
-#     "databaseURL" : "https://projectnow-964ba.firebaseio.com",
-#     "storageBucket" : "projectnow-964ba.appspot.com",
-# }
-## test database
 config = {
-    "apiKey": "AIzaSyBtEU6cCFmGaUSrteSyrg8SDgiOsCaAJOo",
-    "authDomain": "projectnowtest.firebaseapp.com",
-    "databaseURL": "https://projectnowtest.firebaseio.com",
-    "storageBucket": "projectnowtest.appspot.com",
-    "messagingSenderId": "727912823537"
-};
+    "apiKey" : "AIzaSyBc6_49WEUZLKCBoR8FFIHAfVjrZasdHlc",
+    "authDomain" : "projectnow-964ba.firebaseapp.com",
+    "databaseURL" : "https://projectnow-964ba.firebaseio.com",
+    "storageBucket" : "projectnow-964ba.appspot.com",
+}
+## test database
+# config = {
+#     "apiKey": "AIzaSyBtEU6cCFmGaUSrteSyrg8SDgiOsCaAJOo",
+#     "authDomain": "projectnowtest.firebaseapp.com",
+#     "databaseURL": "https://projectnowtest.firebaseio.com",
+#     "storageBucket": "projectnowtest.appspot.com",
+#     "messagingSenderId": "727912823537"
+# };
 
 firebase = pyrebase.initialize_app(config)
 
