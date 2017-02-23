@@ -1,11 +1,14 @@
 import time
 import pyrebase
 import sys
+import getpass
 from datetime import datetime
 from facepy import GraphAPI
 
 ## To run this program for Atlantic City use:
-#      python3 facebookEventScraper.py 39.364283 -74.422927 16093 1000
+#      python3 facebookEventScraper.py 39.364283 -74.422927 32186.9 100000
+## To run this program for Philadelphia use:
+#      python3 facebookEventScraper.py 39.952584 -75.165222 32186.9 100000
 
 # Setting up the graph api and firebase connections.
 graph = GraphAPI('1738197196497592|RpbqD1owgCZ6aT7s5JOrGvp9_7Q')
@@ -15,6 +18,15 @@ config = {
     "databaseURL" : "https://projectnow-964ba.firebaseio.com",
     "storageBucket" : "projectnow-964ba.appspot.com",
 }
+## test database
+# config = {
+#     "apiKey": "AIzaSyBtEU6cCFmGaUSrteSyrg8SDgiOsCaAJOo",
+#     "authDomain": "projectnowtest.firebaseapp.com",
+#     "databaseURL": "https://projectnowtest.firebaseio.com",
+#     "storageBucket": "projectnowtest.appspot.com",
+#     "messagingSenderId": "727912823537"
+# };
+
 firebase = pyrebase.initialize_app(config)
 
 def checkCommandLineArguments():
@@ -24,19 +36,20 @@ def checkCommandLineArguments():
             "Please enter the arguements as shown: latitude longitude distance limit.")
         sys.exit()
 
+"""Setup firebase and return auth user."""
 def setup():
     print("Setting up web scraper...")
-    """Setup firebase and return auth user."""
     auth = firebase.auth()
     # Log the user in
-    user = auth.sign_in_with_email_and_password('conor@email.sc.edu', 'password')
+    userName = input("Plese enter a user name for firebase: ")
+    # password = input("Please enter a password for the previous account: ")
+    user = auth.sign_in_with_email_and_password(userName, getpass.getpass())
     return user;
 
+"""Search for places within the parameters.
+Edit distance, center, and limit in order to change search results.
+"""
 def searchForPlaces():
-    """Search for places within the parameters.
-
-    Edit distance, center, and limit in order to change search results.
-    """
     """TODO: these need validation"""
     print("Getting places around coordinates...")
     centerCoordinates = sys.argv[1] + "," + sys.argv[2]
@@ -53,8 +66,8 @@ def searchForPlaces():
     )
     return result
 
+"""Parse the short description from the long description."""
 def getShortDescription(longDescription):
-    """Parse the short description from the long description."""
     maxCharacterLength = 200
     indexOfPeriod = -1
 
@@ -68,10 +81,8 @@ def getShortDescription(longDescription):
         shortDescription = longDescription[:indexOfPeriod + 1]
     return shortDescription
 
-
+"""Format data to fit database scheme."""
 def formatOutput(event, user):
-    """Format data to fit database scheme."""
-
     #format place
     if 'place' in event and 'location' in event['place']:
         location = event['place']['location']
@@ -140,9 +151,8 @@ def formatOutput(event, user):
     }
     return newData
 
+"""Put Tags for event into database."""
 def putTags(db, user, event, pushID):
-    """Put Tags for event into database."""
-
     if event['category'] is not None:
         if event['category'].endswith('_EVENT'):
             event['category'] = event['category'][:-6]
@@ -152,8 +162,8 @@ def putTags(db, user, event, pushID):
         }
         db.child("tags").child(pushID).set(data)
 
+"""Get all the database events to check to see if events exist already."""
 def getAllDatabaseEvents(db, user):
-    """Get all the database events to check to see if events exist already."""
     print("Getting current database events to avoid duplicates...")
     databaseEvents = db.child("events").get()
     listOfEvents = []
@@ -166,15 +176,17 @@ def getAllDatabaseEvents(db, user):
 
     return listOfEvents
 
-
+"""Get event by using event ID. Then put event into database."""
 def getEvents(listOfPlaces, user, db, databaseEvents):
-    """Get event by using event ID. Then put event into database."""
     print("Getting events of all places...")
+    offsetTimeInSeconds = 7.776e+6
     ids = []
     # Loops through places to get event IDs for all events for each place - limit at 100000"""
     for x in listOfPlaces['data']:
         #GET command to get future events
-        events = graph.get(x['id'] + '/events', since=time.strftime("%m/%d/%Y"), limit=100000, fields='id')
+        currentTime = int(time.time())
+        offsetDaysLimit = currentTime + offsetTimeInSeconds
+        events = graph.get(x['id'] + '/events', since=currentTime, until=offsetDaysLimit, limit=100000, fields='id')
         for x in events['data']:
             event = graph.get(x['id'])
             ids.append(x['id'])
@@ -196,19 +208,17 @@ def getEvents(listOfPlaces, user, db, databaseEvents):
                     # Checking to see if multiple events from the same time and provider
                     if data['Event_Name'] not in dictOfRepeatsTime:
                         # Putting event into databases
-                        eventsOutcome = db.child("events").push(data, user['idToken'])
+                        eventsOutcome = db.child("events/" + data['City']).push(data, user['idToken'])
                         putTags(db, user, event, eventsOutcome['name'])
                         dictOfRepeatsTime[data['Event_Name']] = data["Date"]
                         counter += 1
                     elif abs(int(dictOfRepeatsTime[data['Event_Name']]) - int(data['Date'])) >= millisecondsInADay:
                         # Putting event into databases if time is greater than a day
-                        print(abs(int(dictOfRepeatsTime[data['Event_Name']]) - int(data['Date'])))
-                        eventsOutcome = db.child("events").push(data, user['idToken'])
+                        eventsOutcome = db.child("events/" + data['City']).push(data, user['idToken'])
                         putTags(db, user, event, eventsOutcome['name'])
                         dictOfRepeatsTime[data['Event_Name']] = data["Date"]
                         counter += 1
                     else:
-                        print(abs(int(dictOfRepeatsTime[data['Event_Name']]) - int(data['Date'])))
                         print("Repeat, skipping this event.")
                     dictOfNameAndPlace[eventNameAndLocationString] = 1
                 else:
@@ -216,15 +226,14 @@ def getEvents(listOfPlaces, user, db, databaseEvents):
                         # Checking to see if multiple events from the same time and provider
                         if data['Event_Name'] not in dictOfRepeatsTime:
                             # Putting event into databases
-                            eventsOutcome = db.child("events").push(data, user['idToken'])
+                            eventsOutcome = db.child("events/" + data['City']).push(data, user['idToken'])
                             putTags(db, user, event, eventsOutcome['name'])
                             dictOfRepeatsTime[data['Event_Name']] = data["Date"]
                             counter += 1
                             dictOfNameAndPlace[eventNameAndLocationString] += 1
                         elif abs(int(dictOfRepeatsTime[data['Event_Name']]) - int(data['Date'])) >= millisecondsInADay:
                             # Putting event into databases if time is greater than a day
-                            # print(abs(int(dictOfRepeatsTime[data['Event_Name']]) - int(data['Date'])))
-                            eventsOutcome = db.child("events").push(data, user['idToken'])
+                            eventsOutcome = db.child("events/" + data['City']).push(data, user['idToken'])
                             putTags(db, user, event, eventsOutcome['name'])
                             dictOfRepeatsTime[data['Event_Name']] = data["Date"]
                             counter += 1
