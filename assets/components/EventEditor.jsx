@@ -50,15 +50,12 @@ class EventEditor extends Component {
         
         this.pending = !!this.props.router.location.query.pending
 
-        //let date = new Date(this.event.Date)
         this.state = {
             changedSinceSave: false,
+            locale: this.props.router.location.query.l,
             newImageURL: null,
             oldImageURL: null, //only set when image has been updated but not yet committed
-            //hasImage: !!this.event.Image,
             editingText: false,
-            //datePickerVal: //date,
-            //timePickerVal: //date,
             modifications: {}
         }
     }
@@ -73,7 +70,9 @@ class EventEditor extends Component {
                 timePickerVal: date
             })
         } else {
-            EventActions.getSnapshot(this.props.router.location.query.id, (function(snapshot) {
+            let id = this.props.router.location.query.id
+            let locale = this.props.router.location.query.l
+            EventActions.getSnapshot(id, locale, (function(snapshot) {
                 this.event = snapshot
                 let date = new Date(this.event.Date)
                 this.setState({
@@ -123,7 +122,7 @@ class EventEditor extends Component {
             //upload new image
             StorageActions.uploadEventImage(newImage, (url) => {
                 // update event to use new image url
-                let eventRef = EventActions.getRef(event.key)
+                let eventRef = EventActions.getRef(event.key, this.state.locale)
                 let changes = this.state.modifications
                 changes.Image = url
                 eventRef.update(changes).then(() => {
@@ -147,7 +146,7 @@ class EventEditor extends Component {
             })
         } else {
             if (Object.keys(this.state.modifications).length) {
-                let eventRef = EventActions.getRef(event.key)
+                let eventRef = EventActions.getRef(event.key, this.state.locale)
                 let changes = this.state.modifications
                 changes.Sort_Date = event.Date
                 eventRef.update(changes).then(() => {
@@ -173,7 +172,7 @@ class EventEditor extends Component {
         let potentialEvent = this.event
         let key = potentialEvent.key
         delete potentialEvent.key
-        EventActions.createEvent(potentialEvent, (success, event, ref) => {
+        EventActions.createEvent(potentialEvent, this.state.locale, (success, event, ref) => {
             if (success) {
                 // redirect to regular event editor page for this event
                 event.key = ref.key
@@ -185,7 +184,7 @@ class EventEditor extends Component {
                     state: event
                 })
                 // mark approved
-                EventActions.getRef(key, 'approvalQueue')
+                EventActions.getRef(key, this.state.locale, 'approvalQueue')
                     .update({
                         approvalStatus: 'approved'
                     })
@@ -200,7 +199,7 @@ class EventEditor extends Component {
     onDeny() {
         let potentialEvent = this.event
         let key = potentialEvent.key
-        EventActions.getRef(key, 'approvalQueue')
+        EventActions.getRef(key, this.state.locale, 'approvalQueue')
             .update({
                 approvalStatus: 'denied'
             })

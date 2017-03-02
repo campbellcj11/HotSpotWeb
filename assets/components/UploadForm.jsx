@@ -116,7 +116,7 @@ class UploadForm extends React.Component {
                 retrieveFile(event.Image, (file) => {
                     StorageActions.uploadEventImage(file, (url) => {
                         event.Image = url
-                        EventActions.createEvent(event, (success, event) => {
+                        EventActions.createEvent(event, event.Location, (success, event) => {
                             if (success) {
                                 importedEvents.push(event)
                             } else {
@@ -129,7 +129,7 @@ class UploadForm extends React.Component {
                     })
                 })
             } else { // no image
-                EventActions.createEvent(event, (success, event) => {
+                EventActions.createEvent(event, event.Location, (success, event) => {
                     if (success) {
                         importedEvents.push(event)
                     } else {

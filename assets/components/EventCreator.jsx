@@ -118,7 +118,7 @@ class EventCreator extends Component {
         if (check.succeeded) {
             StorageActions.uploadEventImage(this.state.image, (url) => {
                 potentialEvent.Image = url
-                EventActions.createEvent(potentialEvent, (success, event, ref) => {
+                EventActions.createEvent(potentialEvent, potentialEvent.Location, (success, event, ref) => {
                     if (success) {
                         // redirect to event editor page for this event
                         event.key = ref.key

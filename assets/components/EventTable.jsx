@@ -39,9 +39,6 @@ class EventTable extends React.Component {
 		} else {
 			this.mode = 'potential'
 		}
-
-		this.addEvent.bind(this)
-		this.removeEvent.bind(this)
 	}
 
 	componentDidMount() {
@@ -51,7 +48,8 @@ class EventTable extends React.Component {
 	componentWillReceiveProps(nextProps) {
 		this.mode = this.props.router.location.query.mode || 'manage'
 		this.setState({
-			loading: true
+			loading: true,
+			locale: this.props.router.location.query.l
 		})
 		this.loadEvents.call(this)
 	}
@@ -60,8 +58,11 @@ class EventTable extends React.Component {
 		if (this.mode == 'potential') {
 			this.addEventArray(this.props.potentialEvents)
 		} else {
-			// TODO limit, filter, reduce # of queries // limit to last 50 during testing
-			EventActions.eventTable.orderByChild('Date').on('value', (snapshot) => {
+			// TODO use limitToFirst(x+n) limitToLast(n) to paginate
+			EventActions
+				.get('events/' + this.props.router.location.query.l)
+				.orderByChild('Date')
+				.on('value', (snapshot) => {
 					let eventArray = []
 					snapshot.forEach((child) => {
 						let event = child.val()
@@ -72,7 +73,7 @@ class EventTable extends React.Component {
 					console.log(eventArray.length + ' events found')
 				}, (error) => {
 					console.log("Read error:" + error.code);
-			})
+				})
 		}
 	}
 
@@ -82,17 +83,6 @@ class EventTable extends React.Component {
 			loading: false
 		})
 	}
-	
-	addEvent(event, key) {
-		event.key = key
-		this.setState({
-			events: this.state.events.concat(event)
-		})
-	}
-	
-	removeEvent(event) {
-	
-	}
 
 	handleRowSelection(selectedRows) {
 		let index = selectedRows[0]
@@ -100,7 +90,8 @@ class EventTable extends React.Component {
 		State.router.push({
 			pathname: 'edit',
 			query: {
-				id: event.key
+				id: event.key,
+				l: this.state.locale
 			},
 			state: event
 		})

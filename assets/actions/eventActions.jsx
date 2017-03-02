@@ -8,7 +8,11 @@ let eventTable = database.ref("events")
 const EventActions = {
 	
 	eventTable: eventTable,
-	
+
+	get: (target) => {
+		return database.ref(target)
+	},
+
 	// get all events
 	//	callback args: events, keys
 	getAllSnapshots: (callback, alternateTable) => {
@@ -22,14 +26,13 @@ const EventActions = {
 	},
 
 	// get a specific event ref
-	getRef: (eventId, alternateTable) => {
-		let tableName = alternateTable || 'events'
-		return database.ref(tableName + '/' + eventId)
+	getRef: (eventId, locale, alternateTable) => {
+		return database.ref('events/' + locale + "/" + eventId)
 	},
 
 	// get snapshot for event value
-	getSnapshot: function(eventId, callback, alternateTable) {
-		this.getRef(eventId, alternateTable).once('value', (snapshot) => {
+	getSnapshot: function(eventId, locale, callback) {
+		this.getRef(eventId, locale).once('value', (snapshot) => {
 			callback(snapshot.val())
 		})
 	},
@@ -50,8 +53,8 @@ const EventActions = {
 
 	// create new event
 	//  callback args: didSucceed, event, eventRef
-	createEvent: (event, callback, alternateTable) => {
-		let table = alternateTable ? database.ref(alternateTable) : eventTable
+	createEvent: (event, locale, callback, alternateTable) => {
+		let table = alternateTable ? database.ref(alternateTable) : eventTable + '/' + locale
 		let ref = table.push()
 		ref.set(event, (error) => {
 			callback(!error, event, ref)

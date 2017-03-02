@@ -25,6 +25,7 @@ import {blueA400} from 'material-ui/styles/colors'
 import getMuiTheme from 'material-ui/styles/getMuiTheme'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 // First Party
+import LocaleTable from './LocaleTable'
 import EventTable from './EventTable'
 import EventApprovalTable from './EventApprovalTable'
 import UploadForm from './UploadForm'
@@ -78,6 +79,10 @@ const routes = {
 		},
 		{
 			path: 'manage',
+			component: LocaleTable
+		},
+		{
+			path: 'locale',
 			component: EventTable
 		},
 		{
