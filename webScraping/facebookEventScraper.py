@@ -6,9 +6,13 @@ from datetime import datetime
 from facepy import GraphAPI
 
 ## To run this program for Atlantic City use:
-#      python3 facebookEventScraper.py 39.364283 -74.422927 32186.9 100000
+#      python3 facebookEventScraper.py 39.364283 -74.422927 20 100000
 ## To run this program for Philadelphia use:
-#      python3 facebookEventScraper.py 39.952584 -75.165222 32186.9 100000
+#      python3 facebookEventScraper.py 39.952584 -75.165222 20 100000
+## To run for New York City:
+#      python3 facebookEventScraper.py 40.712784 -74.005941 20 100000
+## Now you can run this using the city name like so:
+#      python3 facebookEventScraper.py NewYork 20 100000
 
 # Setting up the graph api and firebase connections.
 graph = GraphAPI('1738197196497592|RpbqD1owgCZ6aT7s5JOrGvp9_7Q')
@@ -28,13 +32,34 @@ config = {
 # };
 
 firebase = pyrebase.initialize_app(config)
+milesIntoMetersConv = 1609.34
 
 def checkCommandLineArguments():
     numberOfArgs = len(sys.argv)
-    if (numberOfArgs != 5):
+    if (numberOfArgs != 5 and numberOfArgs != 4):
         print("Not enough command line arguements. " +
             "Please enter the arguements as shown: latitude longitude distance limit.")
         sys.exit()
+
+def setParameters():
+    numberOfArgs = len(sys.argv)
+    if numberOfArgs is 4:
+        if sys.argv[1].lower() == "newyork":
+            centerCoordinates = '40.712784, -74.005941'
+        elif sys.argv[1].lower() == "atlanticcity":
+            centerCoordinates = '39.364283, -74.422927'
+        elif sys.argv[1].lower() == "philadelphia":
+            centerCoordinates = '39.952584, -75.165222'
+        else:
+            print("Invalid Parameters.")
+            sys.exit()
+        distanceNumber = int(sys.argv[2]) * milesIntoMetersConv
+        limitNumber = sys.argv[3]
+    elif numberOfArgs is 5:
+        centerCoordinates = sys.argv[1] + "," + sys.argv[2]
+        distanceNumber = int(sys.argv[3]) * milesIntoMetersConv
+        limitNumber = sys.argv[4]
+    return [centerCoordinates, distanceNumber, limitNumber]
 
 """Setup firebase and return auth user."""
 def setup():
@@ -49,20 +74,17 @@ def setup():
 """Search for places within the parameters.
 Edit distance, center, and limit in order to change search results.
 """
-def searchForPlaces():
+def searchForPlaces(listOfParameters):
     """TODO: these need validation"""
     print("Getting places around coordinates...")
-    centerCoordinates = sys.argv[1] + "," + sys.argv[2]
-    distanceNumber = sys.argv[3]
-    limitNumber = sys.argv[4]
 
     result = graph.search(
         term = '',
         type = 'place',
-        center = centerCoordinates,
+        center = listOfParameters[0],
         #increase limit and distance to increase event results
-        distance = distanceNumber,
-        limit = limitNumber
+        distance = listOfParameters[1],
+        limit = listOfParameters[2]
     )
     return result
 
@@ -86,7 +108,7 @@ def formatOutput(event, user):
     #format place
     if 'place' in event and 'location' in event['place']:
         location = event['place']['location']
-        if 'street' not in location:
+        if 'street' not in location or 'state' not in location:
             return None
         else:
             address = location['street'] + ', ' + location['city'] + ', ' + location['state'] + ', ' + location['zip']
@@ -251,6 +273,7 @@ def getEvents(listOfPlaces, user, db, databaseEvents):
 checkCommandLineArguments()
 db = firebase.database()
 user = setup()
-listOfPlaces = searchForPlaces()
+listOfParameters = setParameters()
+listOfPlaces = searchForPlaces(listOfParameters)
 databaseEvents = getAllDatabaseEvents(db, user)
 getEvents(listOfPlaces, user, db, databaseEvents)

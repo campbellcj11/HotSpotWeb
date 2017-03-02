@@ -1,11 +1,11 @@
 Web Scraping Setup
 ------------
-To Setup the python Facebook scraper you can either directly install the dependencies using: 
+To Setup the python Facebook scraper you can either directly install the dependencies using:
 
 .. code:: bash
 
     $ pip install -r requirements.txt
-    
+
 Then go ahead and run the scraper using:
 
 .. code:: bash
@@ -15,9 +15,20 @@ Then go ahead and run the scraper using:
 The command line arguements are all required and are as follows:
     - Latitude - coordinate for center
     - Longitude - coordinate for center
-    - Distance - distance to search around center
+    - Distance - distance to search around center (in miles)
     - Limit - limiting number on results, which will affect speed
-    
+
+The scraper can also be run using a city name rather than the latitude and longitude:
+
+.. code:: bash
+
+    $ python3 facebookEventScraper.py NewYork distance limit
+
+Currently, we only support these cities using this way:
+    - NewYork
+    - Philadelphia
+    - AtlanticCity
+
 This will output the amount of events it has uploaded to the database.
 
 
@@ -27,17 +38,17 @@ You can also do this in a virtual enviorment by doing the following to avoid ins
 .. code:: bash
 
     $ virtualenv -p /path/to/python3 venv
-    
+
 Then go ahead and activate your virtual enviorment:
 
 .. code:: bash
 
-    $ source venv/bin/activate 
-    
+    $ source venv/bin/activate
+
 Now install the dependencies:
 
 .. code:: bash
 
     $ pip install -r requirements.txt
-    
-Next, follow the instructions above to run the scraper. Let us know if you have any questions. 
+
+Next, follow the instructions above to run the scraper. Let us know if you have any questions.
