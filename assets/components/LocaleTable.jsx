@@ -35,6 +35,10 @@ class LocaleTable extends React.Component {
 		}
 	}
 
+	componentDidMount() {
+		this.loadLocales.call(this)
+	}
+
 	componentWillReceiveProps(nextProps) {
 		this.mode = this.props.router.location.query.mode || 'manage'
 		this.setState({

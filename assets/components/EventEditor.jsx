@@ -172,19 +172,20 @@ class EventEditor extends Component {
         let potentialEvent = this.event
         let key = potentialEvent.key
         delete potentialEvent.key
-        EventActions.createEvent(potentialEvent, this.state.locale, (success, event, ref) => {
+        EventActions.createEvent(potentialEvent, event.City, (success, event, ref) => {
             if (success) {
                 // redirect to regular event editor page for this event
                 event.key = ref.key
                 State.router.push({
                     pathname: 'edit',
                     query: {
-                        id: event.key
+                        id: event.key,
+                        l: event.City
                     },
                     state: event
                 })
                 // mark approved
-                EventActions.getRef(key, this.state.locale, 'approvalQueue')
+                EventActions.get('approvalQueue/' + key)
                     .update({
                         approvalStatus: 'approved'
                     })
@@ -199,7 +200,7 @@ class EventEditor extends Component {
     onDeny() {
         let potentialEvent = this.event
         let key = potentialEvent.key
-        EventActions.getRef(key, this.state.locale, 'approvalQueue')
+        EventActions.get('approvalQueue/' + key)
             .update({
                 approvalStatus: 'denied'
             })

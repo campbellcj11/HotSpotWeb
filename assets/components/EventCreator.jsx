@@ -11,7 +11,8 @@ import {
     Chip,
     TextField,
     DatePicker,
-    TimePicker
+    TimePicker,
+    LinearProgress
 } from 'material-ui'
 import EventActions from '../actions/eventActions'
 import StorageActions from '../actions/storageActions'
@@ -113,20 +114,30 @@ class EventCreator extends Component {
     }
 
     onSave() {
+        this.setState({
+            showProgress: true
+        })
         let check = this.verify()
         let potentialEvent = this.state.potentialEvent
         if (check.succeeded) {
             StorageActions.uploadEventImage(this.state.image, (url) => {
                 potentialEvent.Image = url
-                EventActions.createEvent(potentialEvent, potentialEvent.Location, (success, event, ref) => {
+                EventActions.createEvent(potentialEvent, potentialEvent.City, (success, event, ref) => {
                     if (success) {
                         // redirect to event editor page for this event
                         event.key = ref.key
-                        State.controller.setState({
-                            viewingEvent: event,
-                            view: 'individual_edit'
+                        State.router.push({
+                            pathname: 'edit',
+                            query: {
+                                id: event.key,
+                                l: event.City
+                            },
+                            state: event
                         })
                     } else {
+                        this.setState({
+                            showProgress: false
+                        })
                         // report failure
                         console.error('Failed to create event:')
                         console.error(JSON.stringify(potentialEvent, null, '\t'))
@@ -148,6 +159,9 @@ class EventCreator extends Component {
             // else update editor to show errors TODO
             console.error('Event not verified:')
             console.error(JSON.stringify(potentialEvent, null, '\t'))
+            this.setState({
+                showProgress: false
+            })
         }
         
     }
@@ -272,6 +286,7 @@ class EventCreator extends Component {
                         multiLine={true}
                         onChange={this.handleInputChange.bind(this)} />
                 </div>
+                {this.state.showProgress && <LinearProgress mode="indeterminate" />}
                 <CardActions>
                     <RaisedButton
                         label="Submit"

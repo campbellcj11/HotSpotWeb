@@ -54,7 +54,7 @@ const EventActions = {
 	// create new event
 	//  callback args: didSucceed, event, eventRef
 	createEvent: (event, locale, callback, alternateTable) => {
-		let table = alternateTable ? database.ref(alternateTable) : eventTable + '/' + locale
+		let table = alternateTable ? database.ref(alternateTable) : database.ref('events/' + locale)
 		let ref = table.push()
 		ref.set(event, (error) => {
 			callback(!error, event, ref)
