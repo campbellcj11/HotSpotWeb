@@ -192,9 +192,10 @@ def getAllDatabaseEvents(db, user):
     if databaseEvents.each() is None:
         return listOfEvents
     else:
-        for singleEvent in databaseEvents.each():
-            if 'Facebook_ID' in singleEvent.val():
-                listOfEvents.append(singleEvent.val()['Facebook_ID'])
+        for key, data in locale.val().items():
+            if 'Facebook_ID' in data:
+                print("Appending Element")
+                listOfEvents.append(data['Facebook_ID'])
 
     return listOfEvents
 
