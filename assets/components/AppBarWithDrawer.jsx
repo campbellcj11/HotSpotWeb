@@ -74,6 +74,8 @@ export default class AppBarWithDrawer extends Component {
 		}
 		
 		// populate drawer with items
+		// TODO bulk import tool disabled for now since we're scraping events and it wasn't
+		// updated for locale support/more recent db changes
 		let drawerItems = [
 			(<MenuItem
 				key={1}
@@ -91,6 +93,7 @@ export default class AppBarWithDrawer extends Component {
 			(<MenuItem
 				key={3}
 				value="import"
+				disabled={true}
 				leftIcon={<i className="material-icons">file_upload</i>}>
 				Import
 			</MenuItem>),
@@ -120,7 +123,7 @@ export default class AppBarWithDrawer extends Component {
 
 		return (
 			<div>
-				<AppBar title="Project Now"
+				<AppBar title="HotSpot"
 					style={currentStyle}
 					iconElementRight={
 						<FlatButton
