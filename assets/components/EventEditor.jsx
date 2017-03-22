@@ -12,6 +12,7 @@ import {
     DatePicker,
     TimePicker
 } from 'material-ui'
+import {LocaleSelect} from './EventCreator'
 import EventActions from '../actions/eventActions'
 import StorageActions from '../actions/storageActions'
 import {State} from './ApplicationState'
@@ -280,6 +281,15 @@ class EventEditor extends Component {
         }, 1000)
     }
 
+    handleLocaleChange(value) {
+        /*let modifications = this.state.modifications
+        modifications.City = value
+        this.setState({
+            changedSinceSave: true,
+            modfications: modifications
+        })*/
+    }
+
     render() {
         let screenWidth = State.get('screenWidth')
         if (!this.event) {
@@ -419,14 +429,12 @@ class EventEditor extends Component {
                     multiLine={true}
                     defaultValue={modifications.Email_Contact || event.Email_Contact}
                     onChange={this.handleInputChange.bind(this)} />
-                <TextField
-                    id="City"
+                <LocaleSelect
                     floatingLabelText="City"
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
-                    multiLine={true}
                     defaultValue={modifications.City || event.City}
-                    onChange={this.handleInputChange.bind(this)} />
+                    onChange={this.handleLocaleChange.bind(this)} />
                 <TextField
                     id="County"
                     floatingLabelText="County"

@@ -12,7 +12,9 @@ import {
     TextField,
     DatePicker,
     TimePicker,
-    LinearProgress
+    LinearProgress,
+    MenuItem,
+    SelectField
 } from 'material-ui'
 import EventActions from '../actions/eventActions'
 import StorageActions from '../actions/storageActions'
@@ -46,7 +48,7 @@ const styles = {
 
 let inputTimeouts = {}
 
-class EventCreator extends Component {
+export default class EventCreator extends Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -80,6 +82,14 @@ class EventCreator extends Component {
                 potentialEvent: event
             })
         }, 1000)
+    }
+
+    handleLocaleChange(value) {
+        let event = this.state.potentialEvent
+        event.City = value
+        this.setState({
+            potentialEvent: event
+        })
     }
 
     handleDateChange(e, date) {
@@ -255,12 +265,10 @@ class EventCreator extends Component {
                         fullWidth={true}
                         multiLine={true}
                         onChange={this.handleInputChange.bind(this)} />
-                    <TextField
-                        id="City"
+                    <LocaleSelect
                         floatingLabelText="City"
                         fullWidth={true}
-                        multiLine={true}
-                        onChange={this.handleInputChange.bind(this)} />
+                        onChange={this.handleLocaleChange.bind(this)} />
                     <TextField
                         id="County"
                         floatingLabelText="County"
@@ -298,4 +306,80 @@ class EventCreator extends Component {
     }
 }
 
-export default EventCreator
+// Controlled classes for Locale, Tags
+export class LocaleSelect extends Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            value: false
+        }
+        this.locales = []
+        this.populate.bind(this)
+    }
+
+    componentDidMount() {
+        this.populate()
+    }
+
+    componentWillReceiveProps() {
+        if (!this.locales.length) {
+            this.populate()
+        }
+    }
+
+    populate() {
+        this.locales = []
+        EventActions
+			.get('events')
+			.on('value', (snapshot) => {
+				snapshot.forEach((child) => {
+					let localeName = child.key
+                    this.locales.push(localeName)
+				})
+                if (this.props.defaultValue && this.locales.indexOf(this.props.defaultValue) != -1) {
+                    this.setState({
+                        value: this.props.defaultValue
+                    })
+                }
+			}, (error) => {
+				console.log('Read error: ' + error.message)
+			})
+    }
+
+    handleChange(event, index, value) {
+        if (this.props.onChange) {
+            this.props.onChange(value)
+        }
+        this.setState({
+            value: value
+        })
+    }
+
+    render() {
+        let options = [(
+            <MenuItem
+                key={0}
+                value={false}
+                primaryText="Select a locale" />
+        )]
+        this.locales.forEach(function(locale, index) {
+            options.push((
+                <MenuItem
+                    key={index + 1}
+                    value={locale}
+                    primaryText={locale} />
+            ))
+        })
+        
+        return (
+            <SelectField
+                floatingLabelText={this.props.floatingLabelText || ""}
+                fullWidth={this.props.fullWidth ? this.props.fullWidth : false}
+                disabled={this.props.disabled ? this.props.disabled : false}
+                value={this.state.value}
+                onChange={this.handleChange.bind(this)}>
+                {options}
+            </SelectField>
+        )
+    }
+}

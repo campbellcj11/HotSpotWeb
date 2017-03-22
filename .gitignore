@@ -43,3 +43,9 @@ android/keystores/debug.keystore
 #python
 ./webScraping/projectNowEnv
 
+
+firebase-debug\.log
+
+assets/build/bundle\.js
+
+assets/build/bundle\.js\.map
