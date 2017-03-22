@@ -123,7 +123,7 @@ export default class AppBarWithDrawer extends Component {
 
 		return (
 			<div>
-				<AppBar title="Project Now"
+				<AppBar title="HotSpot"
 					style={currentStyle}
 					iconElementRight={
 						<FlatButton
