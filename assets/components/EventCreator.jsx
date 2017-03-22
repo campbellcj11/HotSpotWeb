@@ -376,6 +376,7 @@ export class LocaleSelect extends Component {
                 floatingLabelText={this.props.floatingLabelText || ""}
                 fullWidth={this.props.fullWidth ? this.props.fullWidth : false}
                 disabled={this.props.disabled ? this.props.disabled : false}
+                errorText={this.props.errorText}
                 value={this.state.value}
                 onChange={this.handleChange.bind(this)}>
                 {options}

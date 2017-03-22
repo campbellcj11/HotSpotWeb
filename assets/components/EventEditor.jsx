@@ -347,10 +347,10 @@ class EventEditor extends Component {
                     primary={true}
                     style={styles.rowItem}
                     onClick={this.enterEditTextMode.bind(this)} />
-                <FlatButton
+                {!this.pending && <FlatButton
                     label="Delete event"
                     disabled={true}
-                    style={styles.rowItem} />
+                    style={styles.rowItem} />}
             </div>
         )
 
@@ -434,6 +434,7 @@ class EventEditor extends Component {
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     defaultValue={modifications.City || event.City}
+                    errorText={!this.pending && "This selector is being temporarily ignored"}
                     onChange={this.handleLocaleChange.bind(this)} />
                 <TextField
                     id="County"
