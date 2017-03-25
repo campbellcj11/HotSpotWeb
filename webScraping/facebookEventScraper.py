@@ -11,8 +11,13 @@ from facepy import GraphAPI
 #      python3 facebookEventScraper.py 39.952584 -75.165222 20 100000
 ## To run for New York City:
 #      python3 facebookEventScraper.py 40.712784 -74.005941 20 100000
+# To run for Columbia:
+#      python3 facebookEventScraper.py 34.000710 -81.034814 20 100000
 ## Now you can run this using the city name like so:
 #      python3 facebookEventScraper.py NewYork 20 100000
+#      python3 facebookEventScraper.py AtlanticCity 20 100000
+#      python3 facebookEventScraper.py Philadelphia 20 100000
+
 
 # Setting up the graph api and firebase connections.
 graph = GraphAPI('1738197196497592|RpbqD1owgCZ6aT7s5JOrGvp9_7Q')
@@ -74,10 +79,13 @@ def setup():
 """Search for places within the parameters.
 Edit distance, center, and limit in order to change search results.
 """
+#TODO: this is returning 1?
 def searchForPlaces(listOfParameters):
     """TODO: these need validation"""
     print("Getting places around coordinates...")
-
+    print('Center: ' + str(listOfParameters[0]))
+    print('Distance: ' + str(listOfParameters[1]))
+    print('Limit: ' + str(listOfParameters[2]))
     result = graph.search(
         term = '',
         type = 'place',
@@ -147,9 +155,14 @@ def formatOutput(event, user):
     else:
         status = 'Active'
 
+    # interested
+    if 'interested' in event:
+        numberInterested = str(len(event['interested']['data']))
+    else:
+        numberInterested = ""
+
     # Short Description parsing
     shortDescription = getShortDescription(event['description'])
-
     newData = {
         'Facebook_ID' : event['id'],
         'Event_Name' : event['name'],
@@ -169,7 +182,7 @@ def formatOutput(event, user):
         'Website' : ('www.facebook.com/' + event['id']),
         # TODO: need to find a better way for this
         'Email_Contact' : ('www.facebook.com/' + event['id']),
-        'County' : ''
+        'Interested' : numberInterested
     }
     return newData
 
@@ -192,10 +205,10 @@ def getAllDatabaseEvents(db, user):
     if databaseEvents.each() is None:
         return listOfEvents
     else:
-        for key, data in locale.val().items():
-            if 'Facebook_ID' in data:
-                print("Appending Element")
-                listOfEvents.append(data['Facebook_ID'])
+        for locale in databaseEvents.each():
+            for key, data in locale.val().items():
+                if 'Facebook_ID' in data:
+                    listOfEvents.append(data['Facebook_ID'])
 
     return listOfEvents
 
@@ -205,8 +218,10 @@ def getEvents(listOfPlaces, user, db, databaseEvents):
     offsetTimeInSeconds = 7.776e+6
     ids = []
     # Loops through places to get event IDs for all events for each place - limit at 100000"""
+    counterhere = 0
     for x in listOfPlaces['data']:
         #GET command to get future events
+        counterhere += 1
         currentTime = int(time.time())
         offsetDaysLimit = currentTime + offsetTimeInSeconds
         events = graph.get(x['id'] + '/events', since=currentTime, until=offsetDaysLimit, limit=100000, fields='id')
@@ -214,14 +229,18 @@ def getEvents(listOfPlaces, user, db, databaseEvents):
             event = graph.get(x['id'])
             ids.append(x['id'])
 
+    print("Initial count of events before formatting: " + str(len(ids)))
+    print("Count of places: " + str(counterhere))
+
     counter = 0
+    duplicateCounter = 0
     dictOfRepeatsTime = dict()
     dictOfNameAndPlace = dict()
     millisecondsInADay = 8.64e+7
     eventNameAndLocationCap = 5
     # Loop through event IDs to get all event details to put into databases"""
     for id in ids:
-        event = graph.get(id, fields='id,description,name,category,cover,start_time,end_time,place')
+        event = graph.get(id, fields='id,description,name,category,cover,start_time,end_time,place,interested')
         data = formatOutput(event, user)
         if data is not None:
             # Checking if event already exists in database
@@ -268,8 +287,10 @@ def getEvents(listOfPlaces, user, db, databaseEvents):
                     else:
                         pass
                         # print("Cap hit, not adding. " + eventNameAndLocationString)
-
+            else:
+                duplicateCounter += 1
     print("Added " + str(counter) + " events. ")
+    print("Found " + str(duplicateCounter) + " existing events in database.")
 
 checkCommandLineArguments()
 db = firebase.database()
