@@ -25,7 +25,6 @@ def setup():
     auth = firebase.auth()
     # Log the user in
     userName = input("Plese enter a user name for firebase: ")
-    password = input("Please enter a password for the previous account: ")
     user = auth.sign_in_with_email_and_password(userName, getpass.getpass())
     return user;
 
