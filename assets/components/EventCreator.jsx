@@ -92,6 +92,12 @@ export default class EventCreator extends Component {
         })
     }
 
+    handleTagsChange(values) {
+        this.setState({
+            tags: values
+        })
+    }
+
     handleDateChange(e, date) {
         this.setState({
             datePickerVal: date
@@ -134,8 +140,12 @@ export default class EventCreator extends Component {
                 potentialEvent.Image = url
                 EventActions.createEvent(potentialEvent, potentialEvent.City, (success, event, ref) => {
                     if (success) {
-                        // redirect to event editor page for this event
                         event.key = ref.key
+
+                        // set tags
+                        EventActions.setTags(event.key, this.state.tags)
+                        
+                        // redirect to event editor page for this event
                         State.router.push({
                             pathname: 'edit',
                             query: {
@@ -173,7 +183,6 @@ export default class EventCreator extends Component {
                 showProgress: false
             })
         }
-        
     }
 
     //TODO verify event
@@ -293,6 +302,10 @@ export default class EventCreator extends Component {
                         fullWidth={true}
                         multiLine={true}
                         onChange={this.handleInputChange.bind(this)} />
+                    <TagSelect
+                        floatingLabelText="Tags"
+                        fullWidth={true}
+                        onChange={this.handleTagsChange.bind(this)} />
                 </div>
                 {this.state.showProgress && <LinearProgress mode="indeterminate" />}
                 <CardActions>
@@ -311,7 +324,7 @@ export class LocaleSelect extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            value: false
+            value: null
         }
         this.locales = []
         this.populate.bind(this)
@@ -336,7 +349,7 @@ export class LocaleSelect extends Component {
 					let localeName = child.key
                     this.locales.push(localeName)
 				})
-                if (this.props.defaultValue && this.locales.indexOf(this.props.defaultValue) != -1) {
+                if (this.props.defaultValue && this.locales.includes(this.props.defaultValue)) {
                     this.setState({
                         value: this.props.defaultValue
                     })
@@ -356,16 +369,11 @@ export class LocaleSelect extends Component {
     }
 
     render() {
-        let options = [(
-            <MenuItem
-                key={0}
-                value={false}
-                primaryText="Select a locale" />
-        )]
+        let options = []
         this.locales.forEach(function(locale, index) {
             options.push((
                 <MenuItem
-                    key={index + 1}
+                    key={index}
                     value={locale}
                     primaryText={locale} />
             ))
@@ -376,8 +384,87 @@ export class LocaleSelect extends Component {
                 floatingLabelText={this.props.floatingLabelText || ""}
                 fullWidth={this.props.fullWidth ? this.props.fullWidth : false}
                 disabled={this.props.disabled ? this.props.disabled : false}
+                hintText="Select a locale"
                 errorText={this.props.errorText}
                 value={this.state.value}
+                onChange={this.handleChange.bind(this)}>
+                {options}
+            </SelectField>
+        )
+    }
+}
+
+export class TagSelect extends Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            values: []
+        }
+        this.tags = []
+        this.populate.bind(this)
+    }
+
+    componentDidMount() {
+        this.populate()
+    }
+
+    componentWillReceiveProps() {
+        if (!this.tags.length) {
+            this.populate()
+        }
+    }
+
+    populate() {
+        this.tags = []
+        EventActions
+			.get('possibleTags')
+			.on('value', (snapshot) => {
+				snapshot.forEach((child) => {
+					let tag = child.key
+                    this.tags.push(tag)
+				})
+                if (this.props.defaultValue) {
+                    this.setState({
+                        values: this.props.defaultValue
+                    })
+                }
+			}, (error) => {
+				console.log('Read error: ' + error.message)
+			})
+    }
+
+    handleChange(event, index, values) {
+        if (this.props.onChange) {
+            this.props.onChange(values)
+        }
+        this.setState({
+            values: values
+        })
+    }
+
+    render() {
+        let values = this.state.values
+        let options = []
+        this.tags.forEach((tag, index) => {
+            options.push((
+                <MenuItem
+                    key={index}
+                    insetChildren={true}
+                    checked={values && values.includes(tag)}
+                    value={tag}
+                    primaryText={tag.replace(/_/, ' ')} />
+            ))
+        })
+
+        return (
+            <SelectField
+                multiple={true}
+                floatingLabelText={this.props.floatingLabelText || ""}
+                fullWidth={this.props.fullWidth ? this.props.fullWidth : false}
+                disabled={this.props.disabled ? this.props.disabled : false}
+                hintText="Select tags"
+                errorText={this.props.errorText}
+                value={values}
                 onChange={this.handleChange.bind(this)}>
                 {options}
             </SelectField>

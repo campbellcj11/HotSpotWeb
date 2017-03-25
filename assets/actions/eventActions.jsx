@@ -39,7 +39,7 @@ const EventActions = {
 
 	// remove a specific event entry
 	// TODO also remove image
-	remove: function(eventId, alternateTable) {
+	/*remove: function(eventId, alternateTable) {
 		let event = this.getRef(eventId, alternateTable)
 		event.remove()
 			.then(() => {
@@ -49,7 +49,7 @@ const EventActions = {
 				console.log('Removal failed')
 			})
 		return event
-	},
+	},*/
 
 	// create new event
 	//  callback args: didSucceed, event, eventRef
@@ -58,6 +58,30 @@ const EventActions = {
 		let ref = table.push()
 		ref.set(event, (error) => {
 			callback(!error, event, ref)
+		})
+	},
+
+	// check existing tags for event in db
+	getTags: (eventId, callback) => {
+		let ref = database.ref('tags/' + eventId)
+		ref.on('value', (snapshot) => {
+			let tags = []
+			snapshot.forEach(child => {
+				tags.push(child.key)
+			})
+			callback(tags, eventId, ref)
+		})
+	},
+
+	// set tags for event in db
+	setTags: (eventId, tagArray, callback) => {
+		let object = {}
+		tagArray.forEach(function(tag) {
+			object[tag] = true
+		})
+		let ref = database.ref('tags/' + eventId)
+		ref.set(object, error => {
+			callback(!error, tagArray, ref)
 		})
 	}
 

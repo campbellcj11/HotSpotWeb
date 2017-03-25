@@ -1,3 +1,4 @@
+// third party
 import React, {Component} from 'react'
 import {
     Card,
@@ -12,7 +13,11 @@ import {
     DatePicker,
     TimePicker
 } from 'material-ui'
-import {LocaleSelect} from './EventCreator'
+// first party
+import {
+    LocaleSelect,
+    TagSelect
+} from './EventCreator'
 import EventActions from '../actions/eventActions'
 import StorageActions from '../actions/storageActions'
 import {State} from './ApplicationState'
@@ -57,11 +62,13 @@ class EventEditor extends Component {
             newImageURL: null,
             oldImageURL: null, //only set when image has been updated but not yet committed
             editingText: false,
-            modifications: {}
+            modifications: {},
+            tags: []
         }
     }
 
     componentWillMount() {
+        let id = this.props.router.location.query.id
         if (this.props.router.location.state) {
             this.event = this.props.router.location.state
             let date = new Date(this.event.Date)
@@ -71,7 +78,6 @@ class EventEditor extends Component {
                 timePickerVal: date
             })
         } else {
-            let id = this.props.router.location.query.id
             let locale = this.props.router.location.query.l
             EventActions.getSnapshot(id, locale, (function(snapshot) {
                 this.event = snapshot
@@ -82,6 +88,18 @@ class EventEditor extends Component {
                     timePickerVal: date
                 })
             }).bind(this), this.pending ? 'approvalQueue' : 'events')
+        }
+
+        if (!this.pending) {
+            EventActions.getTags(id, tags => {
+                this.setState({
+                    tags: tags
+                })
+            })
+        } else {
+            this.setState({
+                tags: this.event.Tags
+            })
         }
     }
 
@@ -99,6 +117,23 @@ class EventEditor extends Component {
             })
         }).bind(this)
         fr.readAsDataURL(newImage)
+    }
+
+    onDelete() {
+        let event = this.event
+        let ref = EventActions.getRef(event.key, this.state.locale)
+        ref.remove()
+            .then(() => {
+                State.router.push({
+                    pathname: 'locale',
+                    query: {
+                        l: this.state.locale
+                    }
+                })
+            })
+            .catch(() => {
+                console.log('Deletion failed')
+            })
     }
 
     onSave() {
@@ -165,6 +200,16 @@ class EventEditor extends Component {
                     console.log('Failed to update event')
                 })
             }
+
+            EventActions.setTags(event.key, this.state.tags, success => {
+                if (!Object.keys(this.state.modifications).length) {
+                    this.setState({
+                        changedSinceSave: false,
+                        editingText: false,
+                        modifications: {}
+                    })
+                }
+            })
         }
     }
 
@@ -173,10 +218,24 @@ class EventEditor extends Component {
         let potentialEvent = this.event
         let key = potentialEvent.key
         delete potentialEvent.key
+        if (this.pending) {
+            delete potentialEvent.Tags
+        }
         EventActions.createEvent(potentialEvent, event.City, (success, event, ref) => {
             if (success) {
                 // redirect to regular event editor page for this event
                 event.key = ref.key
+                
+                // set tags on created event
+                EventActions.setTags(event.key, this.state.tags)
+
+                // mark approved
+                EventActions.get('approvalQueue/' + key)
+                    .update({
+                        approvalStatus: 'approved'
+                    })
+                
+                // redirect
                 State.router.push({
                     pathname: 'edit',
                     query: {
@@ -185,11 +244,6 @@ class EventEditor extends Component {
                     },
                     state: event
                 })
-                // mark approved
-                EventActions.get('approvalQueue/' + key)
-                    .update({
-                        approvalStatus: 'approved'
-                    })
             } else {
                 // report failure
                 console.error('Failed to create event:')
@@ -237,6 +291,13 @@ class EventEditor extends Component {
         this.setState({
             changedSinceSave: true,
             modifications: modifications
+        })
+    }
+
+    handleTagsChange(values) {
+        this.setState({
+            tags: values,
+            changedSinceSave: true
         })
     }
 
@@ -349,7 +410,8 @@ class EventEditor extends Component {
                     onClick={this.enterEditTextMode.bind(this)} />
                 {!this.pending && <FlatButton
                     label="Delete event"
-                    disabled={true}
+                    disabed={this.pending}
+                    onClick={this.onDelete.bind(this)}
                     style={styles.rowItem} />}
             </div>
         )
@@ -468,6 +530,12 @@ class EventEditor extends Component {
                     multiLine={true}
                     defaultValue={modifications.Event_Type || event.Event_Type}
                     onChange={this.handleInputChange.bind(this)} />
+                <TagSelect
+                    floatingLabelText="Tags"
+                    fullWidth={true}
+                    disabled={!this.state.editingText || this.pending}
+                    onChange={this.handleTagsChange.bind(this)}
+                    defaultValue={this.state.tags || []} />
             </div>
         ) : null
 
