@@ -192,6 +192,7 @@ def putTags(db, user, event, pushID):
         if event['category'].endswith('_EVENT'):
             event['category'] = event['category'][:-6]
         event['category'] = event['category'][0] + event['category'][1:].lower()
+        event['category'] = event['category'].replace("_", " and ").title()
         data = {
             event['category'] : 'true'
         }
