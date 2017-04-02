@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import time
 import pyrebase
 import sys
@@ -28,8 +29,9 @@ def setup():
     print("Setting up archiver...")
     auth = firebase.auth()
     # Log the user in
-    userName = input("Plese enter a user name for firebase: ")
-    user = auth.sign_in_with_email_and_password(userName, getpass.getpass())
+    #userName = input("Plese enter a user name for firebase: ")
+    userName = 'conor@email.sc.edu'
+    user = auth.sign_in_with_email_and_password(userName, 'password')
     return user;
 
 def getPossibleTags(user, db):

@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import time
 import pyrebase
 import sys
@@ -71,9 +72,10 @@ def setup():
     print("Setting up web scraper...")
     auth = firebase.auth()
     # Log the user in
-    userName = input("Plese enter a user name for firebase: ")
+    #userName = input("Plese enter a user name for firebase: ")
+    userName = 'conor@email.sc.edu'
     # password = input("Please enter a password for the previous account: ")
-    user = auth.sign_in_with_email_and_password(userName, getpass.getpass())
+    user = auth.sign_in_with_email_and_password(userName, 'password')
     return user;
 
 """Search for places within the parameters.
