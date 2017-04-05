@@ -167,15 +167,35 @@ class EventEditor extends Component {
                     for (let field in changes) {
                         this.event[field] = changes[field]
                     }
-                    this.setState({
-                        changedSinceSave: false,
-                        newImage: false,
-                        newImageURL: null,
-                        oldImageURL: null,
-                        hasImage: true,
-                        editingText: false,
-                        modifications: {}
-                    })
+
+                    // if locale has changed, move event, redirect
+                    if (this.state.locale !== event.City) {
+                        EventActions.moveEvent(event, this.state.locale, event.City, (success, event, newRef) => {
+                            if (!success) {
+                                console.log('Failed to move event to new locale')
+                                return
+                            }
+                            // redirect to editor for newly moved event
+                            State.router.push({
+                                pathname: 'edit',
+                                query: {
+                                    id: newRef.key,
+                                    l: event.City
+                                },
+                                state: event
+                            })
+                        })
+                    } else {
+                        this.setState({
+                            changedSinceSave: false,
+                            newImage: false,
+                            newImageURL: null,
+                            oldImageURL: null,
+                            hasImage: true,
+                            editingText: false,
+                            modifications: {}
+                        })
+                    }
                 }).catch((error) => {
                     console.log('Failed to update event')
                 })
@@ -191,11 +211,31 @@ class EventEditor extends Component {
                     for (let field in changes) {
                         this.event[field] = changes[field]
                     }
-                    this.setState({
-                        changedSinceSave: false,
-                        editingText: false,
-                        modifications: {}
-                    })
+
+                    // if locale has changed, move event, redirect
+                    if (this.state.locale !== event.City) {
+                        EventActions.moveEvent(event, this.state.locale, event.City, (success, event, newRef) => {
+                            if (!success) {
+                                console.log('Failed to move event to new locale')
+                                return
+                            }
+                            // redirect to editor for newly moved event
+                            State.router.push({
+                                pathname: 'edit',
+                                query: {
+                                    id: newRef.key,
+                                    l: event.City
+                                },
+                                state: event
+                            })
+                        })
+                    } else {
+                        this.setState({
+                            changedSinceSave: false,
+                            editingText: false,
+                            modifications: {}
+                        })
+                    }
                 }).catch((error) => {
                     console.log('Failed to update event')
                 })
@@ -343,12 +383,12 @@ class EventEditor extends Component {
     }
 
     handleLocaleChange(value) {
-        /*let modifications = this.state.modifications
+        let modifications = this.state.modifications
         modifications.City = value
         this.setState({
             changedSinceSave: true,
             modfications: modifications
-        })*/
+        })
     }
 
     render() {
@@ -410,7 +450,7 @@ class EventEditor extends Component {
                     onClick={this.enterEditTextMode.bind(this)} />
                 {!this.pending && <FlatButton
                     label="Delete event"
-                    disabed={this.pending}
+                    disabled={this.pending}
                     onClick={this.onDelete.bind(this)}
                     style={styles.rowItem} />}
             </div>
@@ -496,7 +536,7 @@ class EventEditor extends Component {
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     defaultValue={modifications.City || event.City}
-                    errorText={!this.pending && "This selector is being temporarily ignored"}
+                    //errorText={!this.pending && "This selector is being temporarily ignored"}
                     onChange={this.handleLocaleChange.bind(this)} />
                 <TextField
                     id="County"
