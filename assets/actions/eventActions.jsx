@@ -61,6 +61,37 @@ const EventActions = {
 		})
 	},
 
+	// move event to new locale
+	// create old reference -> delete old reference -> catch errors -> revert changes if an error occurs
+	// 	callback args: didSucced: boolean, event, newRef?
+	moveEvent: (event, fromLocale, toLocale, callback) => {
+		let key = event.key
+		delete event.key
+		let oldRef = database.ref('events/' + fromLocale + '/' + key)
+		let newRef = database.ref('events/' + toLocale + '/' + key)
+		newRef.set(event, (error) => {
+			if (error) {
+				console.log('Failed to create new event')
+				callback(!error, event)
+			}
+			oldRef.remove()
+				.then(() => {
+					callback(true, event, newRef)
+				})
+				.catch(() => {
+					console.log('Failed to delete old event')
+					newRef.remove()
+						.then(() => {
+							console.log('moveEvent reverted')
+							callback(false, event)
+						})
+						.catch(() => {
+							console.log('Failed moveEvent failed to revert')
+						})
+				})
+		})
+	},
+
 	// check existing tags for event in db
 	getTags: (eventId, callback) => {
 		let ref = database.ref('tags/' + eventId)
