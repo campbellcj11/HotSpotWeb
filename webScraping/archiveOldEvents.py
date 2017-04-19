@@ -35,6 +35,11 @@ def migrateEvents(user, db):
     databaseEvents = db.child("events").get()
     timeNow = int(time.time()) * 1000 # for milliseconds
     counter = 0
+
+    favorites = db.child("favorites").get()
+
+    #  Charleston/-Ki64z0PcRTN9jee3KyF
+
     if databaseEvents.each() is None:
         print("Error, database empty.")
     else:
@@ -42,6 +47,13 @@ def migrateEvents(user, db):
             for key, data in locale.val().items():
                 if 'Date' in data:
                     if (int(data['Date']) < timeNow):
+                        for user in favorites.each():
+                            index = 0
+                            for item in user.val():
+                                if key is not None:
+                                    if key in item:
+                                        db.child("favorites").child(user.key()).child(index).remove()
+                            index += 1
                         db.child("archivedEvents").child(locale.key()).update({key : data})
                         db.child("events").child(locale.key()).child(key).remove()
                         db.child("tags").child(key).remove()
