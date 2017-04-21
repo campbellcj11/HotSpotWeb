@@ -109,6 +109,10 @@ p {
 .navbar-brand {
   padding: 0px 5px;
 }
+.responsive-video {
+  width: 75vw;
+  height: calc(.6 * 75vw);
+}
 @media (min-width: 768px) {
   .navbar-default {
     background-color: transparent;
