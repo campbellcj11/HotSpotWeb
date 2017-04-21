@@ -11,7 +11,8 @@ import {
     RaisedButton,
     TextField,
     DatePicker,
-    TimePicker
+    TimePicker,
+    LinearProgress
 } from 'material-ui'
 // first party
 import {
@@ -63,7 +64,8 @@ class EventEditor extends Component {
             oldImageURL: null, //only set when image has been updated but not yet committed
             editingText: false,
             modifications: {},
-            tags: []
+            tags: [],
+            showProgress: false
         }
     }
 
@@ -261,6 +263,9 @@ class EventEditor extends Component {
         if (this.pending) {
             delete potentialEvent.Tags
         }
+        this.setState({
+            showProgress: true
+        })
         EventActions.createEvent(potentialEvent, potentialEvent.City, (success, event, ref) => {
             if (success) {
                 // redirect to regular event editor page for this event
@@ -275,7 +280,7 @@ class EventEditor extends Component {
                         approvalStatus: 'approved'
                     })
                 
-                // redirect
+                // redirect and reset state
                 State.router.push({
                     pathname: 'edit',
                     query: {
@@ -284,7 +289,21 @@ class EventEditor extends Component {
                     },
                     state: event
                 })
+                this.pending = false
+                this.setState({
+                    schangedSinceSave: false,
+                    locale: this.props.router.location.query.l,
+                    newImageURL: null,
+                    oldImageURL: null, //only set when image has been updated but not yet committed
+                    editingText: false,
+                    modifications: {},
+                    tags: [],
+                    showProgress: false
+                })
             } else {
+                this.setState({
+                    showProgress: false
+                })
                 // report failure
                 console.error('Failed to create event:')
                 console.error(JSON.stringify(potentialEvent, null, '\t'))
@@ -588,6 +607,7 @@ class EventEditor extends Component {
                 {!this.state.editingText && !event.Image && header}
                 {!this.state.editingText && chooseImageButton}
                 {body}
+                {this.state.showProgress && <LinearProgress mode="indeterminate" />}
                 <CardActions>
                     <FlatButton
                         label={this.state.editingText ? 'Close Editor' : 'Clear Changes'}
