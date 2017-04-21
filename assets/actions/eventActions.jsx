@@ -112,7 +112,9 @@ const EventActions = {
 		})
 		let ref = database.ref('tags/' + eventId)
 		ref.set(object, error => {
-			callback(!error, tagArray, ref)
+			if (callback) {
+				callback(!error, tagArray, ref)
+			}
 		})
 	}
 

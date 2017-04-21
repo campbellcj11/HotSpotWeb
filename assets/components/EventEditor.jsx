@@ -261,7 +261,7 @@ class EventEditor extends Component {
         if (this.pending) {
             delete potentialEvent.Tags
         }
-        EventActions.createEvent(potentialEvent, event.City, (success, event, ref) => {
+        EventActions.createEvent(potentialEvent, potentialEvent.City, (success, event, ref) => {
             if (success) {
                 // redirect to regular event editor page for this event
                 event.key = ref.key
