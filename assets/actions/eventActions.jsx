@@ -1,3 +1,6 @@
+/**
+ * Manage event related db interactions
+ */
 import firebase from './firebaseInit'
 
 //initialize database
@@ -36,20 +39,6 @@ const EventActions = {
 			callback(snapshot.val())
 		})
 	},
-
-	// remove a specific event entry
-	// TODO also remove image
-	/*remove: function(eventId, alternateTable) {
-		let event = this.getRef(eventId, alternateTable)
-		event.remove()
-			.then(() => {
-				console.log('Removed')
-			})
-			.catch(() => {
-				console.log('Removal failed')
-			})
-		return event
-	},*/
 
 	// create new event
 	//  callback args: didSucceed, event, eventRef

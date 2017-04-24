@@ -1,3 +1,6 @@
+/**
+ * Manage app bar and drawer state, specifically in response to screen dimensions.
+ */
 import React, {Component} from 'react'
 import {Link} from 'react-router' 
 import {AppBar, Drawer, Menu, FlatButton, MenuItem} from 'material-ui'

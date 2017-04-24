@@ -1,3 +1,6 @@
+/**
+ * Manage user and auth related db interactions
+ */
 import firebase from './firebaseInit'
 
 //initialize database
@@ -71,56 +74,6 @@ let UserActions = {
           callback(false, error)
       });
   }
-
-  /*export function signUpUser(user) {
-    console.log('Signing up user');
-    console.log("USER!: " + user);
-    return (dispatch) => {
-      dispatch(signingUp());
-      firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
-        .then(currentUser => {
-          database.ref('users/' + firebase.auth().currentUser.uid).set({
-            email: user.email,
-            //TODO: need to implement first Name and last name fields on sign up.
-            //firstName: 'Conor',
-            //lastName: 'Campbell',
-            registeredUser: true,
-            adminUser: false,
-            lastLogin : firebase.database.ServerValue.TIMESTAMP
-          });
-          dispatch(stateSignUp(user));
-        })
-        .catch(error => {
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          console.log('ERROR: ' + error.code + ' - ' + error.message);
-        });
-    };
-  }*/
-
-  //TODO: Test function - this function will have issues with the current
-  // implementation.
-  /*export function resetPassword(email) {
-    console.log('Resetting Password');
-    return (dispatch) => {
-      dispatch(resettingPassword());
-      firebase.auth().sendPasswordResetEmail(email)
-        .then(currentUser => {
-        
-        })
-        .catch(error => {
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          console.log('ERROR: ' + error.code + ' - ' + error.message);
-        });
-    };
-    firebase.auth().sendPasswordResetEmail(email).catch(function(error) {
-      var errorCode = error.code;
-      var errorMessage = error.message;
-      console.log('ERROR: ' + error.code + ' - ' + error.message);
-    });
-    return {}
-  }*/
 }
 
 export default UserActions

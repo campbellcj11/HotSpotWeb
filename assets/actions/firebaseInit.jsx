@@ -1,4 +1,7 @@
-import * as firebase from 'firebase' //using cdn based import from google ver 3.5.1 til blob issue resolved
+/**
+ * Initialize single instance firebase and export for use with other components.
+ */
+import * as firebase from 'firebase'
 
 //initialize firebase TODO: pull from a credentials file
 const firebaseConfig = {

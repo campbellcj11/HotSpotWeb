@@ -1,3 +1,8 @@
+/**
+ * Initialize the main application component, Main.jsx, and
+ * prepare the tap event plug-in for material-ui.
+ */
+
 import React from 'react'
 import {render} from 'react-dom'
 import Main from './Main'

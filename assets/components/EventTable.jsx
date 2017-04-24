@@ -1,3 +1,8 @@
+/**
+ * Retrieve and display all current events for a locale in firbase +
+ * the basic attributes about those events.
+ * The locale is accepted as a URL query parameter
+ */
 import React from 'react'
 import {
 	Table,

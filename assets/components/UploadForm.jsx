@@ -1,3 +1,8 @@
+/**
+ * Form for uploading and verifying events in bulk from a .CSV.
+ * Not currently in use because of the fb GraphAPI webscraper (see /webScraping)
+ */
+
 import React from 'react'
 import EventTable from './EventTable'
 import StorageActions from '../actions/storageActions'

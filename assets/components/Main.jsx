@@ -1,6 +1,14 @@
 /**
  * Main component loaded by app.jsx
  * Manages single page application and coordinates with ApplicationState
+ * This component is always rendered and controls
+ * 	- routing
+ * 	- material-ui theme
+ *  - checking login state
+ * 	- reponsiveness to screen size
+ * Login status and relative screen size are available to child components
+ * that import ApplicationState because this component is the stored as the
+ * ApplicationState.delegator in app.jsx
  */
 import React, {Component} from 'react'
 import {

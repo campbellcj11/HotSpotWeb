@@ -1,3 +1,8 @@
+/**
+ * Simple form that allows events to be directly created by an administrator 
+ * without approval.  Also exports the LocaleSelector and TagSelector components,
+ * which allow only existing locales and tags to be selected and multiselected, respectively.
+ */
 import React, {Component} from 'react'
 import {
     Card,

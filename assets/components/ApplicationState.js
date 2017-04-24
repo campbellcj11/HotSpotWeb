@@ -1,3 +1,8 @@
+/**
+ * Easily importable singleton object that allows the delegator, 
+ * the delegator's state properties, and the the router (see Main.jsx for more information)
+ * to be accessible to all components that require state information.
+ */
 class ApplicationState {
 	constructor() {
 		this.delegator = 'unitialized'

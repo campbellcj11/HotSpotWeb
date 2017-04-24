@@ -1,3 +1,8 @@
+/**
+ * Modified event table that draws its events from the event approvalQueue
+ * in firebase that are awaiting administrator approval.
+ */
+
 import React from 'react'
 import {
 	Table,

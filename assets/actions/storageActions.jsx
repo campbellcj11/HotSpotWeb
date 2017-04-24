@@ -1,3 +1,6 @@
+/**
+ * Manage firebase storage interactions
+ */
 import firebase from './firebaseInit'
 
 //initialize storage

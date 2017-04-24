@@ -1,3 +1,8 @@
+/**
+ * Retrieve and display all current locales in firbase +
+ * the number of events per locale in a table.
+ */
+
 import React from 'react'
 import {
 	Table,

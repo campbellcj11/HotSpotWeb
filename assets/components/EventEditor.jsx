@@ -1,3 +1,9 @@
+/**
+ * Exports an editor/viewer for events that shows a simple preview card, allows images and
+ * text to be edited by an admin, allows events to be deleted,
+ * and allows pending events to be explicitly approved or denied by the admin.
+ */
+
 // third party
 import React, {Component} from 'react'
 import {

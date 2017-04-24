@@ -1,3 +1,7 @@
+/**
+ * Allow admin to login, interact with firebase auth provider and 
+ * separate user db entry to gather user information.
+ */
 import React, {Component} from 'react'
 import {
     Card,
@@ -61,6 +65,7 @@ class Login extends Component {
             },
             //status:
             //'LOGGING_IN'
+            //'LOGGED_OUT'
             //'LOGIN_FAILED'
             //'LOGIN_SUCCEEDED'
             errorText: {}
