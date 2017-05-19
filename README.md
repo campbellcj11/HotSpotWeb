@@ -1,4 +1,4 @@
-# Hotspot Admin
+# HotSpot Admin
 Administrative management console for Project Now -- now known as HotSpot
 
 #Commands
