@@ -9,6 +9,7 @@ config = {
     "authDomain" : "projectnow-964ba.firebaseapp.com",
     "databaseURL" : "https://projectnow-964ba.firebaseio.com",
     "storageBucket" : "projectnow-964ba.appspot.com",
+    "serviceAccount": "./service-key.json",
 }
 ## test database
 # config = {
@@ -50,7 +51,7 @@ def migrateEvents(user, db):
                         for user in favorites.each():
                             index = 0
                             for item in user.val():
-                                if key is not None:
+                                if item is not None:
                                     if key in item:
                                         db.child("favorites").child(user.key()).child(index).remove()
                             index += 1

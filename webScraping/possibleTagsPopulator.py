@@ -13,6 +13,7 @@ config = {
     "authDomain" : "projectnow-964ba.firebaseapp.com",
     "databaseURL" : "https://projectnow-964ba.firebaseio.com",
     "storageBucket" : "projectnow-964ba.appspot.com",
+    "serviceAccount": "./service-key.json",
 }
 ## test database
 # config = {

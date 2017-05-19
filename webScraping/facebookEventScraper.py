@@ -3,6 +3,7 @@ import time
 import pyrebase
 import sys
 import getpass
+import requests
 from datetime import datetime
 from facepy import GraphAPI
 
@@ -27,6 +28,7 @@ config = {
     "authDomain" : "projectnow-964ba.firebaseapp.com",
     "databaseURL" : "https://projectnow-964ba.firebaseio.com",
     "storageBucket" : "projectnow-964ba.appspot.com",
+    "serviceAccount": "./service-key.json",
 }
 ## test database
 # config = {
@@ -34,7 +36,6 @@ config = {
 #     "authDomain": "projectnowtest.firebaseapp.com",
 #     "databaseURL": "https://projectnowtest.firebaseio.com",
 #     "storageBucket": "projectnowtest.appspot.com",
-#     "messagingSenderId": "727912823537"
 # };
 
 firebase = pyrebase.initialize_app(config)
@@ -81,22 +82,42 @@ def setup():
 """Search for places within the parameters.
 Edit distance, center, and limit in order to change search results.
 """
-#TODO: this is returning 1?
-def searchForPlaces(listOfParameters):
-    """TODO: these need validation"""
-    print("Getting places around coordinates...")
-    print('Center: ' + str(listOfParameters[0]))
-    print('Distance: ' + str(listOfParameters[1]))
-    print('Limit: ' + str(listOfParameters[2]))
-    result = graph.search(
-        term = '',
-        type = 'place',
-        center = listOfParameters[0],
-        #increase limit and distance to increase event results
-        distance = listOfParameters[1],
-        limit = listOfParameters[2]
-    )
-    return result
+# TODO: make AC get from db
+def searchForPlaces(listOfParameters, db):
+    listofPlaces = []
+    ## if city is AC, get places from db
+    if listOfParameters[0] == '39.364283,-74.422927':
+        places = db.child('scraperLists').child('atlanticCity').get()
+        for place in places.each():
+            listofPlaces.append(place.val()['name'] + '::: ' + place.val()['id'])
+    else: # all other cities
+        result = graph.search(
+            term = '',
+            type = 'place',
+            center = listOfParameters[0],
+            #increase limit and distance to increase event results
+            distance = listOfParameters[1],
+            limit = listOfParameters[2]
+        )
+        for element in result['data']:
+            listofPlaces.append(element['name'] + "::: " + element['id'])
+
+
+        while 'paging' in result and 'next' in result['paging']:
+            # print("Pagination!")
+            next = result['paging']['next']
+            result = requests.get(next)
+            result = result.json()
+            for element in result['data']:
+                stringName = element['name'] + ", " + element['id']
+                if stringName in listofPlaces:
+                    # print("ERRRRRORRRRRRR")
+                    # print(element['name'])
+                    # print(element['id'])
+                    pass
+                else:
+                    listofPlaces.append(element['name'] + "::: " + element['id'])
+    return listofPlaces
 
 """Parse the short description from the long description."""
 def getShortDescription(longDescription):
@@ -118,7 +139,7 @@ def formatOutput(event, user):
     #format place
     if 'place' in event and 'location' in event['place']:
         location = event['place']['location']
-        if 'street' not in location or 'state' not in location:
+        if 'street' not in location or 'state' not in location or 'zip' not in location:
             return None
         else:
             address = location['street'] + ', ' + location['city'] + ', ' + location['state'] + ', ' + location['zip']
@@ -222,15 +243,15 @@ def getEvents(listOfPlaces, user, db, databaseEvents):
     ids = []
     # Loops through places to get event IDs for all events for each place - limit at 100000"""
     counterhere = 0
-    for x in listOfPlaces['data']:
+    for x in listOfPlaces:
+        x = x.split('::: ')
         #GET command to get future events
         counterhere += 1
         currentTime = int(time.time())
         offsetDaysLimit = currentTime + offsetTimeInSeconds
-        events = graph.get(x['id'] + '/events', since=currentTime, until=offsetDaysLimit, limit=100000, fields='id')
-        for x in events['data']:
-            event = graph.get(x['id'])
-            ids.append(x['id'])
+        events = graph.get(x[1] + '/events', since=currentTime, until=offsetDaysLimit, limit=100000, fields='id')
+        for event in events['data']:
+            ids.append(event['id'])
 
     print("Initial count of events before formatting: " + str(len(ids)))
     print("Count of places: " + str(counterhere))
@@ -299,6 +320,6 @@ checkCommandLineArguments()
 db = firebase.database()
 user = setup()
 listOfParameters = setParameters()
-listOfPlaces = searchForPlaces(listOfParameters)
+listOfPlaces = searchForPlaces(listOfParameters, db)
 databaseEvents = getAllDatabaseEvents(db, user)
 getEvents(listOfPlaces, user, db, databaseEvents)
