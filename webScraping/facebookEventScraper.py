@@ -87,7 +87,7 @@ Edit distance, center, and limit in order to change search results.
 def searchForPlaces(listOfParameters, db):
     listofPlaces = []
     ## if city is AC, get places from db
-    if listOfParameters[0] == '39.364283,-74.422927':
+    if listOfParameters[0] == '39.364283, -74.422927':
         places = db.child('scraperLists').child('atlanticCity').get()
         for place in places.each():
             listofPlaces.append(place.val()['name'] + '::: ' + place.val()['id'])
