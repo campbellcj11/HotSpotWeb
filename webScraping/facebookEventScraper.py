@@ -6,6 +6,7 @@ import getpass
 import requests
 from datetime import datetime
 from facepy import GraphAPI
+from os.path import expanduser
 
 ## To run this program for Atlantic City use:
 #      python3 facebookEventScraper.py 39.364283 -74.422927 20 100000
@@ -23,12 +24,13 @@ from facepy import GraphAPI
 
 # Setting up the graph api and firebase connections.
 graph = GraphAPI('1738197196497592|RpbqD1owgCZ6aT7s5JOrGvp9_7Q')
+home = expanduser("~")
 config = {
     "apiKey" : "AIzaSyBc6_49WEUZLKCBoR8FFIHAfVjrZasdHlc",
     "authDomain" : "projectnow-964ba.firebaseapp.com",
     "databaseURL" : "https://projectnow-964ba.firebaseio.com",
     "storageBucket" : "projectnow-964ba.appspot.com",
-    "serviceAccount": "~/service-key.json",
+    "serviceAccount": home + "/service-key.json",
 }
 ## test database
 # config = {
@@ -37,7 +39,6 @@ config = {
 #     "databaseURL": "https://projectnowtest.firebaseio.com",
 #     "storageBucket": "projectnowtest.appspot.com",
 # };
-
 firebase = pyrebase.initialize_app(config)
 milesIntoMetersConv = 1609.34
 

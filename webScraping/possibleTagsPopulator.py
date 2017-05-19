@@ -5,15 +5,17 @@ import sys
 import getpass
 from datetime import datetime
 from facepy import GraphAPI
+from os.path import expanduser
 
 # Setting up the graph api and firebase connections.
 graph = GraphAPI('1738197196497592|RpbqD1owgCZ6aT7s5JOrGvp9_7Q')
+home = expanduser("~")
 config = {
     "apiKey" : "AIzaSyBc6_49WEUZLKCBoR8FFIHAfVjrZasdHlc",
     "authDomain" : "projectnow-964ba.firebaseapp.com",
     "databaseURL" : "https://projectnow-964ba.firebaseio.com",
     "storageBucket" : "projectnow-964ba.appspot.com",
-    "serviceAccount": "~/service-key.json",
+    "serviceAccount": home + "/service-key.json",
 }
 ## test database
 # config = {

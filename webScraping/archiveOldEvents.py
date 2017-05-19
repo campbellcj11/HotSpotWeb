@@ -3,13 +3,15 @@ import pyrebase
 import sys
 import getpass
 import time
+from os.path import expanduser
 
+home = expanduser("~")
 config = {
     "apiKey" : "AIzaSyBc6_49WEUZLKCBoR8FFIHAfVjrZasdHlc",
     "authDomain" : "projectnow-964ba.firebaseapp.com",
     "databaseURL" : "https://projectnow-964ba.firebaseio.com",
     "storageBucket" : "projectnow-964ba.appspot.com",
-    "serviceAccount": "~/service-key.json",
+    "serviceAccount": home + "/service-key.json",
 }
 ## test database
 # config = {
