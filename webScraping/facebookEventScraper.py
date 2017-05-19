@@ -64,7 +64,7 @@ def setParameters():
         distanceNumber = int(sys.argv[2]) * milesIntoMetersConv
         limitNumber = sys.argv[3]
     elif numberOfArgs is 5:
-        centerCoordinates = sys.argv[1] + "," + sys.argv[2]
+        centerCoordinates = sys.argv[1] + ", " + sys.argv[2]
         distanceNumber = int(sys.argv[3]) * milesIntoMetersConv
         limitNumber = sys.argv[4]
     return [centerCoordinates, distanceNumber, limitNumber]
