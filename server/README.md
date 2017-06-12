@@ -14,7 +14,7 @@ Install dependencies:
 
 Set required environment variables:
 
-`export SQLACLHEMY_DATABASE_URI=postgres://user:pw@host:port/dbname`
+`export SQLALCHEMY_DATABASE_URI=postgres://user:pw@host:port/dbname`
 
 `export FLASK_CONFIG=production` (production)
 
