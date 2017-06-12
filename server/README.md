@@ -1,0 +1,26 @@
+## Flask Server for HotSpot
+
+#Setup
+
+Virtual Environment:
+
+[While in this dir]
+`virtualenv --python=/your/path/to/python3.6 server_venv` (server_venv can be whatever you want)
+
+Install dependencies:
+
+`pip install -r requirements.txt`
+
+Set required environment variables:
+
+`export SQLACLHEMY_DATABASE_URI=postgres://user:pw@host:port/dbname`
+`export FLASK_CONFIG=production` (production)
+or `export FLASK_CONFIG=dev` (development)
+
+#Run
+
+`python server.py`
+
+#Recommended
+
+- create an alias to toggle the database URI
