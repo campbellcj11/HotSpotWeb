@@ -2,6 +2,10 @@
 #
 .DS_Store
 
+# Python
+server_venv
+__pycache__
+
 # Xcode
 #
 #build/ #need this folder for this repo
