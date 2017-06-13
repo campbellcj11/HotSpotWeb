@@ -28,7 +28,7 @@ OR
 
 ## Run
 
-`python server.py`
+`python application.py`
 
 ## Interactive DB
 
@@ -45,6 +45,10 @@ OR
 `>> u.dob = datetime.datetime.now().date()`
 
 `>> db.session.commit()`
+
+## Elastic Beanstalk Endpoint
+
+http://hotspotenv.6qmp7ct7m5.us-east-1.elasticbeanstalk.com/321321
 
 ## Recommended
 
