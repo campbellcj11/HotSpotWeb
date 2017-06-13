@@ -48,7 +48,7 @@ OR
 
 ## Elastic Beanstalk Endpoint
 
-http://hotspotenv.6qmp7ct7m5.us-east-1.elasticbeanstalk.com/321321
+http://hotspotenv.6qmp7ct7m5.us-east-1.elasticbeanstalk.com/
 
 ## Recommended
 
