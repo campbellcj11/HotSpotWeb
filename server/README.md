@@ -8,6 +8,10 @@ Virtual Environment:
 
 `virtualenv --python=/your/path/to/python3.6 server_venv` (server_venv can be whatever you want)
 
+Activate
+
+`source server_venv/bin/activate`
+
 Install dependencies:
 
 `pip install -r requirements.txt`
