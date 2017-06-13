@@ -15,7 +15,7 @@ class User(db.Model):
     last_login = db.Column(db.DateTime, default=db.func.now())
     gender = db.Column(db.String)
     profile_image = db.Column(db.String)
-    default_locale = db.Column(db.Integer, db.ForeignKey('locales.id'))
+    locales = db.Column(ARRAY(db.Integer))
     def __repr__(self):
         return '<User id=%i u%s>' % (self.id, id(self))
 

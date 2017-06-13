@@ -4,7 +4,7 @@
 
 Virtual Environment:
 
-[While in this dir]
+Create [While in this dir]
 
 `virtualenv --python=/your/path/to/python3.6 server_venv` (server_venv can be whatever you want)
 
