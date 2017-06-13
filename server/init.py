@@ -5,10 +5,10 @@ from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from config import config
 
-app = Flask(__name__)
-app.config.from_object(config)
-db = SQLAlchemy(app)
-api = Api(app)
+application = Flask(__name__)
+application.config.from_object(config)
+db = SQLAlchemy(application)
+api = Api(application)
 
 # TODO consider moving decorators to separate file (e.g. decorators)
 

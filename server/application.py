@@ -1,6 +1,6 @@
 from flask import request
 from flask_restful import Resource
-from init import app, api, db
+from init import application, api, db
 from models import User
 
 @api.route('/')
@@ -20,4 +20,4 @@ class WithParams(Resource):
         return id
 
 if __name__ == '__main__':
-    app.run()
+    application.run()
