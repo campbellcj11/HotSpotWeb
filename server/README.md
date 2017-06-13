@@ -26,6 +26,22 @@ OR
 
 `python server.py`
 
+## Interactive DB
+
+(Example)
+
+`python`
+
+`>> from models import db, User`
+
+`>> u = User.query.all()[0]`
+
+`>> import datetime`
+
+`>> u.dob = datetime.datetime.now().date()`
+
+`>> db.session.commit()`
+
 ## Recommended
 
 - create an alias to toggle the database URI
