@@ -1,23 +1,23 @@
-from flask import request
+from flask import request, send_from_directory
 from flask_restful import Resource
 from init import application, api, db
 from models import User
+import os
 
+# root --> marketing site home
 @api.route('/')
-class HelloWorld(Resource):
+class Home(Resource):
     def get(self):
-        return {
-            'test': 'result'
-        }
-    def post(self):
-        return request.get_json()
+        return send_from_directory(os.path.join('static', 'assets', 'marketing'), 'index.html')
 
-@api.route('/<int:id>')
-class WithParams(Resource):
-    @api.login_required
-    def get(self, id):
-        print("op in wrapped function")
-        return id
+# /admin --> admin site
+@api.route('/admin')
+class Admin(Resource):
+    def get(self):
+        return send_from_directory(os.path.join('static', 'assets'), 'index.html')
+
+# TODO actual API endpoints
+
 
 if __name__ == '__main__':
     application.run()
