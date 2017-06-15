@@ -1,9 +1,10 @@
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Api
 import types
 from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from config import config
+
 
 application = Flask(__name__)
 application.config.from_object(config)
@@ -28,6 +29,8 @@ def login_required(self, f):
         print("op before wrapped function")
         # TODO do auth
         # call function if successful, otherwise, return 401 Unauthorized
+        # Felt this was unneccesary unless it was async, maybe come back to this?
+        # calls original function
         r = f(*args, **kwargs)
         print("op after wrapped function")
         return r
