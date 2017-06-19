@@ -4,14 +4,18 @@ import types
 from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from config import config
+import firebase_admin
+from firebase_admin import credentials, auth
 
+# Firebase Setup
+cred = credentials.Certificate('./service-key.json')
+default_app = firebase_admin.initialize_app(cred)
 
+# Flask initialization/config
 application = Flask(__name__)
 application.config.from_object(config)
 db = SQLAlchemy(application)
 api = Api(application)
-
-# TODO consider moving decorators to separate file (e.g. decorators)
 
 # allow method directors above flask_restful functions like standard flask
 def api_route(self, *args, **kwargs):
@@ -22,17 +26,36 @@ def api_route(self, *args, **kwargs):
 
 api.route = types.MethodType(api_route, api)
 
+# check if firebase token matches stated user identity
+def check_token(token, uidFromUser):
+    try:
+        decoded_token = firebase_admin.auth.verify_id_token(token)
+        if decoded_token['uid'] == uidFromUser:
+            return True
+        else:
+            return False
+    except:
+        return False
+
 # decorator to specify that authentication is required
 def login_required(self, f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        print("op before wrapped function")
-        # TODO do auth
-        # call function if successful, otherwise, return 401 Unauthorized
-        # Felt this was unneccesary unless it was async, maybe come back to this?
-        # calls original function
-        r = f(*args, **kwargs)
-        print("op after wrapped function")
+        """ disabled for now during testing
+        token = request.headers.get('token')
+        uidFromUser = request.headers.get('uid')
+        if (uidFromUser is None or token is None):
+            #this should be logged.
+            response = 'Missing header requirements, uid and token.'
+            return response, 401
+        else:
+            if (check_token(token, uidFromUser)):
+                 r = f(*args, **kwargs)
+            else:
+                return 'Failed to authenticate user', 401   
+        """
+        r = f(*args, **kwargs) 
+        # consider logging here if necessary
         return r
     return wrapper
 

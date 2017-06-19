@@ -72,7 +72,7 @@ class Login extends Component {
         }
     }
 
-    componentWillMount() {        
+    componentWillMount() {
         UserActions.getCurrentUser((success, content) => {
             if (success) {
                 this.setState({

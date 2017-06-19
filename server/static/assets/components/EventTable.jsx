@@ -63,21 +63,12 @@ class EventTable extends React.Component {
 		if (this.mode == 'potential') {
 			this.addEventArray(this.props.potentialEvents)
 		} else {
-			// TODO use limitToFirst(x+n) limitToLast(n) to paginate
-			EventActions
-				.get('events/' + this.props.router.location.query.l)
-				.orderByChild('Date')
-				.on('value', (snapshot) => {
-					let eventArray = []
-					snapshot.forEach((child) => {
-						let event = child.val()
-						event.key = child.key
-						eventArray.unshift(event)
-					})
-					this.addEventArray(eventArray)
-					console.log(eventArray.length + ' events found')
-				}, (error) => {
-					console.log("Read error:" + error.code);
+			EventActions.getLocaleEvents(this.props.router.location.query.l)
+				.then(events => {
+					this.addEventArray(events)
+				})
+				.catch(error => {
+					console.log(error)
 				})
 		}
 	}
@@ -90,7 +81,7 @@ class EventTable extends React.Component {
 	}
 
 	handleRowSelection(selectedRows) {
-		let index = selectedRows[0]
+		/*let index = selectedRows[0]
 		let event = this.state.events[index]
 		State.router.push({
 			pathname: 'edit',
@@ -99,7 +90,7 @@ class EventTable extends React.Component {
 				l: this.state.locale
 			},
 			state: event
-		})
+		})*/
 	}
 
 	render() {	
@@ -116,14 +107,14 @@ class EventTable extends React.Component {
 		if (this.state.events.length) {
 			let rows = []
 			this.state.events.forEach((event, index) => {
-				var d = new Date(event.Date)
+				var d = new Date(event.start_date)
 				rows.push(
-					<TableRow key={event.key}>
-						<TableRowColumn>{event.Event_Name}</TableRowColumn>
+					<TableRow key={event.id}>
+						<TableRowColumn>{event.name}</TableRowColumn>
 						<TableRowColumn>{d.toLocaleDateString() + ' ' + d.toLocaleTimeString()}</TableRowColumn>
-						{screenWidth == 'large' && <TableRowColumn>{event.Location}</TableRowColumn>}
-						{screenWidth == 'large' && <TableRowColumn>{event.Address}</TableRowColumn>}
-						{screenWidth == 'large' && <TableRowColumn>{event.Short_Description}</TableRowColumn>}
+						{screenWidth == 'large' && <TableRowColumn>{event.venue_name}</TableRowColumn>}
+						{screenWidth == 'large' && <TableRowColumn>{event.address}</TableRowColumn>}
+						{screenWidth == 'large' && <TableRowColumn>{event.short_description}</TableRowColumn>}
 					</TableRow>
 				)
 			})
@@ -139,10 +130,10 @@ class EventTable extends React.Component {
 						<TableHeader enableSelectAll={false} displaySelectAll={!this.props.potentialEvents}>
 							<TableRow>
 								<TableHeaderColumn>Event Name</TableHeaderColumn>
-								<TableHeaderColumn>Date</TableHeaderColumn>
-								{screenWidth == 'large' && <TableHeaderColumn>Location</TableHeaderColumn>}
+								<TableHeaderColumn>Start Date</TableHeaderColumn>
+								{screenWidth == 'large' && <TableHeaderColumn>Venue</TableHeaderColumn>}
 								{screenWidth == 'large' && <TableHeaderColumn>Address</TableHeaderColumn>}
-								{screenWidth == 'large' && <TableHeaderColumn>Description</TableHeaderColumn>}
+								{screenWidth == 'large' && <TableHeaderColumn>Short Description</TableHeaderColumn>}
 							</TableRow>
 						</TableHeader>
 						<TableBody displayRowCheckbox={!this.props.potentialEvents}>

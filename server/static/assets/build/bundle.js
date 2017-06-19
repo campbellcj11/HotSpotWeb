@@ -70554,19 +70554,51 @@
 	  getCurrentUser: function getCurrentUser(callback) {
 	    _firebaseInit2.default.auth().onAuthStateChanged(function (user) {
 	      if (user) {
-	        var ref = database.ref("users/" + _firebaseInit2.default.auth().currentUser.uid);
-	        ref.once('value').then(function (snapshot) {
-	          callback(true, snapshot.val(), _firebaseInit2.default.auth().currentUser);
-	        }).catch(function (error) {
-	          var errorCode = error.code;
-	          var errorMessage = error.message;
-	          console.log('ERROR: ' + error.code + ' - ' + error.message);
-	          callback(false, 'USER_NOT_FOUND');
+	        // validate user identity
+	        user.getToken().then(function (token) {
+	          fetch('/login', {
+	            headers: {
+	              token: token,
+	              uid: user.uid
+	            }
+	          }).then(function (response) {
+	            if (response.status == 200) {
+	              var ref = database.ref("users/" + _firebaseInit2.default.auth().currentUser.uid);
+	              ref.once('value').then(function (snapshot) {
+	                callback(true, snapshot.val(), _firebaseInit2.default.auth().currentUser);
+	              }).catch(function (error) {
+	                var errorCode = error.code;
+	                var errorMessage = error.message;
+	                console.log('ERROR: ' + error.code + ' - ' + error.message);
+	                callback(false, 'USER_NOT_FOUND');
+	              });
+	              // TODO instead of firebase user snapshot, return user entry from hotspot db
+	            } else {
+	              callback(false, 'USER_NOT_FOUND');
+	            }
+	          });
+	        });
+	      } else {
+	        callback(false, 'AUTH');
+	      }
+	      /*
+	      if (user) {
+	        let ref = database.ref("users/" + firebase.auth().currentUser.uid);
+	        ref.once('value')
+	        .then(function(snapshot) {
+	            callback(true, snapshot.val(), firebase.auth().currentUser)
+	        })
+	        .catch(function(error) {
+	            let errorCode = error.code;
+	            let errorMessage = error.message;
+	            console.log('ERROR: ' + error.code + ' - ' + error.message);
+	            callback(false, 'USER_NOT_FOUND')
 	        });
 	      } else {
 	        // No user is signed in.
-	        callback(false, 'AUTH');
+	        callback(false, 'AUTH')
 	      }
+	      */
 	    });
 	  },
 	
@@ -71696,33 +71728,19 @@
 		_createClass(LocaleTable, [{
 			key: 'componentDidMount',
 			value: function componentDidMount() {
-				this.loadLocales.call(this);
-			}
-		}, {
-			key: 'componentWillReceiveProps',
-			value: function componentWillReceiveProps(nextProps) {
-				this.mode = this.props.router.location.query.mode || 'manage';
-				this.setState({
-					loading: true
-				});
-				this.loadLocales.call(this);
+				if (!this.state.locales.length) {
+					this.loadLocales.call(this);
+				}
 			}
 		}, {
 			key: 'loadLocales',
 			value: function loadLocales() {
 				var _this2 = this;
 	
-				_eventActions2.default.get('events').on('value', function (snapshot) {
-					var localeArray = [];
-					snapshot.forEach(function (child) {
-						var locale = child.val();
-						locale.key = child.key;
-						localeArray.push(locale);
-					});
-					_this2.addLocaleArray(localeArray);
-					console.log(localeArray.length + ' locales found');
-				}, function (error) {
-					console.log('Read error: ' + error.message);
+				_eventActions2.default.getLocales().then(function (locales) {
+					_this2.addLocaleArray(locales);
+				}).catch(function (error) {
+					console.log(error);
 				});
 			}
 		}, {
@@ -71741,7 +71759,7 @@
 				_ApplicationState.State.router.push({
 					pathname: 'locale',
 					query: {
-						l: locale.key
+						l: locale.id
 					}
 				});
 			}
@@ -71767,12 +71785,17 @@
 						_react2.default.createElement(
 							_materialUi.TableRowColumn,
 							null,
-							locale.key
+							locale.name
 						),
 						_react2.default.createElement(
 							_materialUi.TableRowColumn,
 							null,
-							Object.keys(locale).length - 1
+							locale.state
+						),
+						_react2.default.createElement(
+							_materialUi.TableRowColumn,
+							null,
+							locale.country
 						)
 					));
 				});
@@ -71788,19 +71811,24 @@
 						{ multiSelectable: false, onRowSelection: this.handleRowSelection.bind(this) },
 						_react2.default.createElement(
 							_materialUi.TableHeader,
-							{ enableSelectAll: false, displaySelectAll: false },
+							{ enableSelectAll: false, displaySelectAll: false, adjustForCheckbox: false },
 							_react2.default.createElement(
 								_materialUi.TableRow,
 								null,
 								_react2.default.createElement(
 									_materialUi.TableHeaderColumn,
 									null,
-									'Locale'
+									'Name'
 								),
 								_react2.default.createElement(
 									_materialUi.TableHeaderColumn,
 									null,
-									'Events'
+									'State'
+								),
+								_react2.default.createElement(
+									_materialUi.TableHeaderColumn,
+									null,
+									'Country'
 								)
 							)
 						),
@@ -71826,7 +71854,7 @@
   \*****************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 		value: true
@@ -71847,7 +71875,24 @@
 	var eventTable = database.ref("events");
 	
 	var EventActions = {
+		//NEW server queries start here
+		getLocales: function getLocales() {
+			return fetch('/admin/locales').then(function (response) {
+				return response.json();
+			}).catch(function (error) {
+				return error;
+			});
+		},
+		// TODO paginate
+		getLocaleEvents: function getLocaleEvents(id) {
+			return fetch('/admin/localeEvents/' + id).then(function (response) {
+				return response.json();
+			}).catch(function (error) {
+				return error;
+			});
+		},
 	
+		//OLD firebase functions start here
 		eventTable: eventTable,
 	
 		get: function get(target) {
@@ -72084,18 +72129,10 @@
 				if (this.mode == 'potential') {
 					this.addEventArray(this.props.potentialEvents);
 				} else {
-					// TODO use limitToFirst(x+n) limitToLast(n) to paginate
-					_eventActions2.default.get('events/' + this.props.router.location.query.l).orderByChild('Date').on('value', function (snapshot) {
-						var eventArray = [];
-						snapshot.forEach(function (child) {
-							var event = child.val();
-							event.key = child.key;
-							eventArray.unshift(event);
-						});
-						_this2.addEventArray(eventArray);
-						console.log(eventArray.length + ' events found');
-					}, function (error) {
-						console.log("Read error:" + error.code);
+					_eventActions2.default.getLocaleEvents(this.props.router.location.query.l).then(function (events) {
+						_this2.addEventArray(events);
+					}).catch(function (error) {
+						console.log(error);
 					});
 				}
 			}
@@ -72110,16 +72147,16 @@
 		}, {
 			key: 'handleRowSelection',
 			value: function handleRowSelection(selectedRows) {
-				var index = selectedRows[0];
-				var event = this.state.events[index];
-				_ApplicationState.State.router.push({
-					pathname: 'edit',
-					query: {
-						id: event.key,
-						l: this.state.locale
-					},
-					state: event
-				});
+				/*let index = selectedRows[0]
+	   let event = this.state.events[index]
+	   State.router.push({
+	   	pathname: 'edit',
+	   	query: {
+	   		id: event.key,
+	   		l: this.state.locale
+	   	},
+	   	state: event
+	   })*/
 			}
 		}, {
 			key: 'render',
@@ -72137,14 +72174,14 @@
 				if (this.state.events.length) {
 					var rows = [];
 					this.state.events.forEach(function (event, index) {
-						var d = new Date(event.Date);
+						var d = new Date(event.start_date);
 						rows.push(_react2.default.createElement(
 							_materialUi.TableRow,
-							{ key: event.key },
+							{ key: event.id },
 							_react2.default.createElement(
 								_materialUi.TableRowColumn,
 								null,
-								event.Event_Name
+								event.name
 							),
 							_react2.default.createElement(
 								_materialUi.TableRowColumn,
@@ -72154,17 +72191,17 @@
 							screenWidth == 'large' && _react2.default.createElement(
 								_materialUi.TableRowColumn,
 								null,
-								event.Location
+								event.venue_name
 							),
 							screenWidth == 'large' && _react2.default.createElement(
 								_materialUi.TableRowColumn,
 								null,
-								event.Address
+								event.address
 							),
 							screenWidth == 'large' && _react2.default.createElement(
 								_materialUi.TableRowColumn,
 								null,
-								event.Short_Description
+								event.short_description
 							)
 						));
 					});
@@ -72193,12 +72230,12 @@
 									_react2.default.createElement(
 										_materialUi.TableHeaderColumn,
 										null,
-										'Date'
+										'Start Date'
 									),
 									screenWidth == 'large' && _react2.default.createElement(
 										_materialUi.TableHeaderColumn,
 										null,
-										'Location'
+										'Venue'
 									),
 									screenWidth == 'large' && _react2.default.createElement(
 										_materialUi.TableHeaderColumn,
@@ -72208,7 +72245,7 @@
 									screenWidth == 'large' && _react2.default.createElement(
 										_materialUi.TableHeaderColumn,
 										null,
-										'Description'
+										'Short Description'
 									)
 								)
 							),

@@ -41,31 +41,18 @@ class LocaleTable extends React.Component {
 	}
 
 	componentDidMount() {
-		this.loadLocales.call(this)
+		if (!this.state.locales.length) {
+			this.loadLocales.call(this)
+		}
 	}
-
-	componentWillReceiveProps(nextProps) {
-		this.mode = this.props.router.location.query.mode || 'manage'
-		this.setState({
-			loading: true
-		})
-		this.loadLocales.call(this)
-	}
-
+	
 	loadLocales() {
-        EventActions
-			.get('events')
-			.on('value', (snapshot) => {
-				let localeArray = []
-				snapshot.forEach((child) => {
-					let locale = child.val()
-					locale.key = child.key
-					localeArray.push(locale)
-				})
-				this.addLocaleArray(localeArray)
-				console.log(localeArray.length + ' locales found')
-			}, (error) => {
-				console.log('Read error: ' + error.message)
+		EventActions.getLocales()
+			.then(locales => {
+				this.addLocaleArray(locales)
+			})
+			.catch(error => {
+				console.log(error)
 			})
 	}
 
@@ -82,7 +69,7 @@ class LocaleTable extends React.Component {
 		State.router.push({
 			pathname: 'locale',
 			query: {
-				l: locale.key
+				l: locale.id
 			}
 		})
 	}
@@ -103,8 +90,9 @@ class LocaleTable extends React.Component {
         this.state.locales.forEach((locale, index) => {
             rows.push(
                 <TableRow key={index}>
-                    <TableRowColumn>{locale.key}</TableRowColumn>
-                    <TableRowColumn>{Object.keys(locale).length - 1}</TableRowColumn>
+                    <TableRowColumn>{locale.name}</TableRowColumn>
+                    <TableRowColumn>{locale.state}</TableRowColumn>
+                    <TableRowColumn>{locale.country}</TableRowColumn>
                 </TableRow>
             )
         })
@@ -115,10 +103,11 @@ class LocaleTable extends React.Component {
                     title="Locales"
                     subtitle="Locales with active events" />
                 <Table multiSelectable={false} onRowSelection={this.handleRowSelection.bind(this)}>
-                    <TableHeader enableSelectAll={false} displaySelectAll={false}>
+                    <TableHeader enableSelectAll={false} displaySelectAll={false} adjustForCheckbox={false}>
                         <TableRow>
-                            <TableHeaderColumn>Locale</TableHeaderColumn>
-                            <TableHeaderColumn>Events</TableHeaderColumn>
+                            <TableHeaderColumn>Name</TableHeaderColumn>
+                            <TableHeaderColumn>State</TableHeaderColumn>
+                            <TableHeaderColumn>Country</TableHeaderColumn>
                         </TableRow>
                     </TableHeader>
                     <TableBody displayRowCheckbox={false}>

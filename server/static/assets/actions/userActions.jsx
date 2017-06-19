@@ -44,6 +44,38 @@ let UserActions = {
   getCurrentUser: (callback) => {
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
+        // validate user identity
+        user.getToken()
+          .then(function(token) {
+            fetch('/login', {
+              headers: {
+                token: token,
+                uid: user.uid
+              }
+            }).then((response) => {
+              if (response.status == 200) {
+                let ref = database.ref("users/" + firebase.auth().currentUser.uid);
+                ref.once('value')
+                .then(function(snapshot) {
+                    callback(true, snapshot.val(), firebase.auth().currentUser)
+                })
+                .catch(function(error) {
+                    let errorCode = error.code;
+                    let errorMessage = error.message;
+                    console.log('ERROR: ' + error.code + ' - ' + error.message);
+                    callback(false, 'USER_NOT_FOUND')
+                });
+                // TODO instead of firebase user snapshot, return user entry from hotspot db
+              } else {
+                callback(false, 'USER_NOT_FOUND')
+              }
+            })
+          })
+      } else {
+        callback(false, 'AUTH')
+      }
+      /*
+      if (user) {
         let ref = database.ref("users/" + firebase.auth().currentUser.uid);
         ref.once('value')
         .then(function(snapshot) {
@@ -59,6 +91,7 @@ let UserActions = {
         // No user is signed in.
         callback(false, 'AUTH')
       }
+      */
     });
   },
 

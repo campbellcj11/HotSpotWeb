@@ -9,7 +9,28 @@ const database = firebase.database()
 let eventTable = database.ref("events")
 
 const EventActions = {
-	
+	//NEW server queries start here
+	getLocales: () => {
+		return fetch('/admin/locales')
+			.then(response => {
+				return response.json()
+			})
+			.catch(error => {
+				return error
+			})
+	},
+	// TODO paginate
+	getLocaleEvents: id => {
+		return fetch('/admin/localeEvents/' + id)
+			.then(response => {
+				return response.json()
+			})
+			.catch(error => {
+				return error
+			})
+	},
+
+	//OLD firebase functions start here
 	eventTable: eventTable,
 
 	get: (target) => {
@@ -111,3 +132,4 @@ const EventActions = {
 
 //export all event related functionality as a single object
 export default EventActions
+

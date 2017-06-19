@@ -1,16 +1,10 @@
 from flask import request, send_from_directory
 from flask_restful import Resource
-from init import application, api, db
-from models import User
+from init import application, api, db, check_token
+from models import *
 import os
-import firebase_admin
-from firebase_admin import credentials, auth
 
-# Firebase Setup
-cred = credentials.Certificate('./service-key.json')
-default_app = firebase_admin.initialize_app(cred)
-
-# root --> marketing site home
+# / (root) --> marketing site home
 @api.route('/')
 class Home(Resource):
     def get(self):
@@ -27,13 +21,9 @@ class Admin(Resource):
 # we check the token validity and we check to make sure the
 # uid from the token matches the uid they gave us.
 # TODO: find a way to refresh tokens on future requests.
-@api.route('/login', methods=['POST'])
+@api.route('/login')
 class AuthLoginHandler(Resource):
     def get(self):
-        print("inside function - GET")
-        return "Login Success."
-
-    def post(self):
         token = request.headers.get('token')
         uidFromUser = request.headers.get('uid')
         if (uidFromUser is None or token is None):
@@ -41,7 +31,7 @@ class AuthLoginHandler(Resource):
             response = 'Missing header requirements, uid and token.'
             return response, 401
         else:
-            valid = self.checkToken(token, uidFromUser)
+            valid = check_token(token, uidFromUser)
             if valid is True:
                 response = "Login Successful"
                 return response, 200
@@ -49,21 +39,50 @@ class AuthLoginHandler(Resource):
                 response = "Login Unsuccessful"
                 return response, 401
 
-    def checkToken(self, token, uidFromUser):
-        try:
-            decoded_token = firebase_admin.auth.verify_id_token(token)
-            if decoded_token['uid'] == uidFromUser:
-                return True
-            else:
-                return False
-        except:
-            return False
+"""
+Routes for the admin panel
+"""
 
+# /admin/locales
+# Get all locales for display in the admin panel
+@api.route('/admin/locales')
+class AdminLocales(Resource):
+    @api.login_required ## TODO add requires admin role
+    def get(self):
+        result = []
+        for l in Locale.query.all():
+            result.append(l.client_json())
+        return result
 
+# /admin/localeEvents/<int:id>
+# Get all events for the locale specified by the locale id
+# TODO paginate this, add pageNum url param
+@api.route('/admin/localeEvents/<int:id>')
+class AdminLocaleEvents(Resource):
+    @api.login_required
+    def get(self, id):
+        result = []
+        locale = Locale.query.get(id)
+        if (locale):
+            events = Event.query.filter(Event.locale_id == id)
+            for e in events:
+                result.append(e.client_json())
+            return result
+        else:
+            return 'Locale not found', 404
 
-
-# TODO actual API endpoints
-
+# /admin/event/<int:id>
+# Get the event with the specified id
+# Includes extra information not available to a user requesting an event
+@api.route('/admin/event/<int:id>')
+class AdminEvent(Resource):
+    @api.login_required
+    def get(self, id):
+        event = Event.query.get(id)
+        if (event != None):
+            return event.client_json()
+        else:
+            return 'Event not found', 404
 
 if __name__ == '__main__':
     application.run(debug=True)

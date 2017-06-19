@@ -18,6 +18,21 @@ class User(db.Model):
     locales = db.Column(ARRAY(db.Integer))
     def __repr__(self):
         return '<User id=%i u%s>' % (self.id, id(self))
+    def client_json(self):
+        return {
+            'email': self.email,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'phone': self.phone,
+            'profile_image': self.profile_image,
+            'locales': self.locales
+        }
+    def admin_json(self):
+        json = self.client_json()
+        json['roles'] = self.roles
+        json['last_login'] = self.last_login
+        json['id'] = self.id
+        return json
 
 class Event(db.Model):
     __tablename__ = 'events'
@@ -42,6 +57,26 @@ class Event(db.Model):
     editors_pick = db.Column(db.Boolean, default=False)
     def __repr__(self):
         return '<Event id=%i u%s>' % (self.id, id(self))
+    def client_json(self):
+        return {
+            'id': self.id,
+            'address': self.address,
+            'start_date': toUnixTime(self.start_date),
+            'end_date': toUnixTime(self.end_date),
+            'name': self.name,
+            'venue_name': self.venue_name,
+            'type': self.type,
+            'short_description': self.short_description,
+            'long_description': self.long_description,
+            'interested': self.interested,
+            'website': self.website,
+            'image': self.image,
+            'phone_contact': self.phone_contact,
+            'email_contact': self.email_contact,
+            'price': self.price,
+            'editors_pick': self.editors_pick
+        }
+
 
 class Locale(db.Model):
     __tablename__ = 'locales'
@@ -51,6 +86,13 @@ class Locale(db.Model):
     country = db.Column(db.String)
     def __repr__(self):
         return '<Locale id=%i u%s>' % (self.id, id(self))
+    def client_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'state': self.state,
+            'country': self.country
+        }
 
 class Favorite(db.Model):
     __tablename__ = 'favorites'
@@ -59,6 +101,12 @@ class Favorite(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     def __repr__(self):
         return '<Favorite id=%i u%s>' % (self.id, id(self))
+    def client_json(self):
+        return {
+            'id': self.id,
+            'event_id': self.event_id,
+            'user_id': self.user_id
+        }
 
 class Tag(db.Model):
     __tablename__ = 'tags'
@@ -67,6 +115,12 @@ class Tag(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
     def __repr__(self):
         return '<Tag id=%i u%s>' % (self.id, id(self))
+    def client_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'event_id': self.event_id
+        }
 
 class Metric(db.Model):
     __tablename__ = 'metrics'
@@ -76,3 +130,13 @@ class Metric(db.Model):
     user_id = db.Column(db.String, db.ForeignKey('users.id'))
     def __repr__(self):
         return '<Metric id=%i u%s>' % (self.id, id(self))
+    def client_json(self):
+        return {
+            'id': self.id,
+            'action': self.action,
+            'info': self.info,
+            'user_id': self.user_id
+        }
+
+def toUnixTime(datetime):
+    return int(datetime.timestamp() * 1000)
