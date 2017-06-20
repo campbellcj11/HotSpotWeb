@@ -61,11 +61,10 @@ class EventEditor extends Component {
     constructor(props) {
         super(props)
         
-        this.pending = !!this.props.router.location.query.pending
+        this.pending = false
 
         this.state = {
             changedSinceSave: false,
-            locale: this.props.router.location.query.l,
             newImageURL: null,
             oldImageURL: null, //only set when image has been updated but not yet committed
             editingText: false,
@@ -77,38 +76,36 @@ class EventEditor extends Component {
 
     componentWillMount() {
         let id = this.props.router.location.query.id
-        if (this.props.router.location.state) {
-            this.event = this.props.router.location.state
+        EventActions.getEvent(id)
+            .then(event => {
+                this.event = event
+                this.pending = event.status == 'pending'
+                let start_date = new Date(event.start_date)
+                let end_date = new Date(event.end_date)
+                this.setState({
+                    hasImage: !!this.event.Image,
+                    tags: event.tags,
+                    startDate: start_date,
+                    startTime: start_date,
+                    endDate: end_date,
+                    endTime: end_date
+                })
+            })
+            .catch(error => {
+                console.error(error)
+            })
+        //let locale = this.props.router.location.query.l
+        /*
+        EventActions.getSnapshot(id, locale, (function(snapshot) {
+            this.event = snapshot
             let date = new Date(this.event.Date)
             this.setState({
                 hasImage: !!this.event.Image,
                 datePickerVal: date,
                 timePickerVal: date
             })
-        } else {
-            let locale = this.props.router.location.query.l
-            EventActions.getSnapshot(id, locale, (function(snapshot) {
-                this.event = snapshot
-                let date = new Date(this.event.Date)
-                this.setState({
-                    hasImage: !!this.event.Image,
-                    datePickerVal: date,
-                    timePickerVal: date
-                })
-            }).bind(this), this.pending ? 'approvalQueue' : 'events')
-        }
-
-        if (!this.pending) {
-            EventActions.getTags(id, tags => {
-                this.setState({
-                    tags: tags
-                })
-            })
-        } else {
-            this.setState({
-                tags: this.event.Tags
-            })
-        }
+        }).bind(this), this.pending ? 'approvalQueue' : 'events')
+        */
     }
 
     onImageInput(e) {
@@ -129,7 +126,23 @@ class EventEditor extends Component {
 
     onDelete() {
         let event = this.event
-        let ref = EventActions.getRef(event.key, this.state.locale)
+        EventActions.deleteEvent('id')
+            .then((data) => {
+                if (data.status == 'SUCCESS') {
+                    State.router.push({
+                        pathname: 'locale',
+                        query: {
+                            l: event.locale.id
+                        }
+                    })
+                } else {
+                    console.error('Deletion failed')
+                }
+            })
+            .catch(error => {
+                console.error('Deletion failed')
+            })
+        /*let ref = EventActions.getRef(event.key, this.state.locale)
         ref.remove()
             .then(() => {
                 State.router.push({
@@ -141,13 +154,29 @@ class EventEditor extends Component {
             })
             .catch(() => {
                 console.log('Deletion failed')
-            })
+            })*/
     }
 
     onSave() {
         let newImage = this.state.newImage
         let event = this.event
-        if (this.state.newImage) {
+        let modifications = this.state.modifications
+        if (Object.keys(modifications).length) {
+            EventActions.updateEvent(event.id, modifications)
+                .then(updated => {
+                    event = this.event = updated
+                    this.setState({
+                        changedSinceSave: false,
+                        modifications: {},
+                        editingText: false
+                    })
+                })
+                .catch(error => {
+                    console.error(error)
+                })
+        }
+        // TODO handle images, tags
+        /*if (this.state.newImage) {
             if (this.state.hasImage) {
                 // delete old image
                 let oldURL = this.state.oldImageURL
@@ -258,7 +287,7 @@ class EventEditor extends Component {
                     })
                 }
             })
-        }
+        }*/
     }
 
     onApprove() {
@@ -327,21 +356,21 @@ class EventEditor extends Component {
         State.router.push('/pending')
     }
 
-    handleDateChange(e, date) {
+    handleDateChange(tag, e, date) {
         this.setState({
-            datePickerVal: date
+            [tag + 'Date']: date
         })
-        this.mergeTimeAndDate(date, this.state.timePickerVal)
+        this.mergeTimeAndDate(tag, date, this.state[tag + 'Time'])
     }
 
-    handleTimeChange(e, time) {
+    handleTimeChange(tag, e, time) {
         this.setState({
-            timePickerVal: time
+            [tag + 'Time']: time
         })
-        this.mergeTimeAndDate(this.state.datePickerVal, time)
+        this.mergeTimeAndDate(tag, this.state[tag + 'Date'], time)
     }
 
-    mergeTimeAndDate(date, time) {
+    mergeTimeAndDate(tag, date, time) {
         let modifications = this.state.modifications
         // TODO consider using UTC values for better cross region compatibility
         let merged = new Date(
@@ -352,7 +381,7 @@ class EventEditor extends Component {
             time.getMinutes(),
             0 // no seconds
         )
-        modifications.Date = merged.getTime()
+        modifications[tag + '_date'] = merged.getTime()
         this.setState({
             changedSinceSave: true,
             modifications: modifications
@@ -424,29 +453,33 @@ class EventEditor extends Component {
         let event = this.event
         
         let subtitleText = !this.state.changedSinceSave ? 'Up to date' : 'Click Save to commit your changes'
-        let date = new Date(event.Date)
+        let start_date = new Date(event.start_date)
+        let end_date = new Date(event.end_date)
         let header = (
             <div>
                 <CardTitle 
-                    title={event.Event_Name}
-                    titleColor={event.Image ? '#fff' : '#000'}
-                    subtitle={date.toLocaleDateString() + ' ' + date.toLocaleTimeString()}
-                    subtitleColor={event.Image ? '#ddd' : '#222'} />
+                    title={event.name}
+                    titleColor={event.image ? '#fff' : '#000'}
+                    subtitle={
+                        start_date.toLocaleDateString() + ' ' + start_date.toLocaleTimeString() + ' - ' + 
+                        end_date.toLocaleDateString() + ' ' + end_date.toLocaleTimeString()
+                    }
+                    subtitleColor={event.image ? '#ddd' : '#222'} />
                 <CardHeader
-                    title={'@ ' + event.Location}
-                    titleColor={event.Image ? '#fff' : '#000'}
-                    subtitle={event.Short_Description}
-                    subtitleColor={event.Image ? '#ccc' : '#333'} />
+                    title={'@ ' + event.venue_name}
+                    titleColor={event.image ? '#fff' : '#000'}
+                    subtitle={event.short_description}
+                    subtitleColor={event.image ? '#ccc' : '#333'} />
             </div>
         )
 
         let cardImage = null
         let chooseImgText
-        if (!this.state.editingText && event.Image) {
+        if (!this.state.editingText && event.image) {
             cardImage = (
                 <CardMedia
                     overlay={header} >
-                        <img src={event.Image} />
+                        <img src={event.image} />
                 </CardMedia>
             )
             chooseImgText = 'Choose image'
@@ -485,115 +518,122 @@ class EventEditor extends Component {
         let body = this.state.editingText ? (
             <div style={styles.fields}>
                 <TextField
-                    id="Event_Name"
-                    floatingLabelText="Event Name"
+                    id="name"
+                    floatingLabelText="Name"
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
-                    defaultValue={modifications.Event_Name || event.Event_Name}
+                    defaultValue={modifications.name || event.name}
                     onChange={this.handleInputChange.bind(this)} />
                 <TextField
-                    id="Address"
+                    id="address"
                     floatingLabelText="Address"
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
-                    defaultValue={modifications.Address || event.Address}
+                    defaultValue={modifications.address || event.address}
                     onChange={this.handleInputChange.bind(this)} />
                 <DatePicker
-                    id="Date"
-                    floatingLabelText="Date"
+                    id="start_date"
+                    floatingLabelText="Start Date"
                     disabled={this.pending}
                     minDate={new Date()}
-                    defaultDate={modifications.Date ? 
-                        new Date(modifications.Date) : date}
-                    onChange={this.handleDateChange.bind(this)} />
+                    defaultDate={modifications.start_date ? 
+                        new Date(modifications.start_date) : start_date}
+                    onChange={this.handleDateChange.bind(this, 'start')} />
                 <TimePicker
-                    id="Time"
-                    floatingLabelText="Time"
+                    id="start_time"
+                    floatingLabelText="Start Time"
                     disabled={this.pending}
-                    defaultTime={modifications.Date ? 
-                        new Date(modifications.Date) : date}
+                    defaultTime={modifications.start_date ? 
+                        new Date(modifications.start_date) : start_date}
                     pedantic={true}
-                    onChange={this.handleTimeChange.bind(this)} />
+                    onChange={this.handleTimeChange.bind(this, 'start')} />
+                 <DatePicker
+                    id="end_date"
+                    floatingLabelText="End Date"
+                    disabled={this.pending}
+                    minDate={new Date()}
+                    defaultDate={modifications.end_date ? 
+                        new Date(modifications.end_date) : end_date}
+                    onChange={this.handleDateChange.bind(this, 'end')} />
+                <TimePicker
+                    id="end_time"
+                    floatingLabelText="End Time"
+                    disabled={this.pending}
+                    defaultTime={modifications.end_time ? 
+                        new Date(modifications.end_time) : end_date}
+                    pedantic={true}
+                    onChange={this.handleTimeChange.bind(this, 'end')} />
                  <TextField
-                    id="Location"
+                    id="venue_name"
                     floatingLabelText="Location"
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
-                    defaultValue={modifications.Location || event.Location}
+                    defaultValue={modifications.venue_name || event.venue_name}
                     onChange={this.handleInputChange.bind(this)} />
                 <TextField
-                    id="Short_Description"
+                    id="short_description"
                     floatingLabelText="Short Description"
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
-                    defaultValue={modifications.Short_Description || event.Short_Description}
+                    defaultValue={modifications.short_description || event.short_description}
                     onChange={this.handleInputChange.bind(this)} />
                 <TextField
-                    id="Long_Description"
+                    id="long_description"
                     floatingLabelText="Long Description"
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
-                    defaultValue={modifications.Long_Description || event.Long_Description}
+                    defaultValue={modifications.long_description || event.long_description}
                     onChange={this.handleInputChange.bind(this)} />
                 <TextField
-                    id="Website"
+                    id="website"
                     floatingLabelText="Website"
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
-                    defaultValue={modifications.Website || event.Website}
+                    defaultValue={modifications.website || event.website}
                     onChange={this.handleInputChange.bind(this)} />
                 <TextField
-                    id="Email_Contact"
+                    id="email_contact"
                     floatingLabelText="Email Contact"
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
-                    defaultValue={modifications.Email_Contact || event.Email_Contact}
+                    defaultValue={modifications.email_contact || event.email_contact}
+                    onChange={this.handleInputChange.bind(this)} />
+                <TextField
+                    id="phone_contact"
+                    floatingLabelText="Phone Contact"
+                    disabled={!this.state.editingText || this.pending}
+                    fullWidth={true}
+                    multiLine={true}
+                    defaultValue={modifications.phone_contact || event.phone_contact}
                     onChange={this.handleInputChange.bind(this)} />
                 <LocaleSelect
-                    floatingLabelText="City"
+                    floatingLabelText="Locale"
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
-                    defaultValue={modifications.City || event.City}
-                    //errorText={!this.pending && "This selector is being temporarily ignored"}
+                    defaultValue={modifications.locale ? modifications.locale.name : event.locale.name}
                     onChange={this.handleLocaleChange.bind(this)} />
                 <TextField
-                    id="County"
-                    floatingLabelText="County"
-                    disabled={!this.state.editingText || this.pending}
-                    fullWidth={true}
-                    multiLine={true}
-                    defaultValue={modifications.County || event.County}
-                    onChange={this.handleInputChange.bind(this)} />
-                <TextField
-                    id="State"
-                    floatingLabelText="State"
-                    disabled={!this.state.editingText || this.pending}
-                    fullWidth={true}
-                    multiLine={true}
-                    defaultValue={modifications.State || event.State}
-                    onChange={this.handleInputChange.bind(this)} />
-                <TextField
-                    id="Status"
+                    id="status"
                     floatingLabelText="Status"
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
-                    defaultValue={modifications.Status || event.Status}
+                    defaultValue={modifications.status || event.status}
                     onChange={this.handleInputChange.bind(this)} />
                 <TextField
-                    id="Event_Type"
+                    id="type"
                     floatingLabelText="Type"
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
-                    defaultValue={modifications.Event_Type || event.Event_Type}
+                    defaultValue={modifications.type || event.type}
                     onChange={this.handleInputChange.bind(this)} />
                 <TagSelect
                     floatingLabelText="Tags"

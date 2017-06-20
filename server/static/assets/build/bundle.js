@@ -71892,6 +71892,36 @@
 			});
 		},
 	
+		getEvent: function getEvent(id) {
+			return fetch('/event/' + id).then(function (response) {
+				return response.json();
+			}).catch(function (error) {
+				return error;
+			});
+		},
+	
+		deleteEvent: function deleteEvent(id) {
+			return fetch('/event/' + id, { method: 'DELETE' }).then(function (response) {
+				return response.json();
+			}).catch(function (error) {
+				return error;
+			});
+		},
+	
+		updateEvent: function updateEvent(id, modifications) {
+			return fetch('/event/' + id, {
+				method: 'PUT',
+				body: JSON.stringify(modifications),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			}).then(function (response) {
+				return response.json();
+			}).catch(function (error) {
+				return error;
+			});
+		},
+	
 		//OLD firebase functions start here
 		eventTable: eventTable,
 	
@@ -72147,16 +72177,14 @@
 		}, {
 			key: 'handleRowSelection',
 			value: function handleRowSelection(selectedRows) {
-				/*let index = selectedRows[0]
-	   let event = this.state.events[index]
-	   State.router.push({
-	   	pathname: 'edit',
-	   	query: {
-	   		id: event.key,
-	   		l: this.state.locale
-	   	},
-	   	state: event
-	   })*/
+				var index = selectedRows[0];
+				var event = this.state.events[index];
+				_ApplicationState.State.router.push({
+					pathname: 'edit',
+					query: {
+						id: event.id
+					}
+				});
 			}
 		}, {
 			key: 'render',
@@ -73004,6 +73032,8 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -73054,11 +73084,10 @@
 	
 	        var _this = _possibleConstructorReturn(this, (EventEditor.__proto__ || Object.getPrototypeOf(EventEditor)).call(this, props));
 	
-	        _this.pending = !!_this.props.router.location.query.pending;
+	        _this.pending = false;
 	
 	        _this.state = {
 	            changedSinceSave: false,
-	            locale: _this.props.router.location.query.l,
 	            newImageURL: null,
 	            oldImageURL: null, //only set when image has been updated but not yet committed
 	            editingText: false,
@@ -73075,38 +73104,34 @@
 	            var _this2 = this;
 	
 	            var id = this.props.router.location.query.id;
-	            if (this.props.router.location.state) {
-	                this.event = this.props.router.location.state;
-	                var date = new Date(this.event.Date);
+	            _eventActions2.default.getEvent(id).then(function (event) {
+	                _this2.event = event;
+	                _this2.pending = event.status == 'pending';
+	                var start_date = new Date(event.start_date);
+	                var end_date = new Date(event.end_date);
+	                _this2.setState({
+	                    hasImage: !!_this2.event.Image,
+	                    tags: event.tags,
+	                    startDate: start_date,
+	                    startTime: start_date,
+	                    endDate: end_date,
+	                    endTime: end_date
+	                });
+	            }).catch(function (error) {
+	                console.error(error);
+	            });
+	            //let locale = this.props.router.location.query.l
+	            /*
+	            EventActions.getSnapshot(id, locale, (function(snapshot) {
+	                this.event = snapshot
+	                let date = new Date(this.event.Date)
 	                this.setState({
 	                    hasImage: !!this.event.Image,
 	                    datePickerVal: date,
 	                    timePickerVal: date
-	                });
-	            } else {
-	                var locale = this.props.router.location.query.l;
-	                _eventActions2.default.getSnapshot(id, locale, function (snapshot) {
-	                    this.event = snapshot;
-	                    var date = new Date(this.event.Date);
-	                    this.setState({
-	                        hasImage: !!this.event.Image,
-	                        datePickerVal: date,
-	                        timePickerVal: date
-	                    });
-	                }.bind(this), this.pending ? 'approvalQueue' : 'events');
-	            }
-	
-	            if (!this.pending) {
-	                _eventActions2.default.getTags(id, function (tags) {
-	                    _this2.setState({
-	                        tags: tags
-	                    });
-	                });
-	            } else {
-	                this.setState({
-	                    tags: this.event.Tags
-	                });
-	            }
+	                })
+	            }).bind(this), this.pending ? 'approvalQueue' : 'events')
+	            */
 	        }
 	    }, {
 	        key: 'onImageInput',
@@ -73130,76 +73155,102 @@
 	    }, {
 	        key: 'onDelete',
 	        value: function onDelete() {
-	            var _this4 = this;
-	
 	            var event = this.event;
-	            var ref = _eventActions2.default.getRef(event.key, this.state.locale);
-	            ref.remove().then(function () {
-	                _ApplicationState.State.router.push({
-	                    pathname: 'locale',
-	                    query: {
-	                        l: _this4.state.locale
-	                    }
-	                });
-	            }).catch(function () {
-	                console.log('Deletion failed');
+	            _eventActions2.default.deleteEvent('id').then(function (data) {
+	                if (data.status == 'SUCCESS') {
+	                    _ApplicationState.State.router.push({
+	                        pathname: 'locale',
+	                        query: {
+	                            l: event.locale.id
+	                        }
+	                    });
+	                } else {
+	                    console.error('Deletion failed');
+	                }
+	            }).catch(function (error) {
+	                console.error('Deletion failed');
 	            });
+	            /*let ref = EventActions.getRef(event.key, this.state.locale)
+	            ref.remove()
+	                .then(() => {
+	                    State.router.push({
+	                        pathname: 'locale',
+	                        query: {
+	                            l: this.state.locale
+	                        }
+	                    })
+	                })
+	                .catch(() => {
+	                    console.log('Deletion failed')
+	                })*/
 	        }
 	    }, {
 	        key: 'onSave',
 	        value: function onSave() {
-	            var _this5 = this;
+	            var _this4 = this;
 	
 	            var newImage = this.state.newImage;
 	            var event = this.event;
-	            if (this.state.newImage) {
+	            var modifications = this.state.modifications;
+	            if (Object.keys(modifications).length) {
+	                _eventActions2.default.updateEvent(event.id, modifications).then(function (updated) {
+	                    event = _this4.event = updated;
+	                    _this4.setState({
+	                        changedSinceSave: false,
+	                        modifications: {},
+	                        editingText: false
+	                    });
+	                }).catch(function (error) {
+	                    console.error(error);
+	                });
+	            }
+	            // TODO handle images, tags
+	            /*if (this.state.newImage) {
 	                if (this.state.hasImage) {
 	                    // delete old image
-	                    var oldURL = this.state.oldImageURL;
-	                    var oldImageName = oldURL.substring(oldURL.lastIndexOf('/EventImages%2F') + 15);
-	                    oldImageName = oldImageName.substring(0, oldImageName.indexOf('?'));
-	                    var oldImageRef = _storageActions2.default.getEventImageRef(oldImageName);
-	                    _storageActions2.default.deleteEventImage(oldImageRef, function (success) {
+	                    let oldURL = this.state.oldImageURL
+	                    let oldImageName = oldURL.substring(oldURL.lastIndexOf('/EventImages%2F') + 15)
+	                    oldImageName = oldImageName.substring(0, oldImageName.indexOf('?'))
+	                    let oldImageRef = StorageActions.getEventImageRef(oldImageName)
+	                    StorageActions.deleteEventImage(oldImageRef, (success) => {
 	                        if (success) {
-	                            console.log('Delete old image: ' + oldImageName);
+	                            console.log('Delete old image: ' + oldImageName)
 	                        } else {
-	                            console.log('Failed to delete old image: ' + oldImageName);
+	                            console.log('Failed to delete old image: ' + oldImageName)
 	                        }
-	                    });
+	                    })
 	                }
-	
-	                //upload new image
-	                _storageActions2.default.uploadEventImage(newImage, function (url) {
+	                 //upload new image
+	                StorageActions.uploadEventImage(newImage, (url) => {
 	                    // update event to use new image url
-	                    var eventRef = _eventActions2.default.getRef(event.key, _this5.state.locale);
-	                    var changes = _this5.state.modifications;
-	                    changes.Image = url;
-	                    eventRef.update(changes).then(function () {
-	                        console.log('Reference updated');
+	                    let eventRef = EventActions.getRef(event.key, this.state.locale)
+	                    let changes = this.state.modifications
+	                    changes.Image = url
+	                    eventRef.update(changes).then(() => {
+	                        console.log('Reference updated')
 	                        // update local copy
-	                        for (var field in changes) {
-	                            _this5.event[field] = changes[field];
+	                        for (let field in changes) {
+	                            this.event[field] = changes[field]
 	                        }
-	
-	                        // if locale has changed, move event, redirect
-	                        if (_this5.state.locale !== event.City) {
-	                            _eventActions2.default.moveEvent(event, _this5.state.locale, event.City, function (success, event, newRef) {
+	                         // if locale has changed, move event, redirect
+	                        if (this.state.locale !== event.City) {
+	                            EventActions.moveEvent(event, this.state.locale, event.City, (success, event, newRef) => {
 	                                if (!success) {
-	                                    console.log('Failed to move event to new locale');
-	                                    return;
+	                                    console.log('Failed to move event to new locale')
+	                                    return
 	                                }
 	                                // redirect to editor for newly moved event
-	                                _ApplicationState.State.router.push({
+	                                State.router.push({
 	                                    pathname: 'edit',
 	                                    query: {
 	                                        id: newRef.key,
 	                                        l: event.City
 	                                    },
 	                                    state: event
-	                                });
-	                            });
+	                                })
+	                            })
 	                        } else {
-	                            _this5.setState({
+	                            this.setState({
 	                                changedSinceSave: false,
 	                                newImage: false,
 	                                newImageURL: null,
@@ -73207,68 +73258,66 @@
 	                                hasImage: true,
 	                                editingText: false,
 	                                modifications: {}
-	                            });
+	                            })
 	                        }
-	                    }).catch(function (error) {
-	                        console.log('Failed to update event');
-	                    });
-	                });
+	                    }).catch((error) => {
+	                        console.log('Failed to update event')
+	                    })
+	                })
 	            } else {
 	                if (Object.keys(this.state.modifications).length) {
-	                    var eventRef = _eventActions2.default.getRef(event.key, this.state.locale);
-	                    var changes = this.state.modifications;
-	                    changes.Sort_Date = event.Date;
-	                    eventRef.update(changes).then(function () {
-	                        console.log('Reference updated');
+	                    let eventRef = EventActions.getRef(event.key, this.state.locale)
+	                    let changes = this.state.modifications
+	                    changes.Sort_Date = event.Date
+	                    eventRef.update(changes).then(() => {
+	                        console.log('Reference updated')
 	                        //update local copy
-	                        for (var field in changes) {
-	                            _this5.event[field] = changes[field];
+	                        for (let field in changes) {
+	                            this.event[field] = changes[field]
 	                        }
-	
-	                        // if locale has changed, move event, redirect
-	                        if (_this5.state.locale !== event.City) {
-	                            _eventActions2.default.moveEvent(event, _this5.state.locale, event.City, function (success, event, newRef) {
+	                         // if locale has changed, move event, redirect
+	                        if (this.state.locale !== event.City) {
+	                            EventActions.moveEvent(event, this.state.locale, event.City, (success, event, newRef) => {
 	                                if (!success) {
-	                                    console.log('Failed to move event to new locale');
-	                                    return;
+	                                    console.log('Failed to move event to new locale')
+	                                    return
 	                                }
 	                                // redirect to editor for newly moved event
-	                                _ApplicationState.State.router.push({
+	                                State.router.push({
 	                                    pathname: 'edit',
 	                                    query: {
 	                                        id: newRef.key,
 	                                        l: event.City
 	                                    },
 	                                    state: event
-	                                });
-	                            });
+	                                })
+	                            })
 	                        } else {
-	                            _this5.setState({
+	                            this.setState({
 	                                changedSinceSave: false,
 	                                editingText: false,
 	                                modifications: {}
-	                            });
+	                            })
 	                        }
-	                    }).catch(function (error) {
-	                        console.log('Failed to update event');
-	                    });
+	                    }).catch((error) => {
+	                        console.log('Failed to update event')
+	                    })
 	                }
-	
-	                _eventActions2.default.setTags(event.key, this.state.tags, function (success) {
-	                    if (!Object.keys(_this5.state.modifications).length) {
-	                        _this5.setState({
+	                 EventActions.setTags(event.key, this.state.tags, success => {
+	                    if (!Object.keys(this.state.modifications).length) {
+	                        this.setState({
 	                            changedSinceSave: false,
 	                            editingText: false,
 	                            modifications: {}
-	                        });
+	                        })
 	                    }
-	                });
-	            }
+	                })
+	            }*/
 	        }
 	    }, {
 	        key: 'onApprove',
 	        value: function onApprove() {
-	            var _this6 = this;
+	            var _this5 = this;
 	
 	            // Copy new event to event table from approval queue
 	            var potentialEvent = this.event;
@@ -73286,7 +73335,7 @@
 	                    event.key = ref.key;
 	
 	                    // set tags on created event
-	                    _eventActions2.default.setTags(event.key, _this6.state.tags);
+	                    _eventActions2.default.setTags(event.key, _this5.state.tags);
 	
 	                    // mark approved
 	                    _eventActions2.default.get('approvalQueue/' + key).update({
@@ -73302,10 +73351,10 @@
 	                        },
 	                        state: event
 	                    });
-	                    _this6.pending = false;
-	                    _this6.setState({
+	                    _this5.pending = false;
+	                    _this5.setState({
 	                        schangedSinceSave: false,
-	                        locale: _this6.props.router.location.query.l,
+	                        locale: _this5.props.router.location.query.l,
 	                        newImageURL: null,
 	                        oldImageURL: null, //only set when image has been updated but not yet committed
 	                        editingText: false,
@@ -73314,7 +73363,7 @@
 	                        showProgress: false
 	                    });
 	                } else {
-	                    _this6.setState({
+	                    _this5.setState({
 	                        showProgress: false
 	                    });
 	                    // report failure
@@ -73335,28 +73384,24 @@
 	        }
 	    }, {
 	        key: 'handleDateChange',
-	        value: function handleDateChange(e, date) {
-	            this.setState({
-	                datePickerVal: date
-	            });
-	            this.mergeTimeAndDate(date, this.state.timePickerVal);
+	        value: function handleDateChange(tag, e, date) {
+	            this.setState(_defineProperty({}, tag + 'Date', date));
+	            this.mergeTimeAndDate(tag, date, this.state[tag + 'Time']);
 	        }
 	    }, {
 	        key: 'handleTimeChange',
-	        value: function handleTimeChange(e, time) {
-	            this.setState({
-	                timePickerVal: time
-	            });
-	            this.mergeTimeAndDate(this.state.datePickerVal, time);
+	        value: function handleTimeChange(tag, e, time) {
+	            this.setState(_defineProperty({}, tag + 'Time', time));
+	            this.mergeTimeAndDate(tag, this.state[tag + 'Date'], time);
 	        }
 	    }, {
 	        key: 'mergeTimeAndDate',
-	        value: function mergeTimeAndDate(date, time) {
+	        value: function mergeTimeAndDate(tag, date, time) {
 	            var modifications = this.state.modifications;
 	            // TODO consider using UTC values for better cross region compatibility
 	            var merged = new Date(date.getFullYear(), date.getMonth(), date.getDate(), time.getHours(), time.getMinutes(), 0 // no seconds
 	            );
-	            modifications.Date = merged.getTime();
+	            modifications[tag + '_date'] = merged.getTime();
 	            this.setState({
 	                changedSinceSave: true,
 	                modifications: modifications
@@ -73401,16 +73446,16 @@
 	    }, {
 	        key: 'handleInputChange',
 	        value: function handleInputChange(e) {
-	            var _this7 = this;
+	            var _this6 = this;
 	
 	            var newValue = e.target.value;
 	            var field = e.target.id;
 	            // prevent rapid setState calls when typing
 	            clearTimeout(inputTimeouts[field]);
 	            inputTimeouts[field] = setTimeout(function () {
-	                var modifications = _this7.state.modifications;
+	                var modifications = _this6.state.modifications;
 	                modifications[field] = newValue;
-	                _this7.setState({
+	                _this6.setState({
 	                    changedSinceSave: true,
 	                    modifications: modifications
 	                });
@@ -73436,30 +73481,31 @@
 	            var event = this.event;
 	
 	            var subtitleText = !this.state.changedSinceSave ? 'Up to date' : 'Click Save to commit your changes';
-	            var date = new Date(event.Date);
+	            var start_date = new Date(event.start_date);
+	            var end_date = new Date(event.end_date);
 	            var header = _react2.default.createElement(
 	                'div',
 	                null,
 	                _react2.default.createElement(_materialUi.CardTitle, {
-	                    title: event.Event_Name,
-	                    titleColor: event.Image ? '#fff' : '#000',
-	                    subtitle: date.toLocaleDateString() + ' ' + date.toLocaleTimeString(),
-	                    subtitleColor: event.Image ? '#ddd' : '#222' }),
+	                    title: event.name,
+	                    titleColor: event.image ? '#fff' : '#000',
+	                    subtitle: start_date.toLocaleDateString() + ' ' + start_date.toLocaleTimeString() + ' - ' + end_date.toLocaleDateString() + ' ' + end_date.toLocaleTimeString(),
+	                    subtitleColor: event.image ? '#ddd' : '#222' }),
 	                _react2.default.createElement(_materialUi.CardHeader, {
-	                    title: '@ ' + event.Location,
-	                    titleColor: event.Image ? '#fff' : '#000',
-	                    subtitle: event.Short_Description,
-	                    subtitleColor: event.Image ? '#ccc' : '#333' })
+	                    title: '@ ' + event.venue_name,
+	                    titleColor: event.image ? '#fff' : '#000',
+	                    subtitle: event.short_description,
+	                    subtitleColor: event.image ? '#ccc' : '#333' })
 	            );
 	
 	            var cardImage = null;
 	            var chooseImgText = void 0;
-	            if (!this.state.editingText && event.Image) {
+	            if (!this.state.editingText && event.image) {
 	                cardImage = _react2.default.createElement(
 	                    _materialUi.CardMedia,
 	                    {
 	                        overlay: header },
-	                    _react2.default.createElement('img', { src: event.Image })
+	                    _react2.default.createElement('img', { src: event.image })
 	                );
 	                chooseImgText = 'Choose image';
 	            } else {
@@ -73500,113 +73546,118 @@
 	                'div',
 	                { style: styles.fields },
 	                _react2.default.createElement(_materialUi.TextField, {
-	                    id: 'Event_Name',
-	                    floatingLabelText: 'Event Name',
+	                    id: 'name',
+	                    floatingLabelText: 'Name',
 	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
-	                    defaultValue: modifications.Event_Name || event.Event_Name,
+	                    defaultValue: modifications.name || event.name,
 	                    onChange: this.handleInputChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TextField, {
-	                    id: 'Address',
+	                    id: 'address',
 	                    floatingLabelText: 'Address',
 	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
-	                    defaultValue: modifications.Address || event.Address,
+	                    defaultValue: modifications.address || event.address,
 	                    onChange: this.handleInputChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.DatePicker, {
-	                    id: 'Date',
-	                    floatingLabelText: 'Date',
+	                    id: 'start_date',
+	                    floatingLabelText: 'Start Date',
 	                    disabled: this.pending,
 	                    minDate: new Date(),
-	                    defaultDate: modifications.Date ? new Date(modifications.Date) : date,
-	                    onChange: this.handleDateChange.bind(this) }),
+	                    defaultDate: modifications.start_date ? new Date(modifications.start_date) : start_date,
+	                    onChange: this.handleDateChange.bind(this, 'start') }),
 	                _react2.default.createElement(_materialUi.TimePicker, {
-	                    id: 'Time',
-	                    floatingLabelText: 'Time',
+	                    id: 'start_time',
+	                    floatingLabelText: 'Start Time',
 	                    disabled: this.pending,
-	                    defaultTime: modifications.Date ? new Date(modifications.Date) : date,
+	                    defaultTime: modifications.start_date ? new Date(modifications.start_date) : start_date,
 	                    pedantic: true,
-	                    onChange: this.handleTimeChange.bind(this) }),
+	                    onChange: this.handleTimeChange.bind(this, 'start') }),
+	                _react2.default.createElement(_materialUi.DatePicker, {
+	                    id: 'end_date',
+	                    floatingLabelText: 'End Date',
+	                    disabled: this.pending,
+	                    minDate: new Date(),
+	                    defaultDate: modifications.end_date ? new Date(modifications.end_date) : end_date,
+	                    onChange: this.handleDateChange.bind(this, 'end') }),
+	                _react2.default.createElement(_materialUi.TimePicker, {
+	                    id: 'end_time',
+	                    floatingLabelText: 'End Time',
+	                    disabled: this.pending,
+	                    defaultTime: modifications.end_time ? new Date(modifications.end_time) : end_date,
+	                    pedantic: true,
+	                    onChange: this.handleTimeChange.bind(this, 'end') }),
 	                _react2.default.createElement(_materialUi.TextField, {
-	                    id: 'Location',
+	                    id: 'venue_name',
 	                    floatingLabelText: 'Location',
 	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
-	                    defaultValue: modifications.Location || event.Location,
+	                    defaultValue: modifications.venue_name || event.venue_name,
 	                    onChange: this.handleInputChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TextField, {
-	                    id: 'Short_Description',
+	                    id: 'short_description',
 	                    floatingLabelText: 'Short Description',
 	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
-	                    defaultValue: modifications.Short_Description || event.Short_Description,
+	                    defaultValue: modifications.short_description || event.short_description,
 	                    onChange: this.handleInputChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TextField, {
-	                    id: 'Long_Description',
+	                    id: 'long_description',
 	                    floatingLabelText: 'Long Description',
 	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
-	                    defaultValue: modifications.Long_Description || event.Long_Description,
+	                    defaultValue: modifications.long_description || event.long_description,
 	                    onChange: this.handleInputChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TextField, {
-	                    id: 'Website',
+	                    id: 'website',
 	                    floatingLabelText: 'Website',
 	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
-	                    defaultValue: modifications.Website || event.Website,
+	                    defaultValue: modifications.website || event.website,
 	                    onChange: this.handleInputChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TextField, {
-	                    id: 'Email_Contact',
+	                    id: 'email_contact',
 	                    floatingLabelText: 'Email Contact',
 	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
-	                    defaultValue: modifications.Email_Contact || event.Email_Contact,
+	                    defaultValue: modifications.email_contact || event.email_contact,
+	                    onChange: this.handleInputChange.bind(this) }),
+	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'phone_contact',
+	                    floatingLabelText: 'Phone Contact',
+	                    disabled: !this.state.editingText || this.pending,
+	                    fullWidth: true,
+	                    multiLine: true,
+	                    defaultValue: modifications.phone_contact || event.phone_contact,
 	                    onChange: this.handleInputChange.bind(this) }),
 	                _react2.default.createElement(_EventCreator.LocaleSelect, {
-	                    floatingLabelText: 'City',
+	                    floatingLabelText: 'Locale',
 	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
-	                    defaultValue: modifications.City || event.City
-	                    //errorText={!this.pending && "This selector is being temporarily ignored"}
-	                    , onChange: this.handleLocaleChange.bind(this) }),
+	                    defaultValue: modifications.locale ? modifications.locale.name : event.locale.name,
+	                    onChange: this.handleLocaleChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TextField, {
-	                    id: 'County',
-	                    floatingLabelText: 'County',
-	                    disabled: !this.state.editingText || this.pending,
-	                    fullWidth: true,
-	                    multiLine: true,
-	                    defaultValue: modifications.County || event.County,
-	                    onChange: this.handleInputChange.bind(this) }),
-	                _react2.default.createElement(_materialUi.TextField, {
-	                    id: 'State',
-	                    floatingLabelText: 'State',
-	                    disabled: !this.state.editingText || this.pending,
-	                    fullWidth: true,
-	                    multiLine: true,
-	                    defaultValue: modifications.State || event.State,
-	                    onChange: this.handleInputChange.bind(this) }),
-	                _react2.default.createElement(_materialUi.TextField, {
-	                    id: 'Status',
+	                    id: 'status',
 	                    floatingLabelText: 'Status',
 	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
-	                    defaultValue: modifications.Status || event.Status,
+	                    defaultValue: modifications.status || event.status,
 	                    onChange: this.handleInputChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TextField, {
-	                    id: 'Event_Type',
+	                    id: 'type',
 	                    floatingLabelText: 'Type',
 	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
-	                    defaultValue: modifications.Event_Type || event.Event_Type,
+	                    defaultValue: modifications.type || event.type,
 	                    onChange: this.handleInputChange.bind(this) }),
 	                _react2.default.createElement(_EventCreator.TagSelect, {
 	                    floatingLabelText: 'Tags',

@@ -4,6 +4,10 @@ from init import application, api, db, check_token
 from models import *
 import os
 
+"""
+Static page routes
+"""
+
 # / (root) --> marketing site home
 @api.route('/')
 class Home(Resource):
@@ -15,6 +19,10 @@ class Home(Resource):
 class Admin(Resource):
     def get(self):
         return send_from_directory(os.path.join('static', 'assets'), 'index.html')
+
+"""
+General purpose routes
+"""
 
 # /login
 # User logs into app, sends uid and token as headers in POST
@@ -40,7 +48,7 @@ class AuthLoginHandler(Resource):
                 return response, 401
 
 """
-Routes for the admin panel
+Database oriented routes
 TODO figure out which of these ought to actually be restricted to admin
 """
 
@@ -72,22 +80,54 @@ class AdminLocaleEvents(Resource):
         else:
             return 'Locale not found', 404
 
-"""
-Routes for all users
-"""
-
 # /event/<int:id>
-# Get the event with the specified id
 @api.route('/event/<int:id>')
-class GetEvent(Resource):
+class CrudEvent(Resource):
+    # Get the event with the specified id
     @api.login_required
     def get(self, id):
         event = Event.query.get(id)
-        if (event != None):
+        if event != None:
             return event.client_json()
         else:
             return 'Event not found', 404
+    
+    # Delete the event with the specified id
+    @api.login_required ## TODO also require admin
+    def delete(self, id):
+        event = Event.query.get(id)
+        if event != None:
+            try:
+                db.session.delete(event)
+                db.session.commit()
+                return {
+                    'status': 'SUCCESS'
+                }
+            except:
+                return {
+                    'status': 'FAILED'
+                }, 500
+        else:
+            return 'Event not found', 404
 
+    # Update the event with the specified id
+    @api.login_required
+    def put(self, id):
+        body = request.get_json()
+        print(body)
+        if body != None:
+            event = Event.query.get(id)
+            if event != None:
+                try:
+                    event.update_from_json(body)
+                    db.session.commit()
+                    return event.client_json()
+                except ValueError:
+                    return 'Invalid parameters', 400
+            else:
+                return 'Event not found', 404
+        else:
+            return 'Missing request body', 400
 
 
 if __name__ == '__main__':

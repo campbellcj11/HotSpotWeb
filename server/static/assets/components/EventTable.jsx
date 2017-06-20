@@ -81,16 +81,14 @@ class EventTable extends React.Component {
 	}
 
 	handleRowSelection(selectedRows) {
-		/*let index = selectedRows[0]
+		let index = selectedRows[0]
 		let event = this.state.events[index]
 		State.router.push({
 			pathname: 'edit',
 			query: {
-				id: event.key,
-				l: this.state.locale
-			},
-			state: event
-		})*/
+				id: event.id
+			}
+		})
 	}
 
 	render() {	

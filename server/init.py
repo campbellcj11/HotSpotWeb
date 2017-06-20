@@ -62,3 +62,5 @@ def login_required(self, f):
 api.login_required = types.MethodType(login_required, api)
 
 # decorator to specify auth roles (TODO use 403 Forbidden if this fails)
+## instead of a new decorator, add an array of scopes ex. ['user', 'admin'] as
+## a parameter to the login_required decorator, ['user'] is default

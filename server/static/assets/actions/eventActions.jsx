@@ -38,7 +38,33 @@ const EventActions = {
 			.catch(error => {
 				return error
 			})
-	}
+	},
+
+	deleteEvent: id => {
+		return fetch('/event/' + id, { method: 'DELETE' })
+			.then(response => {
+				return response.json()
+			})
+			.catch(error => {
+				return error
+			})
+	},
+
+	updateEvent: (id, modifications) => {
+		return fetch('/event/' + id, { 
+			method: 'PUT' ,
+			body: JSON.stringify(modifications),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then(response => {
+				return response.json()
+			})
+			.catch(error => {
+				return error
+			})
+	},
 
 	//OLD firebase functions start here
 	eventTable: eventTable,

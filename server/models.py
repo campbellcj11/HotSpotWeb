@@ -1,5 +1,6 @@
 from init import db
 from sqlalchemy.dialects.postgresql import ARRAY
+from datetime import datetime
 
 # users table
 class User(db.Model):
@@ -109,8 +110,18 @@ class Event(db.Model):
             'price': self.price,
             'editors_pick': self.editors_pick,
             'tags': self.get_tags(),
-            'locale': self.locale.client_json()
+            'locale': self.locale.client_json(),
+            'status': self.status
         }
+
+    def update_from_json(self, json):
+        try:
+            for key in json:
+                if key == 'start_date' or key == 'end_date':
+                    json[key] = toDateTime(json[key])
+                setattr(self, key, json[key])
+        except:
+            raise ValueError('An invalid event field or value was attempted to be set.')
 
 # locales table
 class Locale(db.Model):
@@ -198,3 +209,7 @@ class Metric(db.Model):
 # convert datetime object to Unix timestamp integer
 def toUnixTime(datetime):
     return int(datetime.timestamp() * 1000)
+
+# convert Unix timestamp integer to datetime object
+def toDateTime(unixTime):
+    return datetime.fromtimestamp(int(unixTime / 1000))
