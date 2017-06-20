@@ -1,8 +1,7 @@
 from init import db
 from sqlalchemy.dialects.postgresql import ARRAY
 
-# TODO add json serialize function to classes
-
+# users table
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, db.Sequence('users_id_seq'), primary_key=True)
@@ -16,8 +15,27 @@ class User(db.Model):
     gender = db.Column(db.String)
     profile_image = db.Column(db.String)
     locales = db.Column(ARRAY(db.Integer))
+
+    # relationships
+    favorites = db.relationship('Favorite', backref='favorites')
+
+    def get_locales(self):
+        result = []
+        if (self.locales != None):
+            for id in self.locales:
+                result.append(Locale.query.get(id))
+        return result
+
+    def get_locale_jsons(self):
+        result = []
+        if (self.locales != None):
+            for id in self.locales:
+                result.append(Locale.query.get(id).client_json())
+        return result
+
     def __repr__(self):
         return '<User id=%i u%s>' % (self.id, id(self))
+
     def client_json(self):
         return {
             'email': self.email,
@@ -25,8 +43,9 @@ class User(db.Model):
             'last_name': self.last_name,
             'phone': self.phone,
             'profile_image': self.profile_image,
-            'locales': self.locales
+            'locales': self.get_locale_jsons()
         }
+
     def admin_json(self):
         json = self.client_json()
         json['roles'] = self.roles
@@ -34,6 +53,7 @@ class User(db.Model):
         json['id'] = self.id
         return json
 
+# events table
 class Event(db.Model):
     __tablename__ = 'events'
     id = db.Column(db.Integer, db.Sequence('events_id_seq'), primary_key=True)
@@ -55,8 +75,14 @@ class Event(db.Model):
     email_contact = db.Column(db.String)
     price = db.Column(db.Float, default=0)
     editors_pick = db.Column(db.Boolean, default=False)
+
+    # relationships
+    tags = db.relationship('Tag', backref='events')
+    locale = db.relationship('Locale', uselist=False)
+
     def __repr__(self):
         return '<Event id=%i u%s>' % (self.id, id(self))
+
     def client_json(self):
         return {
             'id': self.id,
@@ -74,18 +100,22 @@ class Event(db.Model):
             'phone_contact': self.phone_contact,
             'email_contact': self.email_contact,
             'price': self.price,
-            'editors_pick': self.editors_pick
+            'editors_pick': self.editors_pick,
+            'tags': self.tags,
+            'locale': self.locale.client_json()
         }
 
-
+# locales table
 class Locale(db.Model):
     __tablename__ = 'locales'
     id = db.Column(db.Integer, db.Sequence('locales_id_seq'), primary_key=True)
     name = db.Column(db.String)
     state = db.Column(db.String)
     country = db.Column(db.String)
+
     def __repr__(self):
         return '<Locale id=%i u%s>' % (self.id, id(self))
+
     def client_json(self):
         return {
             'id': self.id,
@@ -94,13 +124,20 @@ class Locale(db.Model):
             'country': self.country
         }
 
+# favorites table
 class Favorite(db.Model):
     __tablename__ = 'favorites'
     id = db.Column(db.Integer, db.Sequence('favorites_id_seq'), primary_key=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+    # relationships
+    event = db.relationship('Event', uselist=False)
+    user = db.relationship('User', uselist=False)
+
     def __repr__(self):
         return '<Favorite id=%i u%s>' % (self.id, id(self))
+
     def client_json(self):
         return {
             'id': self.id,
@@ -108,13 +145,19 @@ class Favorite(db.Model):
             'user_id': self.user_id
         }
 
+# tags table
 class Tag(db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.Integer, db.Sequence('tags_id_seq'), primary_key=True)
     name = db.Column(db.String)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
+
+    #relationships
+    event = db.relationship('Event', uselist=False)
+
     def __repr__(self):
         return '<Tag id=%i u%s>' % (self.id, id(self))
+
     def client_json(self):
         return {
             'id': self.id,
@@ -122,21 +165,29 @@ class Tag(db.Model):
             'event_id': self.event_id
         }
 
+# metrics table
 class Metric(db.Model):
     __tablename__ = 'metrics'
     id = db.Column(db.Integer, db.Sequence('metrics_id_seq'), primary_key=True)
     action = db.Column(db.String)
     info = db.Column(db.String)
     user_id = db.Column(db.String, db.ForeignKey('users.id'))
+
+    # relationships
+    user = db.relationship('User', uselist=False)
+
     def __repr__(self):
         return '<Metric id=%i u%s>' % (self.id, id(self))
+
     def client_json(self):
         return {
             'id': self.id,
             'action': self.action,
             'info': self.info,
-            'user_id': self.user_id
+            'user_id': self.user_id,
+            'user': self.user.admin_json()
         }
 
+# convert datetime object to Unix timestamp integer
 def toUnixTime(datetime):
     return int(datetime.timestamp() * 1000)
