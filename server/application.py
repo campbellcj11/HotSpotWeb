@@ -41,6 +41,7 @@ class AuthLoginHandler(Resource):
 
 """
 Routes for the admin panel
+TODO figure out which of these ought to actually be restricted to admin
 """
 
 # /admin/locales
@@ -71,11 +72,14 @@ class AdminLocaleEvents(Resource):
         else:
             return 'Locale not found', 404
 
-# /admin/event/<int:id>
+"""
+Routes for all users
+"""
+
+# /event/<int:id>
 # Get the event with the specified id
-# Includes extra information not available to a user requesting an event
-@api.route('/admin/event/<int:id>')
-class AdminEvent(Resource):
+@api.route('/event/<int:id>')
+class GetEvent(Resource):
     @api.login_required
     def get(self, id):
         event = Event.query.get(id)
@@ -83,6 +87,8 @@ class AdminEvent(Resource):
             return event.client_json()
         else:
             return 'Event not found', 404
+
+
 
 if __name__ == '__main__':
     application.run(debug=True)

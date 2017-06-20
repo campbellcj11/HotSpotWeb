@@ -80,6 +80,13 @@ class Event(db.Model):
     tags = db.relationship('Tag', backref='events')
     locale = db.relationship('Locale', uselist=False)
 
+    def get_tags(self):
+        result = []
+        if self.tags != None:
+            for t in self.tags:
+                result.append(t.name)
+        return result
+
     def __repr__(self):
         return '<Event id=%i u%s>' % (self.id, id(self))
 
@@ -101,7 +108,7 @@ class Event(db.Model):
             'email_contact': self.email_contact,
             'price': self.price,
             'editors_pick': self.editors_pick,
-            'tags': self.tags,
+            'tags': self.get_tags(),
             'locale': self.locale.client_json()
         }
 

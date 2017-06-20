@@ -30,6 +30,16 @@ const EventActions = {
 			})
 	},
 
+	getEvent: id => {
+		return fetch('/event/' + id)
+			.then(response => {
+				return response.json()
+			})
+			.catch(error => {
+				return error
+			})
+	}
+
 	//OLD firebase functions start here
 	eventTable: eventTable,
 
