@@ -67,7 +67,7 @@ const EventActions = {
 			})
 	},
 
-	createEvent: (id, event) => {
+	createEvent: event => {
 		return fetch('/createEvent', {
 			method: 'POST',
 			body: JSON.stringify(event),

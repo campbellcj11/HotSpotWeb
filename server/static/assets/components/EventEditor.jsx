@@ -117,7 +117,7 @@ class EventEditor extends Component {
 
     onDelete() {
         let event = this.event
-        EventActions.deleteEvent('id')
+        EventActions.deleteEvent(event.id)
             .then((data) => {
                 if (data.status == 'SUCCESS') {
                     State.router.push({

@@ -121,7 +121,7 @@ export default class EventCreator extends Component {
         this.mergeTimeAndDate(tag, this.state[tag + 'Date'], time)
     }
 
-    mergeTimeAndDate(tag, e, date, time) {
+    mergeTimeAndDate(tag, date, time) {
         let event = this.state.potentialEvent
         // TODO consider using UTC values for better cross region compatibility
         let merged = new Date(
@@ -150,7 +150,7 @@ export default class EventCreator extends Component {
                 State.router.push({
                     pathname: 'edit',
                     query: {
-                        id: createEvent.id
+                        id: createdEvent.id
                     }
                 })
             })
@@ -256,12 +256,6 @@ export default class EventCreator extends Component {
                         floatingLabelText="Locale"
                         fullWidth={true}
                         onChange={this.handleLocaleChange.bind(this)} />
-                    <TextField
-                        id="status"
-                        floatingLabelText="Status"
-                        fullWidth={true}
-                        multiLine={true}
-                        onChange={this.handleInputChange.bind(this)} />
                     <TextField
                         id="type"
                         floatingLabelText="Type"
