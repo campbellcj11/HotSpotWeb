@@ -71876,6 +71876,7 @@
 	
 	var EventActions = {
 		//NEW server queries start here
+		// TODO consider removing catch statements here and letting them be always handled externally
 		getLocales: function getLocales() {
 			return fetch('/admin/locales').then(function (response) {
 				return response.json();
@@ -71883,9 +71884,29 @@
 				return error;
 			});
 		},
-		// TODO paginate
+		// TODO consider paginating
 		getLocaleEvents: function getLocaleEvents(id) {
 			return fetch('/admin/localeEvents/' + id).then(function (response) {
+				return response.json();
+			}).catch(function (error) {
+				return error;
+			});
+		},
+	
+		getPendingEvents: function getPendingEvents() {
+			var searchParams = {
+				query: [{
+					field: 'status',
+					value: 'pending'
+				}]
+			};
+			return fetch('/getEvents', {
+				method: 'POST',
+				body: JSON.stringify(searchParams),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			}).then(function (response) {
 				return response.json();
 			}).catch(function (error) {
 				return error;
@@ -71922,97 +71943,17 @@
 			});
 		},
 	
-		//OLD firebase functions start here
-		eventTable: eventTable,
-	
-		get: function get(target) {
-			return database.ref(target);
-		},
-	
-		// get all events
-		//	callback args: events, keys
-		getAllSnapshots: function getAllSnapshots(callback, alternateTable) {
-			var table = alternateTable ? database.ref(alternateTable) : eventTable;
-			table.on("value", function (snapshot) {
-				var collection = snapshot.val();
-				callback(collection);
-			}, function (error) {
-				console.log("Read error:" + error.code);
-			});
-		},
-	
-		// get a specific event ref
-		getRef: function getRef(eventId, locale, alternateTable) {
-			return database.ref('events/' + locale + "/" + eventId);
-		},
-	
-		// get snapshot for event value
-		getSnapshot: function getSnapshot(eventId, locale, callback) {
-			this.getRef(eventId, locale).once('value', function (snapshot) {
-				callback(snapshot.val());
-			});
-		},
-	
-		// create new event
-		//  callback args: didSucceed, event, eventRef
-		createEvent: function createEvent(event, locale, callback, alternateTable) {
-			var table = alternateTable ? database.ref(alternateTable) : database.ref('events/' + locale);
-			var ref = table.push();
-			ref.set(event, function (error) {
-				callback(!error, event, ref);
-			});
-		},
-	
-		// move event to new locale
-		// create old reference -> delete old reference -> catch errors -> revert changes if an error occurs
-		// 	callback args: didSucced: boolean, event, newRef?
-		moveEvent: function moveEvent(event, fromLocale, toLocale, callback) {
-			var key = event.key;
-			delete event.key;
-			var oldRef = database.ref('events/' + fromLocale + '/' + key);
-			var newRef = database.ref('events/' + toLocale + '/' + key);
-			newRef.set(event, function (error) {
-				if (error) {
-					console.log('Failed to create new event');
-					callback(!error, event);
+		createEvent: function createEvent(event) {
+			return fetch('/createEvent', {
+				method: 'POST',
+				body: JSON.stringify(event),
+				headers: {
+					'Content-Type': 'application/json'
 				}
-				oldRef.remove().then(function () {
-					callback(true, event, newRef);
-				}).catch(function () {
-					console.log('Failed to delete old event');
-					newRef.remove().then(function () {
-						console.log('moveEvent reverted');
-						callback(false, event);
-					}).catch(function () {
-						console.log('Failed moveEvent failed to revert');
-					});
-				});
-			});
-		},
-	
-		// check existing tags for event in db
-		getTags: function getTags(eventId, callback) {
-			var ref = database.ref('tags/' + eventId);
-			ref.on('value', function (snapshot) {
-				var tags = [];
-				snapshot.forEach(function (child) {
-					tags.push(child.key);
-				});
-				callback(tags, eventId, ref);
-			});
-		},
-	
-		// set tags for event in db
-		setTags: function setTags(eventId, tagArray, callback) {
-			var object = {};
-			tagArray.forEach(function (tag) {
-				object[tag] = true;
-			});
-			var ref = database.ref('tags/' + eventId);
-			ref.set(object, function (error) {
-				if (callback) {
-					callback(!error, tagArray, ref);
-				}
+			}).then(function (response) {
+				return response.json();
+			}).catch(function (error) {
+				return error;
 			});
 		}
 	
@@ -72139,12 +72080,9 @@
 		_createClass(EventTable, [{
 			key: 'componentDidMount',
 			value: function componentDidMount() {
-				this.loadEvents.call(this);
-			}
-		}, {
-			key: 'componentWillReceiveProps',
-			value: function componentWillReceiveProps(nextProps) {
-				this.mode = this.props.router.location.query.mode || 'manage';
+				if (!this.props.router.location.query.l) {
+					return;
+				}
 				this.setState({
 					loading: true,
 					locale: this.props.router.location.query.l
@@ -73099,18 +73037,21 @@
 	    }
 	
 	    _createClass(EventEditor, [{
-	        key: 'componentWillMount',
-	        value: function componentWillMount() {
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
 	            var _this2 = this;
 	
 	            var id = this.props.router.location.query.id;
+	            if (!id) {
+	                return;
+	            }
 	            _eventActions2.default.getEvent(id).then(function (event) {
 	                _this2.event = event;
 	                _this2.pending = event.status == 'pending';
 	                var start_date = new Date(event.start_date);
 	                var end_date = new Date(event.end_date);
 	                _this2.setState({
-	                    hasImage: !!_this2.event.Image,
+	                    hasImage: !!_this2.event.image,
 	                    tags: event.tags,
 	                    startDate: start_date,
 	                    startTime: start_date,
@@ -73120,18 +73061,6 @@
 	            }).catch(function (error) {
 	                console.error(error);
 	            });
-	            //let locale = this.props.router.location.query.l
-	            /*
-	            EventActions.getSnapshot(id, locale, (function(snapshot) {
-	                this.event = snapshot
-	                let date = new Date(this.event.Date)
-	                this.setState({
-	                    hasImage: !!this.event.Image,
-	                    datePickerVal: date,
-	                    timePickerVal: date
-	                })
-	            }).bind(this), this.pending ? 'approvalQueue' : 'events')
-	            */
 	        }
 	    }, {
 	        key: 'onImageInput',
@@ -73141,8 +73070,8 @@
 	            var newImage = e.target.files[0];
 	            var fr = new FileReader();
 	            fr.onload = function (e) {
-	                var old = _this3.event.Image || null;
-	                _this3.event.Image = fr.result;
+	                var old = _this3.event.image || null;
+	                _this3.event.image = fr.result;
 	                _this3.setState({
 	                    changedSinceSave: true,
 	                    newImage: newImage,
@@ -73156,7 +73085,7 @@
 	        key: 'onDelete',
 	        value: function onDelete() {
 	            var event = this.event;
-	            _eventActions2.default.deleteEvent('id').then(function (data) {
+	            _eventActions2.default.deleteEvent(event.id).then(function (data) {
 	                if (data.status == 'SUCCESS') {
 	                    _ApplicationState.State.router.push({
 	                        pathname: 'locale',
@@ -73170,19 +73099,6 @@
 	            }).catch(function (error) {
 	                console.error('Deletion failed');
 	            });
-	            /*let ref = EventActions.getRef(event.key, this.state.locale)
-	            ref.remove()
-	                .then(() => {
-	                    State.router.push({
-	                        pathname: 'locale',
-	                        query: {
-	                            l: this.state.locale
-	                        }
-	                    })
-	                })
-	                .catch(() => {
-	                    console.log('Deletion failed')
-	                })*/
 	        }
 	    }, {
 	        key: 'onSave',
@@ -73194,7 +73110,22 @@
 	            var modifications = this.state.modifications;
 	            if (Object.keys(modifications).length) {
 	                _eventActions2.default.updateEvent(event.id, modifications).then(function (updated) {
+	                    var oldEvent = Object.assign({}, event);
 	                    event = _this4.event = updated;
+	                    if (_this4.state.newImage) {
+	                        // delete old image
+	                        // upload new image
+	                        // set state on promise resolution
+	                        // this.setState({
+	                        //     changedSinceSave: false,
+	                        //     newImage: false,
+	                        //     newImageURL: null,
+	                        //     oldImageURL: null,
+	                        //     hasImage: true,
+	                        //     editingText: false,
+	                        //     modifications: {}
+	                        //})
+	                    }
 	                    _this4.setState({
 	                        changedSinceSave: false,
 	                        modifications: {},
@@ -73204,182 +73135,65 @@
 	                    console.error(error);
 	                });
 	            }
-	            // TODO handle images, tags
-	            /*if (this.state.newImage) {
-	                if (this.state.hasImage) {
-	                    // delete old image
-	                    let oldURL = this.state.oldImageURL
-	                    let oldImageName = oldURL.substring(oldURL.lastIndexOf('/EventImages%2F') + 15)
-	                    oldImageName = oldImageName.substring(0, oldImageName.indexOf('?'))
-	                    let oldImageRef = StorageActions.getEventImageRef(oldImageName)
-	                    StorageActions.deleteEventImage(oldImageRef, (success) => {
-	                        if (success) {
-	                            console.log('Delete old image: ' + oldImageName)
-	                        } else {
-	                            console.log('Failed to delete old image: ' + oldImageName)
-	                        }
-	                    })
-	                }
-	                 //upload new image
-	                StorageActions.uploadEventImage(newImage, (url) => {
-	                    // update event to use new image url
-	                    let eventRef = EventActions.getRef(event.key, this.state.locale)
-	                    let changes = this.state.modifications
-	                    changes.Image = url
-	                    eventRef.update(changes).then(() => {
-	                        console.log('Reference updated')
-	                        // update local copy
-	                        for (let field in changes) {
-	                            this.event[field] = changes[field]
-	                        }
-	                         // if locale has changed, move event, redirect
-	                        if (this.state.locale !== event.City) {
-	                            EventActions.moveEvent(event, this.state.locale, event.City, (success, event, newRef) => {
-	                                if (!success) {
-	                                    console.log('Failed to move event to new locale')
-	                                    return
-	                                }
-	                                // redirect to editor for newly moved event
-	                                State.router.push({
-	                                    pathname: 'edit',
-	                                    query: {
-	                                        id: newRef.key,
-	                                        l: event.City
-	                                    },
-	                                    state: event
-	                                })
-	                            })
-	                        } else {
-	                            this.setState({
-	                                changedSinceSave: false,
-	                                newImage: false,
-	                                newImageURL: null,
-	                                oldImageURL: null,
-	                                hasImage: true,
-	                                editingText: false,
-	                                modifications: {}
-	                            })
-	                        }
-	                    }).catch((error) => {
-	                        console.log('Failed to update event')
-	                    })
-	                })
-	            } else {
-	                if (Object.keys(this.state.modifications).length) {
-	                    let eventRef = EventActions.getRef(event.key, this.state.locale)
-	                    let changes = this.state.modifications
-	                    changes.Sort_Date = event.Date
-	                    eventRef.update(changes).then(() => {
-	                        console.log('Reference updated')
-	                        //update local copy
-	                        for (let field in changes) {
-	                            this.event[field] = changes[field]
-	                        }
-	                         // if locale has changed, move event, redirect
-	                        if (this.state.locale !== event.City) {
-	                            EventActions.moveEvent(event, this.state.locale, event.City, (success, event, newRef) => {
-	                                if (!success) {
-	                                    console.log('Failed to move event to new locale')
-	                                    return
-	                                }
-	                                // redirect to editor for newly moved event
-	                                State.router.push({
-	                                    pathname: 'edit',
-	                                    query: {
-	                                        id: newRef.key,
-	                                        l: event.City
-	                                    },
-	                                    state: event
-	                                })
-	                            })
-	                        } else {
-	                            this.setState({
-	                                changedSinceSave: false,
-	                                editingText: false,
-	                                modifications: {}
-	                            })
-	                        }
-	                    }).catch((error) => {
-	                        console.log('Failed to update event')
-	                    })
-	                }
-	                 EventActions.setTags(event.key, this.state.tags, success => {
-	                    if (!Object.keys(this.state.modifications).length) {
-	                        this.setState({
-	                            changedSinceSave: false,
-	                            editingText: false,
-	                            modifications: {}
-	                        })
-	                    }
-	                })
-	            }*/
 	        }
 	    }, {
 	        key: 'onApprove',
 	        value: function onApprove() {
-	            var _this5 = this;
-	
 	            // Copy new event to event table from approval queue
 	            var potentialEvent = this.event;
-	            var key = potentialEvent.key;
-	            delete potentialEvent.key;
-	            if (this.pending) {
-	                delete potentialEvent.Tags;
-	            }
 	            this.setState({
 	                showProgress: true
 	            });
-	            _eventActions2.default.createEvent(potentialEvent, potentialEvent.City, function (success, event, ref) {
+	            /*EventActions.createEvent(potentialEvent, potentialEvent.City, (success, event, ref) => {
 	                if (success) {
 	                    // redirect to regular event editor page for this event
-	                    event.key = ref.key;
-	
+	                    event.key = ref.key
+	                    
 	                    // set tags on created event
-	                    _eventActions2.default.setTags(event.key, _this5.state.tags);
-	
-	                    // mark approved
-	                    _eventActions2.default.get('approvalQueue/' + key).update({
-	                        approvalStatus: 'approved'
-	                    });
-	
+	                     // mark approved
+	                    EventActions.get('approvalQueue/' + key)
+	                        .update({
+	                            approvalStatus: 'approved'
+	                        })
+	                    
 	                    // redirect and reset state
-	                    _ApplicationState.State.router.push({
+	                    State.router.push({
 	                        pathname: 'edit',
 	                        query: {
-	                            id: event.key,
-	                            l: event.City
+	                            id: event.id,
 	                        },
 	                        state: event
-	                    });
-	                    _this5.pending = false;
-	                    _this5.setState({
+	                    })
+	                    this.pending = false
+	                    this.setState({
 	                        schangedSinceSave: false,
-	                        locale: _this5.props.router.location.query.l,
+	                        locale: this.props.router.location.query.l,
 	                        newImageURL: null,
 	                        oldImageURL: null, //only set when image has been updated but not yet committed
 	                        editingText: false,
 	                        modifications: {},
 	                        tags: [],
 	                        showProgress: false
-	                    });
+	                    })
 	                } else {
-	                    _this5.setState({
+	                    this.setState({
 	                        showProgress: false
-	                    });
+	                    })
 	                    // report failure
-	                    console.error('Failed to create event:');
-	                    console.error(JSON.stringify(potentialEvent, null, '\t'));
+	                    console.error('Failed to create event:')
+	                    console.error(JSON.stringify(potentialEvent, null, '\t'))
 	                }
-	            });
+	            })*/
 	        }
 	    }, {
 	        key: 'onDeny',
 	        value: function onDeny() {
 	            var potentialEvent = this.event;
-	            var key = potentialEvent.key;
-	            _eventActions2.default.get('approvalQueue/' + key).update({
-	                approvalStatus: 'denied'
-	            });
+	            /*let key = potentialEvent.key
+	            EventActions.get('approvalQueue/' + key)
+	                .update({
+	                    approvalStatus: 'denied'
+	                })*/
 	            _ApplicationState.State.router.push('/pending');
 	        }
 	    }, {
@@ -73410,8 +73224,10 @@
 	    }, {
 	        key: 'handleTagsChange',
 	        value: function handleTagsChange(values) {
+	            var modifications = this.state.modifications;
+	            modifications.tags = values;
 	            this.setState({
-	                tags: values,
+	                modfications: modifications,
 	                changedSinceSave: true
 	            });
 	        }
@@ -73420,7 +73236,7 @@
 	        value: function clearChanges() {
 	            if (!this.state.editingText) {
 	                if (this.state.oldImageURL) {
-	                    this.event.Image = this.state.oldImageURL;
+	                    this.event.image = this.state.oldImageURL;
 	                }
 	                this.setState({
 	                    changedSinceSave: false,
@@ -73446,16 +73262,16 @@
 	    }, {
 	        key: 'handleInputChange',
 	        value: function handleInputChange(e) {
-	            var _this6 = this;
+	            var _this5 = this;
 	
 	            var newValue = e.target.value;
 	            var field = e.target.id;
 	            // prevent rapid setState calls when typing
 	            clearTimeout(inputTimeouts[field]);
 	            inputTimeouts[field] = setTimeout(function () {
-	                var modifications = _this6.state.modifications;
+	                var modifications = _this5.state.modifications;
 	                modifications[field] = newValue;
-	                _this6.setState({
+	                _this5.setState({
 	                    changedSinceSave: true,
 	                    modifications: modifications
 	                });
@@ -73465,7 +73281,7 @@
 	        key: 'handleLocaleChange',
 	        value: function handleLocaleChange(value) {
 	            var modifications = this.state.modifications;
-	            modifications.City = value;
+	            modifications.locale_id = value;
 	            this.setState({
 	                changedSinceSave: true,
 	                modfications: modifications
@@ -73641,7 +73457,7 @@
 	                    floatingLabelText: 'Locale',
 	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
-	                    defaultValue: modifications.locale ? modifications.locale.name : event.locale.name,
+	                    defaultValue: modifications.locale_id ? modifications.locale_id : event.locale.id,
 	                    onChange: this.handleLocaleChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'status',
@@ -73664,7 +73480,7 @@
 	                    fullWidth: true,
 	                    disabled: !this.state.editingText || this.pending,
 	                    onChange: this.handleTagsChange.bind(this),
-	                    defaultValue: this.state.tags || [] })
+	                    defaultValue: event.tags || [] })
 	            ) : null;
 	
 	            return _react2.default.createElement(
@@ -73674,7 +73490,7 @@
 	                    title: 'Edit Event',
 	                    subtitle: subtitleText }),
 	                cardImage,
-	                !this.state.editingText && !event.Image && header,
+	                !this.state.editingText && !event.image && header,
 	                !this.state.editingText && chooseImageButton,
 	                body,
 	                this.state.showProgress && _react2.default.createElement(_materialUi.LinearProgress, { mode: 'indeterminate' }),
@@ -73740,6 +73556,8 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -73791,8 +73609,10 @@
 	            tags: [],
 	            imageName: null,
 	            image: null,
-	            datePickerVal: new Date(),
-	            timePickerVal: new Date()
+	            startDate: new Date(),
+	            startTime: new Date(),
+	            endDate: new Date(),
+	            endTime: new Date()
 	        };
 	        return _this;
 	    }
@@ -73828,7 +73648,7 @@
 	        key: 'handleLocaleChange',
 	        value: function handleLocaleChange(value) {
 	            var event = this.state.potentialEvent;
-	            event.City = value;
+	            event.locale_id = value;
 	            this.setState({
 	                potentialEvent: event
 	            });
@@ -73836,34 +73656,32 @@
 	    }, {
 	        key: 'handleTagsChange',
 	        value: function handleTagsChange(values) {
+	            var event = this.state.potentialEvent;
+	            event.tags = values;
 	            this.setState({
-	                tags: values
+	                potentialEvent: event
 	            });
 	        }
 	    }, {
 	        key: 'handleDateChange',
-	        value: function handleDateChange(e, date) {
-	            this.setState({
-	                datePickerVal: date
-	            });
-	            this.mergeTimeAndDate(date, this.state.timePickerVal);
+	        value: function handleDateChange(tag, e, date) {
+	            this.setState(_defineProperty({}, tag + 'Date', date));
+	            this.mergeTimeAndDate(tag, date, this.state[tag + 'Time']);
 	        }
 	    }, {
 	        key: 'handleTimeChange',
-	        value: function handleTimeChange(e, time) {
-	            this.setState({
-	                timePickerVal: time
-	            });
-	            this.mergeTimeAndDate(this.state.datePickerVal, time);
+	        value: function handleTimeChange(tag, e, time) {
+	            this.setState(_defineProperty({}, tag + 'Time', time));
+	            this.mergeTimeAndDate(tag, this.state[tag + 'Date'], time);
 	        }
 	    }, {
 	        key: 'mergeTimeAndDate',
-	        value: function mergeTimeAndDate(date, time) {
+	        value: function mergeTimeAndDate(tag, date, time) {
 	            var event = this.state.potentialEvent;
 	            // TODO consider using UTC values for better cross region compatibility
 	            var merged = new Date(date.getFullYear(), date.getMonth(), date.getDate(), time.getHours(), time.getMinutes(), 0 // no seconds
 	            );
-	            event.Date = merged.getTime();
+	            event[tag + '_date'] = merged.getTime();
 	            this.setState({
 	                potentialEvent: event
 	            });
@@ -73871,72 +73689,22 @@
 	    }, {
 	        key: 'onSave',
 	        value: function onSave() {
-	            var _this3 = this;
-	
 	            this.setState({
 	                showProgress: true
 	            });
-	            var check = this.verify();
 	            var potentialEvent = this.state.potentialEvent;
-	            if (check.succeeded) {
-	                _storageActions2.default.uploadEventImage(this.state.image, function (url) {
-	                    potentialEvent.Image = url;
-	                    _eventActions2.default.createEvent(potentialEvent, potentialEvent.City, function (success, event, ref) {
-	                        if (success) {
-	                            event.key = ref.key;
-	
-	                            // set tags
-	                            _eventActions2.default.setTags(event.key, _this3.state.tags);
-	
-	                            // redirect to event editor page for this event
-	                            _ApplicationState.State.router.push({
-	                                pathname: 'edit',
-	                                query: {
-	                                    id: event.key,
-	                                    l: event.City
-	                                },
-	                                state: event
-	                            });
-	                        } else {
-	                            _this3.setState({
-	                                showProgress: false
-	                            });
-	                            // report failure
-	                            console.error('Failed to create event:');
-	                            console.error(JSON.stringify(potentialEvent, null, '\t'));
-	                            // delete image
-	                            var imageName = url.substring(url.lastIndexOf('/EventImages%2F') + 15);
-	                            imageName = imageName.substring(0, imageName.indexOf('?'));
-	                            var imageRef = _storageActions2.default.getEventImageRef(imageName);
-	                            _storageActions2.default.deleteEventImage(imageRef, function (success, event) {
-	                                if (success) {
-	                                    console.log('Delete image from failed commit: ' + imageName);
-	                                } else {
-	                                    console.log('Failed to delete image: ' + imageName);
-	                                }
-	                            });
-	                        }
-	                    });
+	            // create event
+	            _eventActions2.default.createEvent(potentialEvent).then(function (createdEvent) {
+	                // TODO upload image .then redirect
+	                _ApplicationState.State.router.push({
+	                    pathname: 'edit',
+	                    query: {
+	                        id: createdEvent.id
+	                    }
 	                });
-	            } else {
-	                // else update editor to show errors TODO
-	                console.error('Event not verified:');
-	                console.error(JSON.stringify(potentialEvent, null, '\t'));
-	                this.setState({
-	                    showProgress: false
-	                });
-	            }
-	        }
-	
-	        //TODO verify event
-	        // if not verified, return error information
-	
-	    }, {
-	        key: 'verify',
-	        value: function verify() {
-	            return {
-	                succeeded: true
-	            };
+	            }).catch(function (error) {
+	                console.error(error);
+	            });
 	        }
 	    }, {
 	        key: 'render',
@@ -73977,81 +73745,75 @@
 	                    'div',
 	                    { style: styles.fields },
 	                    _react2.default.createElement(_materialUi.TextField, {
-	                        id: 'Event_Name',
+	                        id: 'name',
 	                        floatingLabelText: 'Event Name',
 	                        fullWidth: true,
 	                        multiLine: true,
 	                        onChange: this.handleInputChange.bind(this) }),
 	                    _react2.default.createElement(_materialUi.TextField, {
-	                        id: 'Address',
+	                        id: 'address',
 	                        floatingLabelText: 'Address',
 	                        fullWidth: true,
 	                        multiLine: true,
 	                        onChange: this.handleInputChange.bind(this) }),
 	                    _react2.default.createElement(_materialUi.DatePicker, {
-	                        id: 'Date',
-	                        floatingLabelText: 'Date',
+	                        floatingLabelText: 'Start Date',
 	                        minDate: new Date(),
-	                        onChange: this.handleDateChange.bind(this) }),
+	                        onChange: this.handleDateChange.bind(this, 'start') }),
 	                    _react2.default.createElement(_materialUi.TimePicker, {
-	                        id: 'Time',
-	                        floatingLabelText: 'Time',
+	                        floatingLabelText: 'Start Time',
 	                        pedantic: true,
-	                        onChange: this.handleTimeChange.bind(this) }),
+	                        onChange: this.handleTimeChange.bind(this, 'start') }),
+	                    _react2.default.createElement(_materialUi.DatePicker, {
+	                        floatingLabelText: 'End Date',
+	                        minDate: new Date(),
+	                        onChange: this.handleDateChange.bind(this, 'end') }),
+	                    _react2.default.createElement(_materialUi.TimePicker, {
+	                        floatingLabelText: 'End Time',
+	                        pedantic: true,
+	                        onChange: this.handleTimeChange.bind(this, 'end') }),
 	                    _react2.default.createElement(_materialUi.TextField, {
-	                        id: 'Location',
-	                        floatingLabelText: 'Location',
+	                        id: 'venue_name',
+	                        floatingLabelText: 'Venue Name',
 	                        fullWidth: true,
 	                        multiLine: true,
 	                        onChange: this.handleInputChange.bind(this) }),
 	                    _react2.default.createElement(_materialUi.TextField, {
-	                        id: 'Short_Description',
+	                        id: 'short_description',
 	                        floatingLabelText: 'Short Description',
 	                        fullWidth: true,
 	                        multiLine: true,
 	                        onChange: this.handleInputChange.bind(this) }),
 	                    _react2.default.createElement(_materialUi.TextField, {
-	                        id: 'Long_Description',
+	                        id: 'long_description',
 	                        floatingLabelText: 'Long Description',
 	                        fullWidth: true,
 	                        multiLine: true,
 	                        onChange: this.handleInputChange.bind(this) }),
 	                    _react2.default.createElement(_materialUi.TextField, {
-	                        id: 'Website',
+	                        id: 'website',
 	                        floatingLabelText: 'Website',
 	                        fullWidth: true,
 	                        multiLine: true,
 	                        onChange: this.handleInputChange.bind(this) }),
 	                    _react2.default.createElement(_materialUi.TextField, {
-	                        id: 'Email_Contact',
+	                        id: 'email_contact',
 	                        floatingLabelText: 'Email Contact',
 	                        fullWidth: true,
 	                        multiLine: true,
 	                        onChange: this.handleInputChange.bind(this) }),
+	                    _react2.default.createElement(_materialUi.TextField, {
+	                        id: 'phone_contact',
+	                        floatingLabelText: 'Phone Contact',
+	                        fullWidth: true,
+	                        multiLine: true,
+	                        onChange: this.handleInputChange.bind(this) }),
 	                    _react2.default.createElement(LocaleSelect, {
-	                        floatingLabelText: 'City',
+	                        floatingLabelText: 'Locale',
 	                        fullWidth: true,
 	                        onChange: this.handleLocaleChange.bind(this) }),
 	                    _react2.default.createElement(_materialUi.TextField, {
-	                        id: 'County',
-	                        floatingLabelText: 'County',
-	                        fullWidth: true,
-	                        multiLine: true,
-	                        onChange: this.handleInputChange.bind(this) }),
-	                    _react2.default.createElement(_materialUi.TextField, {
-	                        id: 'State',
-	                        floatingLabelText: 'State',
-	                        fullWidth: true,
-	                        multiLine: true,
-	                        onChange: this.handleInputChange.bind(this) }),
-	                    _react2.default.createElement(_materialUi.TextField, {
-	                        id: 'Status',
-	                        floatingLabelText: 'Status',
-	                        fullWidth: true,
-	                        multiLine: true,
-	                        onChange: this.handleInputChange.bind(this) }),
-	                    _react2.default.createElement(_materialUi.TextField, {
-	                        id: 'Event_Type',
+	                        id: 'type',
 	                        floatingLabelText: 'Type',
 	                        fullWidth: true,
 	                        multiLine: true,
@@ -74088,14 +73850,14 @@
 	    function LocaleSelect(props) {
 	        _classCallCheck(this, LocaleSelect);
 	
-	        var _this4 = _possibleConstructorReturn(this, (LocaleSelect.__proto__ || Object.getPrototypeOf(LocaleSelect)).call(this, props));
+	        var _this3 = _possibleConstructorReturn(this, (LocaleSelect.__proto__ || Object.getPrototypeOf(LocaleSelect)).call(this, props));
 	
-	        _this4.state = {
+	        _this3.state = {
 	            value: null
 	        };
-	        _this4.locales = [];
-	        _this4.populate.bind(_this4);
-	        return _this4;
+	        _this3.locales = [];
+	        _this3.populate.bind(_this3);
+	        return _this3;
 	    }
 	
 	    _createClass(LocaleSelect, [{
@@ -74113,21 +73875,18 @@
 	    }, {
 	        key: 'populate',
 	        value: function populate() {
-	            var _this5 = this;
+	            var _this4 = this;
 	
 	            this.locales = [];
-	            _eventActions2.default.get('events').on('value', function (snapshot) {
-	                snapshot.forEach(function (child) {
-	                    var localeName = child.key;
-	                    _this5.locales.push(localeName);
-	                });
-	                if (_this5.props.defaultValue && _this5.locales.includes(_this5.props.defaultValue)) {
-	                    _this5.setState({
-	                        value: _this5.props.defaultValue
+	            _eventActions2.default.getLocales().then(function (locales) {
+	                _this4.locales = locales;
+	                if (_this4.props.defaultValue) {
+	                    _this4.setState({
+	                        value: _this4.props.defaultValue
 	                    });
 	                }
-	            }, function (error) {
-	                console.log('Read error: ' + error.message);
+	            }).catch(function (error) {
+	                console.error(error);
 	            });
 	        }
 	    }, {
@@ -74147,8 +73906,8 @@
 	            this.locales.forEach(function (locale, index) {
 	                options.push(_react2.default.createElement(_materialUi.MenuItem, {
 	                    key: index,
-	                    value: locale,
-	                    primaryText: locale }));
+	                    value: locale.id,
+	                    primaryText: locale.name + ', ' + locale.state }));
 	            });
 	
 	            return _react2.default.createElement(
@@ -74175,14 +73934,14 @@
 	    function TagSelect(props) {
 	        _classCallCheck(this, TagSelect);
 	
-	        var _this6 = _possibleConstructorReturn(this, (TagSelect.__proto__ || Object.getPrototypeOf(TagSelect)).call(this, props));
+	        var _this5 = _possibleConstructorReturn(this, (TagSelect.__proto__ || Object.getPrototypeOf(TagSelect)).call(this, props));
 	
-	        _this6.state = {
+	        _this5.state = {
 	            values: []
 	        };
-	        _this6.tags = [];
-	        _this6.populate.bind(_this6);
-	        return _this6;
+	        _this5.tags = [];
+	        _this5.populate.bind(_this5);
+	        return _this5;
 	    }
 	
 	    _createClass(TagSelect, [{
@@ -74200,22 +73959,12 @@
 	    }, {
 	        key: 'populate',
 	        value: function populate() {
-	            var _this7 = this;
-	
-	            this.tags = [];
-	            _eventActions2.default.get('possibleTags').on('value', function (snapshot) {
-	                snapshot.forEach(function (child) {
-	                    var tag = child.key;
-	                    _this7.tags.push(tag);
+	            this.tags = ["Art", "Books", "Causes", "Class", "Comedy", "Community", "Conference", "Dance", "Food", "Health", "Social", "Sport", "Movie", "Music", "Nightlife", "Theater", "Religion", "Shopping", "Other"];
+	            if (this.props.defaultValue) {
+	                this.setState({
+	                    values: this.props.defaultValue
 	                });
-	                if (_this7.props.defaultValue) {
-	                    _this7.setState({
-	                        values: _this7.props.defaultValue
-	                    });
-	                }
-	            }, function (error) {
-	                console.log('Read error: ' + error.message);
-	            });
+	            }
 	        }
 	    }, {
 	        key: 'handleChange',

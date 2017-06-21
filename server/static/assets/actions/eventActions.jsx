@@ -20,9 +20,31 @@ const EventActions = {
 				return error
 			})
 	},
-	// TODO paginate
+	// TODO consider paginating
 	getLocaleEvents: id => {
 		return fetch('/admin/localeEvents/' + id)
+			.then(response => {
+				return response.json()
+			})
+			.catch(error => {
+				return error
+			})
+	},
+
+	getPendingEvents: () => {
+		let searchParams = {
+			query: [{
+				field: 'status',
+				value: 'pending'
+			}]
+		}
+		return fetch('/getEvents', {
+			method: 'POST',
+			body: JSON.stringify(searchParams),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
 			.then(response => {
 				return response.json()
 			})
