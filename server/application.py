@@ -1,7 +1,7 @@
 from flask import request, send_from_directory
 from flask_restful import Resource
 from init import application, api, db, check_token
-from sqlalchemy import sa_exc
+from sqlalchemy import exc as sa_exc
 from models import *
 import os, traceback
 
