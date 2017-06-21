@@ -50,18 +50,10 @@ class EventTable extends React.Component {
 		if (!this.props.router.location.query.l) {
 			return
 		}
-		this.loadEvents.call(this)
-	}
-
-	componentWillReceiveProps(nextProps) {
-		this.mode = this.props.router.location.query.mode || 'manage'
 		this.setState({
 			loading: true,
 			locale: this.props.router.location.query.l
 		})
-		if (!this.props.router.location.query.l) {
-			return
-		}
 		this.loadEvents.call(this)
 	}
 
