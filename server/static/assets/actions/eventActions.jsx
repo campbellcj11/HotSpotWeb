@@ -10,6 +10,7 @@ let eventTable = database.ref("events")
 
 const EventActions = {
 	//NEW server queries start here
+	// TODO consider removing catch statements here and letting them be always handled externally
 	getLocales: () => {
 		return fetch('/admin/locales')
 			.then(response => {
@@ -66,8 +67,24 @@ const EventActions = {
 			})
 	},
 
+	createEvent: (id, event) => {
+		return fetch('/createEvent', {
+			method: 'POST',
+			body: JSON.stringify(event),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then(response => {
+				return response.json()
+			})
+			.catch(error => {
+				return error
+			})
+	},
+
 	//OLD firebase functions start here
-	eventTable: eventTable,
+	/*eventTable: eventTable,
 
 	get: (target) => {
 		return database.ref(target)
@@ -163,7 +180,7 @@ const EventActions = {
 			}
 		})
 	}
-
+	*/
 }
 
 //export all event related functionality as a single object

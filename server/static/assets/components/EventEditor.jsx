@@ -74,8 +74,11 @@ class EventEditor extends Component {
         }
     }
 
-    componentWillMount() {
+    componentDidMount() {
         let id = this.props.router.location.query.id
+        if (!id) {
+            return
+        }
         EventActions.getEvent(id)
             .then(event => {
                 this.event = event
@@ -83,7 +86,7 @@ class EventEditor extends Component {
                 let start_date = new Date(event.start_date)
                 let end_date = new Date(event.end_date)
                 this.setState({
-                    hasImage: !!this.event.Image,
+                    hasImage: !!this.event.image,
                     tags: event.tags,
                     startDate: start_date,
                     startTime: start_date,
@@ -94,26 +97,14 @@ class EventEditor extends Component {
             .catch(error => {
                 console.error(error)
             })
-        //let locale = this.props.router.location.query.l
-        /*
-        EventActions.getSnapshot(id, locale, (function(snapshot) {
-            this.event = snapshot
-            let date = new Date(this.event.Date)
-            this.setState({
-                hasImage: !!this.event.Image,
-                datePickerVal: date,
-                timePickerVal: date
-            })
-        }).bind(this), this.pending ? 'approvalQueue' : 'events')
-        */
     }
 
     onImageInput(e) {
         let newImage = e.target.files[0]
         let fr = new FileReader()
         fr.onload = ((e) => {
-            let old = this.event.Image || null
-            this.event.Image = fr.result
+            let old = this.event.image || null
+            this.event.image = fr.result
             this.setState({
                 changedSinceSave: true,
                 newImage: newImage,
@@ -142,19 +133,6 @@ class EventEditor extends Component {
             .catch(error => {
                 console.error('Deletion failed')
             })
-        /*let ref = EventActions.getRef(event.key, this.state.locale)
-        ref.remove()
-            .then(() => {
-                State.router.push({
-                    pathname: 'locale',
-                    query: {
-                        l: this.state.locale
-                    }
-                })
-            })
-            .catch(() => {
-                console.log('Deletion failed')
-            })*/
     }
 
     onSave() {
@@ -164,7 +142,22 @@ class EventEditor extends Component {
         if (Object.keys(modifications).length) {
             EventActions.updateEvent(event.id, modifications)
                 .then(updated => {
+                    let oldEvent = Object.assign({}, event)
                     event = this.event = updated
+                    if (this.state.newImage) {
+                        // delete old image
+                        // upload new image
+                        // set state on promise resolution
+                        // this.setState({
+                        //     changedSinceSave: false,
+                        //     newImage: false,
+                        //     newImageURL: null,
+                        //     oldImageURL: null,
+                        //     hasImage: true,
+                        //     editingText: false,
+                        //     modifications: {}
+                        //})
+                    }
                     this.setState({
                         changedSinceSave: false,
                         modifications: {},
@@ -175,139 +168,20 @@ class EventEditor extends Component {
                     console.error(error)
                 })
         }
-        // TODO handle images, tags
-        /*if (this.state.newImage) {
-            if (this.state.hasImage) {
-                // delete old image
-                let oldURL = this.state.oldImageURL
-                let oldImageName = oldURL.substring(oldURL.lastIndexOf('/EventImages%2F') + 15)
-                oldImageName = oldImageName.substring(0, oldImageName.indexOf('?'))
-                let oldImageRef = StorageActions.getEventImageRef(oldImageName)
-                StorageActions.deleteEventImage(oldImageRef, (success) => {
-                    if (success) {
-                        console.log('Delete old image: ' + oldImageName)
-                    } else {
-                        console.log('Failed to delete old image: ' + oldImageName)
-                    }
-                })
-            }
-
-            //upload new image
-            StorageActions.uploadEventImage(newImage, (url) => {
-                // update event to use new image url
-                let eventRef = EventActions.getRef(event.key, this.state.locale)
-                let changes = this.state.modifications
-                changes.Image = url
-                eventRef.update(changes).then(() => {
-                    console.log('Reference updated')
-                    // update local copy
-                    for (let field in changes) {
-                        this.event[field] = changes[field]
-                    }
-
-                    // if locale has changed, move event, redirect
-                    if (this.state.locale !== event.City) {
-                        EventActions.moveEvent(event, this.state.locale, event.City, (success, event, newRef) => {
-                            if (!success) {
-                                console.log('Failed to move event to new locale')
-                                return
-                            }
-                            // redirect to editor for newly moved event
-                            State.router.push({
-                                pathname: 'edit',
-                                query: {
-                                    id: newRef.key,
-                                    l: event.City
-                                },
-                                state: event
-                            })
-                        })
-                    } else {
-                        this.setState({
-                            changedSinceSave: false,
-                            newImage: false,
-                            newImageURL: null,
-                            oldImageURL: null,
-                            hasImage: true,
-                            editingText: false,
-                            modifications: {}
-                        })
-                    }
-                }).catch((error) => {
-                    console.log('Failed to update event')
-                })
-            })
-        } else {
-            if (Object.keys(this.state.modifications).length) {
-                let eventRef = EventActions.getRef(event.key, this.state.locale)
-                let changes = this.state.modifications
-                changes.Sort_Date = event.Date
-                eventRef.update(changes).then(() => {
-                    console.log('Reference updated')
-                    //update local copy
-                    for (let field in changes) {
-                        this.event[field] = changes[field]
-                    }
-
-                    // if locale has changed, move event, redirect
-                    if (this.state.locale !== event.City) {
-                        EventActions.moveEvent(event, this.state.locale, event.City, (success, event, newRef) => {
-                            if (!success) {
-                                console.log('Failed to move event to new locale')
-                                return
-                            }
-                            // redirect to editor for newly moved event
-                            State.router.push({
-                                pathname: 'edit',
-                                query: {
-                                    id: newRef.key,
-                                    l: event.City
-                                },
-                                state: event
-                            })
-                        })
-                    } else {
-                        this.setState({
-                            changedSinceSave: false,
-                            editingText: false,
-                            modifications: {}
-                        })
-                    }
-                }).catch((error) => {
-                    console.log('Failed to update event')
-                })
-            }
-
-            EventActions.setTags(event.key, this.state.tags, success => {
-                if (!Object.keys(this.state.modifications).length) {
-                    this.setState({
-                        changedSinceSave: false,
-                        editingText: false,
-                        modifications: {}
-                    })
-                }
-            })
-        }*/
     }
 
     onApprove() {
         // Copy new event to event table from approval queue
         let potentialEvent = this.event
-        let key = potentialEvent.key
-        delete potentialEvent.key
-        if (this.pending) {
-            delete potentialEvent.Tags
-        }
         this.setState({
             showProgress: true
         })
-        EventActions.createEvent(potentialEvent, potentialEvent.City, (success, event, ref) => {
+        /*EventActions.createEvent(potentialEvent, potentialEvent.City, (success, event, ref) => {
             if (success) {
                 // redirect to regular event editor page for this event
                 event.key = ref.key
                 
                 // set tags on created event
-                EventActions.setTags(event.key, this.state.tags)
 
                 // mark approved
                 EventActions.get('approvalQueue/' + key)
@@ -319,8 +193,7 @@ class EventEditor extends Component {
                 State.router.push({
                     pathname: 'edit',
                     query: {
-                        id: event.key,
-                        l: event.City
+                        id: event.id,
                     },
                     state: event
                 })
@@ -343,16 +216,16 @@ class EventEditor extends Component {
                 console.error('Failed to create event:')
                 console.error(JSON.stringify(potentialEvent, null, '\t'))
             }
-        })
+        })*/
     }
 
     onDeny() {
         let potentialEvent = this.event
-        let key = potentialEvent.key
+        /*let key = potentialEvent.key
         EventActions.get('approvalQueue/' + key)
             .update({
                 approvalStatus: 'denied'
-            })
+            })*/
         State.router.push('/pending')
     }
 
@@ -389,8 +262,10 @@ class EventEditor extends Component {
     }
 
     handleTagsChange(values) {
+        let modifications = this.state.modifications
+        modifications.tags = values
         this.setState({
-            tags: values,
+            modfications: modifications,
             changedSinceSave: true
         })
     }
@@ -398,7 +273,7 @@ class EventEditor extends Component {
     clearChanges() {
         if (!this.state.editingText) {
             if (this.state.oldImageURL) {
-                this.event.Image = this.state.oldImageURL
+                this.event.image = this.state.oldImageURL
             }
             this.setState({
                 changedSinceSave: false,
@@ -438,7 +313,7 @@ class EventEditor extends Component {
 
     handleLocaleChange(value) {
         let modifications = this.state.modifications
-        modifications.City = value
+        modifications.locale_id = value
         this.setState({
             changedSinceSave: true,
             modfications: modifications
@@ -617,7 +492,7 @@ class EventEditor extends Component {
                     floatingLabelText="Locale"
                     disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
-                    defaultValue={modifications.locale ? modifications.locale.name : event.locale.name}
+                    defaultValue={modifications.locale_id ? modifications.locale_id : event.locale.id}
                     onChange={this.handleLocaleChange.bind(this)} />
                 <TextField
                     id="status"
@@ -640,7 +515,7 @@ class EventEditor extends Component {
                     fullWidth={true}
                     disabled={!this.state.editingText || this.pending}
                     onChange={this.handleTagsChange.bind(this)}
-                    defaultValue={this.state.tags || []} />
+                    defaultValue={event.tags || []} />
             </div>
         ) : null
 
@@ -650,7 +525,7 @@ class EventEditor extends Component {
                     title={'Edit Event'}
                     subtitle={subtitleText} />
                 {cardImage}
-                {!this.state.editingText && !event.Image && header}
+                {!this.state.editingText && !event.image && header}
                 {!this.state.editingText && chooseImageButton}
                 {body}
                 {this.state.showProgress && <LinearProgress mode="indeterminate" />}

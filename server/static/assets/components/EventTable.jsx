@@ -47,6 +47,9 @@ class EventTable extends React.Component {
 	}
 
 	componentDidMount() {
+		if (!this.props.router.location.query.l) {
+			return
+		}
 		this.loadEvents.call(this)
 	}
 
@@ -56,6 +59,9 @@ class EventTable extends React.Component {
 			loading: true,
 			locale: this.props.router.location.query.l
 		})
+		if (!this.props.router.location.query.l) {
+			return
+		}
 		this.loadEvents.call(this)
 	}
 

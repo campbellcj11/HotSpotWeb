@@ -61,8 +61,10 @@ export default class EventCreator extends Component {
             tags: [],
             imageName: null,
             image: null,
-            datePickerVal: new Date(),
-            timePickerVal: new Date()
+            startDate: new Date(),
+            startTime: new Date(),
+            endDate: new Date(),
+            endTime: new Date()
         }
     }
 
@@ -91,33 +93,35 @@ export default class EventCreator extends Component {
 
     handleLocaleChange(value) {
         let event = this.state.potentialEvent
-        event.City = value
+        event.locale_id = value
         this.setState({
             potentialEvent: event
         })
     }
 
     handleTagsChange(values) {
+        let event = this.state.potentialEvent
+        event.tags = values
         this.setState({
-            tags: values
+            potentialEvent: event
         })
     }
 
-    handleDateChange(e, date) {
+    handleDateChange(tag, e, date) {
         this.setState({
-            datePickerVal: date
+            [tag + 'Date']: date
         })
-        this.mergeTimeAndDate(date, this.state.timePickerVal)
+        this.mergeTimeAndDate(tag, date, this.state[tag + 'Time'])
     }
 
-    handleTimeChange(e, time) {
+    handleTimeChange(tag, e, time) {
         this.setState({
-            timePickerVal: time
+            [tag + 'Time']: time
         })
-        this.mergeTimeAndDate(this.state.datePickerVal, time)
+        this.mergeTimeAndDate(tag, this.state[tag + 'Date'], time)
     }
 
-    mergeTimeAndDate(date, time) {
+    mergeTimeAndDate(tag, e, date, time) {
         let event = this.state.potentialEvent
         // TODO consider using UTC values for better cross region compatibility
         let merged = new Date(
@@ -128,7 +132,7 @@ export default class EventCreator extends Component {
             time.getMinutes(),
             0 // no seconds
         )
-        event.Date = merged.getTime()
+        event[tag + '_date'] = merged.getTime()
         this.setState({
             potentialEvent: event
         })
@@ -138,64 +142,21 @@ export default class EventCreator extends Component {
         this.setState({
             showProgress: true
         })
-        let check = this.verify()
         let potentialEvent = this.state.potentialEvent
-        if (check.succeeded) {
-            StorageActions.uploadEventImage(this.state.image, (url) => {
-                potentialEvent.Image = url
-                EventActions.createEvent(potentialEvent, potentialEvent.City, (success, event, ref) => {
-                    if (success) {
-                        event.key = ref.key
-
-                        // set tags
-                        EventActions.setTags(event.key, this.state.tags)
-                        
-                        // redirect to event editor page for this event
-                        State.router.push({
-                            pathname: 'edit',
-                            query: {
-                                id: event.key,
-                                l: event.City
-                            },
-                            state: event
-                        })
-                    } else {
-                        this.setState({
-                            showProgress: false
-                        })
-                        // report failure
-                        console.error('Failed to create event:')
-                        console.error(JSON.stringify(potentialEvent, null, '\t'))
-                        // delete image
-                        let imageName = url.substring(url.lastIndexOf('/EventImages%2F') + 15)
-                        imageName = imageName.substring(0, imageName.indexOf('?'))
-                        let imageRef = StorageActions.getEventImageRef(imageName)
-                        StorageActions.deleteEventImage(imageRef, (success, event) => {
-                            if (success) {
-                                console.log('Delete image from failed commit: ' + imageName)
-                            } else {
-                                console.log('Failed to delete image: ' + imageName)
-                            }
-                        })
+        // create event
+        EventActions.createEvent(potentialEvent)
+            .then(createdEvent => {
+                // TODO upload image .then redirect
+                State.router.push({
+                    pathname: 'edit',
+                    query: {
+                        id: createEvent.id
                     }
                 })
             })
-        } else {
-            // else update editor to show errors TODO
-            console.error('Event not verified:')
-            console.error(JSON.stringify(potentialEvent, null, '\t'))
-            this.setState({
-                showProgress: false
+            .catch(error => {
+                console.error(error)
             })
-        }
-    }
-
-    //TODO verify event
-    // if not verified, return error information
-    verify() {
-        return {
-            succeeded: true
-        }
     }
 
     render() {
@@ -228,81 +189,81 @@ export default class EventCreator extends Component {
                 </div>
                 <div style={styles.fields}>
                     <TextField
-                        id="Event_Name"
+                        id="name"
                         floatingLabelText="Event Name"
                         fullWidth={true}
                         multiLine={true}
                         onChange={this.handleInputChange.bind(this)} />
                     <TextField
-                        id="Address"
+                        id="address"
                         floatingLabelText="Address"
                         fullWidth={true}
                         multiLine={true}
                         onChange={this.handleInputChange.bind(this)} />
                     <DatePicker
-                        id="Date"
-                        floatingLabelText="Date"
+                        floatingLabelText="Start Date"
                         minDate={new Date()}
-                        onChange={this.handleDateChange.bind(this)} />
+                        onChange={this.handleDateChange.bind(this, 'start')} />
                     <TimePicker
-                        id="Time"
-                        floatingLabelText="Time"
+                        floatingLabelText="Start Time"
                         pedantic={true}
-                        onChange={this.handleTimeChange.bind(this)} />
+                        onChange={this.handleTimeChange.bind(this, 'start')} />
+                    <DatePicker
+                        floatingLabelText="End Date"
+                        minDate={new Date()}
+                        onChange={this.handleDateChange.bind(this, 'end')} />
+                    <TimePicker
+                        floatingLabelText="End Time"
+                        pedantic={true}
+                        onChange={this.handleTimeChange.bind(this, 'end')} />
                     <TextField
-                        id="Location"
-                        floatingLabelText="Location"
+                        id="venue_name"
+                        floatingLabelText="Venue Name"
                         fullWidth={true}
                         multiLine={true}
                         onChange={this.handleInputChange.bind(this)} />
                     <TextField
-                        id="Short_Description"
+                        id="short_description"
                         floatingLabelText="Short Description"
                         fullWidth={true}
                         multiLine={true}
                         onChange={this.handleInputChange.bind(this)} />
                     <TextField
-                        id="Long_Description"
+                        id="long_description"
                         floatingLabelText="Long Description"
                         fullWidth={true}
                         multiLine={true}
                         onChange={this.handleInputChange.bind(this)} />
                     <TextField
-                        id="Website"
+                        id="website"
                         floatingLabelText="Website"
                         fullWidth={true}
                         multiLine={true}
                         onChange={this.handleInputChange.bind(this)} />
                     <TextField
-                        id="Email_Contact"
+                        id="email_contact"
                         floatingLabelText="Email Contact"
                         fullWidth={true}
                         multiLine={true}
                         onChange={this.handleInputChange.bind(this)} />
+                    <TextField
+                        id="phone_contact"
+                        floatingLabelText="Phone Contact"
+                        fullWidth={true}
+                        multiLine={true}
+                        onChange={this.handleInputChange.bind(this)} />
                     <LocaleSelect
-                        floatingLabelText="City"
+                        floatingLabelText="Locale"
                         fullWidth={true}
                         onChange={this.handleLocaleChange.bind(this)} />
                     <TextField
-                        id="County"
-                        floatingLabelText="County"
-                        fullWidth={true}
-                        multiLine={true}
-                        onChange={this.handleInputChange.bind(this)} />
-                    <TextField
-                        id="State"
-                        floatingLabelText="State"
-                        fullWidth={true}
-                        multiLine={true}
-                        onChange={this.handleInputChange.bind(this)} />
-                    <TextField
-                        id="Status"
+                        id="status"
                         floatingLabelText="Status"
                         fullWidth={true}
                         multiLine={true}
                         onChange={this.handleInputChange.bind(this)} />
                     <TextField
-                        id="Event_Type"
+                        id="type"
                         floatingLabelText="Type"
                         fullWidth={true}
                         multiLine={true}
@@ -347,21 +308,18 @@ export class LocaleSelect extends Component {
 
     populate() {
         this.locales = []
-        EventActions
-			.get('events')
-			.on('value', (snapshot) => {
-				snapshot.forEach((child) => {
-					let localeName = child.key
-                    this.locales.push(localeName)
-				})
-                if (this.props.defaultValue && this.locales.includes(this.props.defaultValue)) {
+        EventActions.getLocales()
+            .then(locales => {
+                this.locales = locales
+                if (this.props.defaultValue) {
                     this.setState({
                         value: this.props.defaultValue
                     })
                 }
-			}, (error) => {
-				console.log('Read error: ' + error.message)
-			})
+            })
+            .catch(error => {
+                console.error(error)
+            })
     }
 
     handleChange(event, index, value) {
@@ -379,8 +337,8 @@ export class LocaleSelect extends Component {
             options.push((
                 <MenuItem
                     key={index}
-                    value={locale}
-                    primaryText={locale} />
+                    value={locale.id}
+                    primaryText={locale.name + ', ' + locale.state} />
             ))
         })
         
@@ -420,22 +378,17 @@ export class TagSelect extends Component {
     }
 
     populate() {
-        this.tags = []
-        EventActions
-			.get('possibleTags')
-			.on('value', (snapshot) => {
-				snapshot.forEach((child) => {
-					let tag = child.key
-                    this.tags.push(tag)
-				})
-                if (this.props.defaultValue) {
-                    this.setState({
-                        values: this.props.defaultValue
-                    })
-                }
-			}, (error) => {
-				console.log('Read error: ' + error.message)
-			})
+        this.tags = [
+            "Art", "Books", "Causes", "Class", "Comedy", "Community",
+            "Conference", "Dance", "Food", "Health", "Social", "Sport",
+            "Movie", "Music", "Nightlife", "Theater", "Religion",
+            "Shopping", "Other"
+        ]
+        if (this.props.defaultValue) {
+            this.setState({
+                values: this.props.defaultValue
+            })
+        }
     }
 
     handleChange(event, index, values) {

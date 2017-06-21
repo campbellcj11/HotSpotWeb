@@ -86,7 +86,7 @@ class Event(db.Model):
         'locale_id', 'address', 'start_date', 'end_date', 'name',
         'venue_name', 'type', 'short_description', 'long_description',
         'status', 'website', 'image', 'phone_contact', 'email_contact',
-        'price', 'editors_pick'
+        'price', 'editors_pick', 'tags'
     ]
 
     # requires function because favorites can only be backreffed to one table (users in this case)
