@@ -81,12 +81,34 @@ class Event(db.Model):
     tags = db.relationship('Tag', backref='events')
     locale = db.relationship('Locale', uselist=False)
 
+    # non db fields
+    updateable_fields = [
+        'locale_id', 'address', 'start_date', 'end_date', 'name',
+        'venue_name', 'type', 'short_description', 'long_description',
+        'status', 'website', 'image', 'phone_contact', 'email_contact',
+        'price', 'editors_pick'
+    ]
+
+    # requires function because favorites can only be backreffed to one table (users in this case)
+    def get_favorites(self):
+        favs = []
+        for f in Favorite.query.filter(Favorite.event_id == self.id):
+            favs.append(f)
+        return favs
+
     def get_tags(self):
         result = []
         if self.tags != None:
             for t in self.tags:
                 result.append(t.name)
         return result
+
+
+    def set_tags(self, tagStringArray):
+        for tag in self.tags:
+            db.session.delete(tag)
+        for tagName in tagStringArray:
+            db.session.add(Tag(event_id=self.id, name=tagName))
 
     def __repr__(self):
         return '<Event id=%i u%s>' % (self.id, id(self))
@@ -117,9 +139,15 @@ class Event(db.Model):
     def update_from_json(self, json):
         try:
             for key in json:
-                if key == 'start_date' or key == 'end_date':
-                    json[key] = toDateTime(json[key])
-                setattr(self, key, json[key])
+                if key in self.updateable_fields:
+                    if key == 'start_date' or key == 'end_date':
+                        json[key] = toDateTime(json[key])
+                    if key == 'tags':
+                        self.set_tags(json[key])
+                    else:
+                        setattr(self, key, json[key])
+                else:
+                    raise ValueError()
         except:
             raise ValueError('An invalid event field or value was attempted to be set.')
 

@@ -1,8 +1,9 @@
 from flask import request, send_from_directory
 from flask_restful import Resource
 from init import application, api, db, check_token
+from sqlalchemy import sa_exc
 from models import *
-import os
+import os, traceback
 
 """
 Static page routes
@@ -81,6 +82,7 @@ class AdminLocaleEvents(Resource):
             return 'Locale not found', 404
 
 # /event/<int:id>
+# retrieve, update, delete interactions for existing events
 @api.route('/event/<int:id>')
 class CrudEvent(Resource):
     # Get the event with the specified id
@@ -98,12 +100,18 @@ class CrudEvent(Resource):
         event = Event.query.get(id)
         if event != None:
             try:
+                # TODO implement this via cascade relationships in models.py
+                for tag in event.tags:
+                    db.session.delete(tag)
+                for favorite in event.get_favorites():
+                    db.session.delete(favorite)
                 db.session.delete(event)
                 db.session.commit()
                 return {
                     'status': 'SUCCESS'
                 }
-            except:
+            except sa_exc.IntegrityError as error:
+                traceback.print_tb(error.__traceback__)
                 return {
                     'status': 'FAILED'
                 }, 500
@@ -114,7 +122,6 @@ class CrudEvent(Resource):
     @api.login_required
     def put(self, id):
         body = request.get_json()
-        print(body)
         if body != None:
             event = Event.query.get(id)
             if event != None:
@@ -122,12 +129,38 @@ class CrudEvent(Resource):
                     event.update_from_json(body)
                     db.session.commit()
                     return event.client_json()
-                except ValueError:
+                except (ValueError, sa_exc.SQLAlchemyError) as error:
+                    traceback.print_tb(error.__traceback__)
                     return 'Invalid parameters', 400
             else:
                 return 'Event not found', 404
         else:
             return 'Missing request body', 400
+
+# /createEvent
+# Create a new event from the request parameters
+@api.route('/createEvent')
+class CreateEvent(Resource):
+    @api.login_required ## admin too
+    def post(self):
+        body = request.get_json()
+        if body != None:
+            tags = []
+            if 'tags' in body:
+                tags = body.pop('tags')
+            event = Event()
+            try:
+                event.update_from_json(body)
+                db.session.add(event)
+                db.session.commit()
+                event.set_tags(tags)
+                db.session.commit()
+                return event.client_json()
+            except sa_exc.SQLAlchemyError as error:
+                traceback.print_tb(error.__traceback__)
+                return 'Failed to create event', 400
+        else:
+            return 'Missing request body', 404
 
 
 if __name__ == '__main__':
