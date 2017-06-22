@@ -13,8 +13,10 @@ import {
 	TableRowColumn,
 	CircularProgress,
 	Card,
-	CardTitle
+	CardTitle,
+	Divider
 } from 'material-ui';
+import Pagination from 'materialui-pagination'
 import EventActions from '../actions/eventActions'
 import {State} from './ApplicationState'
 import {global as globalStyles} from '../Styles'
@@ -36,7 +38,14 @@ class EventTable extends React.Component {
 		
 		this.state = {
 			events: [],
-			loading: true
+			loading: true,
+		}
+
+		this.pagination = {
+			rowsPerPage: [10, 20, 50],
+			numberOfRows: 20,
+			page: 1,
+			total: undefined
 		}
 
 		if (this.props.router) {
@@ -50,34 +59,55 @@ class EventTable extends React.Component {
 		if (!this.props.router.location.query.l && !this.props.pending) {
 			return
 		}
+		this.loadEvents.call(this, this.props.router.location.query.l)
+	}
+
+	loadEvents(id, props) {
 		this.setState({
 			loading: true,
 			locale: this.props.router.location.query.l
 		})
-		this.loadEvents.call(this)
-	}
-
-	loadEvents() {
+		if (props) {
+			Object.assign(this.pagination, props)
+		}
 		if (!this.props.pending) {
 			if (this.mode == 'potential') {
 				this.addEventArray(this.props.potentialEvents)
 			} else {
-				EventActions.getLocaleEvents(this.props.router.location.query.l)
-					.then(events => {
-						this.addEventArray(events)
-					})
-					.catch(error => {
-						console.error(error)
-					})
-			}
-		} else {
-			EventActions.getPendingEvents()
-				.then(events => {
-					this.addEventArray(events)
+				EventActions.getEvents({
+					sortBy: 'start_date',
+					pageNumber: this.pagination.page,
+					pageSize: this.pagination.numberOfRows,
+					count: true,
+					query: [{
+						field: 'locale_id',
+						value: this.state.locale || id
+					}]
+				}).then(response => {
+					this.pagination.total = response.count
+					this.addEventArray(response.events)
 				})
 				.catch(error => {
 					console.error(error)
 				})
+			}
+		} else {
+			EventActions.getEvents({
+				sortBy: 'start_date',
+				pageNumber: this.pagination.page,
+				pageSize: this.pagination.numberOfRows,
+				count: true,
+				query: [{
+					field: 'status',
+					value: 'pending'
+				}]
+			}).then(response => {
+				this.pagination.total = response.count
+				this.addEventArray(response.events)
+			})
+			.catch(error => {
+				console.error(error)
+			})
 		}
 	}
 
@@ -132,6 +162,14 @@ class EventTable extends React.Component {
 						title="Manage Events"
 						subtitle="View and edit pre-existing events" />
 					)}
+					<Pagination
+							total={this.pagination.total}
+							rowsPerPage={this.pagination.rowsPerPage}
+							page={this.pagination.page}
+							numberOfRows={this.pagination.numberOfRows}
+							updateRows={this.loadEvents.bind(this, this.state.locale)}
+					/>
+					<Divider/>
 					<Table multiSelectable={false} onRowSelection={this.handleRowSelection.bind(this)}>
 						<TableHeader enableSelectAll={false} displaySelectAll={!this.props.potentialEvents}>
 							<TableRow>
@@ -146,6 +184,14 @@ class EventTable extends React.Component {
 							{rows}
 						</TableBody>
 					</Table>
+					<Divider/>
+					<Pagination
+							total={this.pagination.total}
+							rowsPerPage={this.pagination.rowsPerPage}
+							page={this.pagination.page}
+							numberOfRows={this.pagination.numberOfRows}
+							updateRows={this.loadEvents.bind(this, this.state.locale)}
+					/>
 				</Card>
 			)
 		} else {

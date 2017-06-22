@@ -170,6 +170,7 @@ class CreateEvent(Resource):
         "sortOrder": {string}, default 'ASC' if sortBy is given,
         "pageSize": {int} default 50, page size,
         "pageNumber": {int} default 1, page number,
+        "count": {boolean} whether to return the number of total results, useful when paginating
         "query": [
             {
                 "field": {string}, field name,
@@ -198,10 +199,20 @@ class EventQueries(Resource):
             query = self.construct_query(query, body['query'])
             # sort
             query = self.sort(query, body)
+            # get count (before pagination)
+            count = query.count()
             # paginate
             query = self.paginate(query, body)
-            # return event json array
-            return [q.client_json() for q in list(query.all())]
+            # create result array
+            results = [q.client_json() for q in list(query.all())]
+            # if count, return number of results in addition to array
+            if 'count' in body and body['count']:
+                return {
+                    "count": count,
+                    "events": results
+                }
+            else: # else return event json array
+                return results
         except ValueError as error:
             return {
                 'error': str(error)

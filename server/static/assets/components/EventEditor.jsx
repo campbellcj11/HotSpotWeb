@@ -312,7 +312,7 @@ class EventEditor extends Component {
                     titleColor={event.image ? '#fff' : '#000'}
                     subtitle={event.short_description}
                     subtitleColor={event.image ? '#ccc' : '#333'} />
-                {this.props.pending && event.restrictions && (
+                {this.pending && event.restrictions && (
                     <CardText color="red">
                         event.restrictions
                     </CardText>
