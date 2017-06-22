@@ -76,6 +76,7 @@ class Event(db.Model):
     email_contact = db.Column(db.String)
     price = db.Column(db.Float, default=0)
     editors_pick = db.Column(db.Boolean, default=False)
+    restrictions = db.Column(db.String)
 
     # relationships
     tags = db.relationship('Tag', backref='events')
@@ -133,7 +134,8 @@ class Event(db.Model):
             'editors_pick': self.editors_pick,
             'tags': self.get_tags(),
             'locale': self.locale.client_json(),
-            'status': self.status
+            'status': self.status,
+            'restrictions': self.restrictions
         }
 
     def update_from_json(self, json):
