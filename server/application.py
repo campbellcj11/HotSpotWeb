@@ -305,7 +305,8 @@ App specific queries
 
 # /launch
 
-# /toggleFavorite (also increment decrement interested count of event)
+# /toggleFavorite
+# also increments decrement interested count of event
 @api.route('/toggleFavorite')
 class ToggleFavorite(Resource):
     @api.login_required
@@ -344,14 +345,46 @@ class ToggleFavorite(Resource):
             except sqlalchemy.exc.IntegrityError as error:
                 traceback.print_tb(error.__traceback__)
                 return {
-                    "error": str(error)
+                    'error': str(error)
                 }
         else:
-            return 'Missing required parameters', 400
+            return {
+                'error': 'Missing required parameters'
+            }, 400
 
 # /getFavorites ?? paginate
 
 # /setUserLocales
+@api.route('/setUserLocales/<int:id>')
+class SetUserLocales(Resource):
+    @api.login_required
+    def post(self, id):
+        body = request.get_json()
+        user = User.query.get(id)
+        if user != None:
+            try:
+                self.verify_locale_array(body)
+                user.locales = body
+                db.session.commit()
+                return 'success'
+            except (ValueError, sqlalchemy.exc.IntegrityError) as error:
+                traceback.print_tb(error.__traceback__)
+                return {
+                    'error': str(error)
+                }
+        else:
+            return {
+                'error': 'User not found'
+            }, 404
+
+    def verify_locale_array(self, array):
+        if len(array) > 0:
+            for l_id in array:
+                if Locale.query.get(l_id) == None:
+                    raise ValueError('Locale not found: {}'.format(l_id))
+        else:
+            raise ValueError('At least one locale must be specified')
+
 
 # /setUserInterests
 
