@@ -56,7 +56,7 @@ TODO figure out which of these ought to actually be restricted to admin
 # Get all locales for display in the admin panel
 @api.route('/admin/locales')
 class AdminLocales(Resource):
-    @api.login_required ## TODO add requires admin role
+    @api.login_required
     def get(self):
         result = []
         for l in Locale.query.all():
@@ -64,8 +64,8 @@ class AdminLocales(Resource):
         return result
 
 # /admin/localeEvents/<int:id>
-# Get all events for the locale specified by the locale id
-# TODO paginate this, add pageNum url param
+# Get all events for the locale specified by the locale id (excludes pending event)
+# For more complex queries, use /getEvents
 @api.route('/admin/localeEvents/<int:id>')
 class AdminLocaleEvents(Resource):
     @api.login_required
@@ -73,7 +73,7 @@ class AdminLocaleEvents(Resource):
         result = []
         locale = Locale.query.get(id)
         if (locale):
-            events = Event.query.filter(Event.locale_id == id)
+            events = Event.query.filter(sqlalchemy.and_(Event.locale_id == id, Event.status == 'active'))
             for e in events:
                 result.append(e.client_json())
             return result
@@ -165,6 +165,7 @@ class CreateEvent(Resource):
 # Syntax:
 """
     {
+        "tags": {string []}, events returned include at least one of these tags
         "sortBy": {string}, field name,
         "sortOrder": {string}, default 'ASC' if sortBy is given,
         "pageSize": {int} default 50, page size,

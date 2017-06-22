@@ -47,7 +47,7 @@ class EventTable extends React.Component {
 	}
 
 	componentDidMount() {
-		if (!this.props.router.location.query.l) {
+		if (!this.props.router.location.query.l && !this.props.pending) {
 			return
 		}
 		this.setState({
@@ -58,15 +58,25 @@ class EventTable extends React.Component {
 	}
 
 	loadEvents() {
-		if (this.mode == 'potential') {
-			this.addEventArray(this.props.potentialEvents)
+		if (!this.props.pending) {
+			if (this.mode == 'potential') {
+				this.addEventArray(this.props.potentialEvents)
+			} else {
+				EventActions.getLocaleEvents(this.props.router.location.query.l)
+					.then(events => {
+						this.addEventArray(events)
+					})
+					.catch(error => {
+						console.error(error)
+					})
+			}
 		} else {
-			EventActions.getLocaleEvents(this.props.router.location.query.l)
+			EventActions.getPendingEvents()
 				.then(events => {
 					this.addEventArray(events)
 				})
 				.catch(error => {
-					console.log(error)
+					console.error(error)
 				})
 		}
 	}
@@ -145,3 +155,9 @@ class EventTable extends React.Component {
 }
 
 export default EventTable
+
+export const EventApprovalTable = props => {
+	return (
+		<EventTable pending={true} {...props} />
+	)
+}

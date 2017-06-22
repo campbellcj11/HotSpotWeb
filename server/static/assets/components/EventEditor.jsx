@@ -171,62 +171,29 @@ class EventEditor extends Component {
     }
 
     onApprove() {
-        // Copy new event to event table from approval queue
-        let potentialEvent = this.event
         this.setState({
             showProgress: true
         })
-        /*EventActions.createEvent(potentialEvent, potentialEvent.City, (success, event, ref) => {
-            if (success) {
-                // redirect to regular event editor page for this event
-                event.key = ref.key
-                
-                // set tags on created event
-
-                // mark approved
-                EventActions.get('approvalQueue/' + key)
-                    .update({
-                        approvalStatus: 'approved'
-                    })
-                
-                // redirect and reset state
-                State.router.push({
-                    pathname: 'edit',
-                    query: {
-                        id: event.id,
-                    },
-                    state: event
-                })
-                this.pending = false
-                this.setState({
-                    schangedSinceSave: false,
-                    locale: this.props.router.location.query.l,
-                    newImageURL: null,
-                    oldImageURL: null, //only set when image has been updated but not yet committed
-                    editingText: false,
-                    modifications: {},
-                    tags: [],
-                    showProgress: false
-                })
-            } else {
+        EventActions.updateEvent(this.event.id, { status: 'active' })
+            .then(event => {
+                this.setState({event})
+            })
+            .catch(error => {
+                console.error(error)
                 this.setState({
                     showProgress: false
                 })
-                // report failure
-                console.error('Failed to create event:')
-                console.error(JSON.stringify(potentialEvent, null, '\t'))
-            }
-        })*/
+            })
     }
 
     onDeny() {
-        let potentialEvent = this.event
-        /*let key = potentialEvent.key
-        EventActions.get('approvalQueue/' + key)
-            .update({
-                approvalStatus: 'denied'
-            })*/
-        State.router.push('/pending')
+        EventActions.updateEvent(this.event.id, { status: 'denied' })
+            .then(event => {
+                State.router.push('/pending')
+            })
+            .catch(error => {
+                console.error(error)
+            })
     }
 
     handleDateChange(tag, e, date) {
@@ -345,6 +312,11 @@ class EventEditor extends Component {
                     titleColor={event.image ? '#fff' : '#000'}
                     subtitle={event.short_description}
                     subtitleColor={event.image ? '#ccc' : '#333'} />
+                {this.props.pending && event.restrictions && (
+                    <CardText color="red">
+                        event.restrictions
+                    </CardText>
+                )}
             </div>
         )
 

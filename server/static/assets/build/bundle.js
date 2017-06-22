@@ -69,7 +69,7 @@
 	
 	var _Main2 = _interopRequireDefault(_Main);
 	
-	var _reactTapEventPlugin = __webpack_require__(/*! react-tap-event-plugin */ 626);
+	var _reactTapEventPlugin = __webpack_require__(/*! react-tap-event-plugin */ 625);
 	
 	var _reactTapEventPlugin2 = _interopRequireDefault(_reactTapEventPlugin);
 	
@@ -22437,23 +22437,19 @@
 	
 	var _EventTable2 = _interopRequireDefault(_EventTable);
 	
-	var _EventApprovalTable = __webpack_require__(/*! ./EventApprovalTable */ 620);
-	
-	var _EventApprovalTable2 = _interopRequireDefault(_EventApprovalTable);
-	
-	var _UploadForm = __webpack_require__(/*! ./UploadForm */ 621);
+	var _UploadForm = __webpack_require__(/*! ./UploadForm */ 620);
 	
 	var _UploadForm2 = _interopRequireDefault(_UploadForm);
 	
-	var _EventEditor = __webpack_require__(/*! ./EventEditor */ 623);
+	var _EventEditor = __webpack_require__(/*! ./EventEditor */ 622);
 	
 	var _EventEditor2 = _interopRequireDefault(_EventEditor);
 	
-	var _EventCreator = __webpack_require__(/*! ./EventCreator */ 624);
+	var _EventCreator = __webpack_require__(/*! ./EventCreator */ 623);
 	
 	var _EventCreator2 = _interopRequireDefault(_EventCreator);
 	
-	var _Login = __webpack_require__(/*! ./Login */ 625);
+	var _Login = __webpack_require__(/*! ./Login */ 624);
 	
 	var _Login2 = _interopRequireDefault(_Login);
 	
@@ -22547,10 +22543,7 @@
 			component: _EventTable2.default
 		}, {
 			path: 'pending',
-			component: _EventApprovalTable2.default
-		}, {
-			path: 'import',
-			component: _UploadForm2.default
+			component: _EventTable.EventApprovalTable
 		}, {
 			path: 'create',
 			component: _EventCreator2.default
@@ -70427,18 +70420,6 @@
 				), _react2.default.createElement(
 					_materialUi.MenuItem,
 					{
-						key: 3,
-						value: 'import',
-						disabled: true,
-						leftIcon: _react2.default.createElement(
-							'i',
-							{ className: 'material-icons' },
-							'file_upload'
-						) },
-					'Import'
-				), _react2.default.createElement(
-					_materialUi.MenuItem,
-					{
 						key: 4,
 						value: 'create',
 						leftIcon: _react2.default.createElement(
@@ -72015,6 +71996,9 @@
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
+	exports.EventApprovalTable = undefined;
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
@@ -72080,7 +72064,7 @@
 		_createClass(EventTable, [{
 			key: 'componentDidMount',
 			value: function componentDidMount() {
-				if (!this.props.router.location.query.l) {
+				if (!this.props.router.location.query.l && !this.props.pending) {
 					return;
 				}
 				this.setState({
@@ -72094,13 +72078,21 @@
 			value: function loadEvents() {
 				var _this2 = this;
 	
-				if (this.mode == 'potential') {
-					this.addEventArray(this.props.potentialEvents);
+				if (!this.props.pending) {
+					if (this.mode == 'potential') {
+						this.addEventArray(this.props.potentialEvents);
+					} else {
+						_eventActions2.default.getLocaleEvents(this.props.router.location.query.l).then(function (events) {
+							_this2.addEventArray(events);
+						}).catch(function (error) {
+							console.error(error);
+						});
+					}
 				} else {
-					_eventActions2.default.getLocaleEvents(this.props.router.location.query.l).then(function (events) {
+					_eventActions2.default.getPendingEvents().then(function (events) {
 						_this2.addEventArray(events);
 					}).catch(function (error) {
-						console.log(error);
+						console.error(error);
 					});
 				}
 			}
@@ -72232,251 +72224,12 @@
 	}(_react2.default.Component);
 	
 	exports.default = EventTable;
+	var EventApprovalTable = exports.EventApprovalTable = function EventApprovalTable(props) {
+		return _react2.default.createElement(EventTable, _extends({ pending: true }, props));
+	};
 
 /***/ }),
 /* 620 */
-/*!**************************************************!*\
-  !*** ./assets/components/EventApprovalTable.jsx ***!
-  \**************************************************/
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(/*! react */ 2);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _materialUi = __webpack_require__(/*! material-ui */ 243);
-	
-	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 617);
-	
-	var _eventActions2 = _interopRequireDefault(_eventActions);
-	
-	var _ApplicationState = __webpack_require__(/*! ./ApplicationState */ 615);
-	
-	var _Styles = __webpack_require__(/*! ../Styles */ 618);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Modified event table that draws its events from the event approvalQueue
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * in firebase that are awaiting administrator approval.
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
-	
-	var styles = {
-		progressContainer: {
-			width: '100%',
-			position: 'relative'
-		},
-		loadIndicator: {
-			marginLeft: '50%',
-			left: '-20px'
-		}
-	};
-	
-	var EventApprovalTable = function (_React$Component) {
-		_inherits(EventApprovalTable, _React$Component);
-	
-		function EventApprovalTable(props) {
-			_classCallCheck(this, EventApprovalTable);
-	
-			var _this = _possibleConstructorReturn(this, (EventApprovalTable.__proto__ || Object.getPrototypeOf(EventApprovalTable)).call(this, props));
-	
-			_this.state = {
-				events: [],
-				loading: true
-			};
-	
-			_this.mode = 'pending';
-	
-			_this.addEvent.bind(_this);
-			_this.removeEvent.bind(_this);
-			return _this;
-		}
-	
-		_createClass(EventApprovalTable, [{
-			key: 'componentDidMount',
-			value: function componentDidMount() {
-				this.loadEvents.call(this, this.props);
-			}
-		}, {
-			key: 'componentWillReceiveProps',
-			value: function componentWillReceiveProps(nextProps) {
-				this.mode = this.props.router.location.query.mode || 'pending';
-				this.setState({
-					loading: true
-				});
-				this.loadEvents.call(this);
-			}
-		}, {
-			key: 'loadEvents',
-			value: function loadEvents(props) {
-				_eventActions2.default.getAllSnapshots(function (collection) {
-					var eventArray = [];
-					Object.keys(collection).forEach(function (key, index) {
-						var event = collection[key];
-						event.key = key;
-						if (event.approvalStatus !== 'approved' && event.approvalStatus !== 'denied') {
-							eventArray.push(event);
-						}
-					});
-					this.addEventArray(eventArray);
-				}.bind(this), 'approvalQueue');
-			}
-		}, {
-			key: 'addEventArray',
-			value: function addEventArray(eventArray) {
-				this.setState({
-					events: eventArray,
-					loading: false
-				});
-			}
-		}, {
-			key: 'addEvent',
-			value: function addEvent(event, key) {
-				event.key = key;
-				this.setState({
-					events: this.state.events.concat(event)
-				});
-			}
-		}, {
-			key: 'removeEvent',
-			value: function removeEvent(event) {}
-		}, {
-			key: 'handleRowSelection',
-			value: function handleRowSelection(selectedRows) {
-				var index = selectedRows[0];
-				var event = this.state.events[index];
-				_ApplicationState.State.router.push({
-					pathname: 'edit',
-					query: {
-						id: event.key,
-						pending: true
-					},
-					state: event
-				});
-			}
-		}, {
-			key: 'render',
-			value: function render() {
-				var screenWidth = _ApplicationState.State.get('screenWidth');
-				if (!this.props.potentialEvents && this.state.loading) {
-					return _react2.default.createElement(
-						'div',
-						{ style: styles.progressContainer },
-						_react2.default.createElement(_materialUi.CircularProgress, {
-							size: 40,
-							style: styles.loadIndicator })
-					);
-				}
-				if (this.state.events.length) {
-					var rows = [];
-					this.state.events.forEach(function (event, index) {
-						var d = new Date(event.Date);
-						rows.push(_react2.default.createElement(
-							_materialUi.TableRow,
-							{ key: event.key },
-							_react2.default.createElement(
-								_materialUi.TableRowColumn,
-								null,
-								event.Event_Name
-							),
-							_react2.default.createElement(
-								_materialUi.TableRowColumn,
-								null,
-								d.toLocaleDateString() + ' ' + d.toLocaleTimeString()
-							),
-							screenWidth == 'large' && _react2.default.createElement(
-								_materialUi.TableRowColumn,
-								null,
-								event.Location
-							),
-							screenWidth == 'large' && _react2.default.createElement(
-								_materialUi.TableRowColumn,
-								null,
-								event.Address
-							),
-							screenWidth == 'large' && _react2.default.createElement(
-								_materialUi.TableRowColumn,
-								null,
-								event.Short_Description
-							)
-						));
-					});
-	
-					//TODO reenable multiSelectable and selectAll
-					return _react2.default.createElement(
-						_materialUi.Card,
-						{ style: _Styles.global.content[screenWidth] },
-						_react2.default.createElement(_materialUi.CardTitle, {
-							title: 'Pending Events',
-							subtitle: 'Manage pending user submitted events' }),
-						_react2.default.createElement(
-							_materialUi.Table,
-							{ multiSelectable: false, onRowSelection: this.handleRowSelection.bind(this) },
-							_react2.default.createElement(
-								_materialUi.TableHeader,
-								{ enableSelectAll: false, displaySelectAll: !this.props.potentialEvents },
-								_react2.default.createElement(
-									_materialUi.TableRow,
-									null,
-									_react2.default.createElement(
-										_materialUi.TableHeaderColumn,
-										null,
-										'Event Name'
-									),
-									_react2.default.createElement(
-										_materialUi.TableHeaderColumn,
-										null,
-										'Date'
-									),
-									screenWidth == 'large' && _react2.default.createElement(
-										_materialUi.TableHeaderColumn,
-										null,
-										'Location'
-									),
-									screenWidth == 'large' && _react2.default.createElement(
-										_materialUi.TableHeaderColumn,
-										null,
-										'Address'
-									),
-									screenWidth == 'large' && _react2.default.createElement(
-										_materialUi.TableHeaderColumn,
-										null,
-										'Description'
-									)
-								)
-							),
-							_react2.default.createElement(
-								_materialUi.TableBody,
-								{ displayRowCheckbox: !this.props.potentialEvents },
-								rows
-							)
-						)
-					);
-				} else {
-					return null;
-				}
-			}
-		}]);
-	
-		return EventApprovalTable;
-	}(_react2.default.Component);
-	
-	exports.default = EventApprovalTable;
-
-/***/ }),
-/* 621 */
 /*!******************************************!*\
   !*** ./assets/components/UploadForm.jsx ***!
   \******************************************/
@@ -72498,7 +72251,7 @@
 	
 	var _EventTable2 = _interopRequireDefault(_EventTable);
 	
-	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 622);
+	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 621);
 	
 	var _storageActions2 = _interopRequireDefault(_storageActions);
 	
@@ -72869,7 +72622,7 @@
 	};
 
 /***/ }),
-/* 622 */
+/* 621 */
 /*!*******************************************!*\
   !*** ./assets/actions/storageActions.jsx ***!
   \*******************************************/
@@ -72934,7 +72687,7 @@
 	exports.default = StorageActions;
 
 /***/ }),
-/* 623 */
+/* 622 */
 /*!*******************************************!*\
   !*** ./assets/components/EventEditor.jsx ***!
   \*******************************************/
@@ -72954,13 +72707,13 @@
 	
 	var _materialUi = __webpack_require__(/*! material-ui */ 243);
 	
-	var _EventCreator = __webpack_require__(/*! ./EventCreator */ 624);
+	var _EventCreator = __webpack_require__(/*! ./EventCreator */ 623);
 	
 	var _eventActions = __webpack_require__(/*! ../actions/eventActions */ 617);
 	
 	var _eventActions2 = _interopRequireDefault(_eventActions);
 	
-	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 622);
+	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 621);
 	
 	var _storageActions2 = _interopRequireDefault(_storageActions);
 	
@@ -73139,62 +72892,28 @@
 	    }, {
 	        key: 'onApprove',
 	        value: function onApprove() {
-	            // Copy new event to event table from approval queue
-	            var potentialEvent = this.event;
+	            var _this5 = this;
+	
 	            this.setState({
 	                showProgress: true
 	            });
-	            /*EventActions.createEvent(potentialEvent, potentialEvent.City, (success, event, ref) => {
-	                if (success) {
-	                    // redirect to regular event editor page for this event
-	                    event.key = ref.key
-	                    
-	                    // set tags on created event
-	                     // mark approved
-	                    EventActions.get('approvalQueue/' + key)
-	                        .update({
-	                            approvalStatus: 'approved'
-	                        })
-	                    
-	                    // redirect and reset state
-	                    State.router.push({
-	                        pathname: 'edit',
-	                        query: {
-	                            id: event.id,
-	                        },
-	                        state: event
-	                    })
-	                    this.pending = false
-	                    this.setState({
-	                        schangedSinceSave: false,
-	                        locale: this.props.router.location.query.l,
-	                        newImageURL: null,
-	                        oldImageURL: null, //only set when image has been updated but not yet committed
-	                        editingText: false,
-	                        modifications: {},
-	                        tags: [],
-	                        showProgress: false
-	                    })
-	                } else {
-	                    this.setState({
-	                        showProgress: false
-	                    })
-	                    // report failure
-	                    console.error('Failed to create event:')
-	                    console.error(JSON.stringify(potentialEvent, null, '\t'))
-	                }
-	            })*/
+	            _eventActions2.default.updateEvent(this.event.id, { status: 'active' }).then(function (event) {
+	                _this5.setState({ event: event });
+	            }).catch(function (error) {
+	                console.error(error);
+	                _this5.setState({
+	                    showProgress: false
+	                });
+	            });
 	        }
 	    }, {
 	        key: 'onDeny',
 	        value: function onDeny() {
-	            var potentialEvent = this.event;
-	            /*let key = potentialEvent.key
-	            EventActions.get('approvalQueue/' + key)
-	                .update({
-	                    approvalStatus: 'denied'
-	                })*/
-	            _ApplicationState.State.router.push('/pending');
+	            _eventActions2.default.updateEvent(this.event.id, { status: 'denied' }).then(function (event) {
+	                _ApplicationState.State.router.push('/pending');
+	            }).catch(function (error) {
+	                console.error(error);
+	            });
 	        }
 	    }, {
 	        key: 'handleDateChange',
@@ -73262,16 +72981,16 @@
 	    }, {
 	        key: 'handleInputChange',
 	        value: function handleInputChange(e) {
-	            var _this5 = this;
+	            var _this6 = this;
 	
 	            var newValue = e.target.value;
 	            var field = e.target.id;
 	            // prevent rapid setState calls when typing
 	            clearTimeout(inputTimeouts[field]);
 	            inputTimeouts[field] = setTimeout(function () {
-	                var modifications = _this5.state.modifications;
+	                var modifications = _this6.state.modifications;
 	                modifications[field] = newValue;
-	                _this5.setState({
+	                _this6.setState({
 	                    changedSinceSave: true,
 	                    modifications: modifications
 	                });
@@ -73311,7 +73030,12 @@
 	                    title: '@ ' + event.venue_name,
 	                    titleColor: event.image ? '#fff' : '#000',
 	                    subtitle: event.short_description,
-	                    subtitleColor: event.image ? '#ccc' : '#333' })
+	                    subtitleColor: event.image ? '#ccc' : '#333' }),
+	                this.props.pending && event.restrictions && _react2.default.createElement(
+	                    _materialUi.CardText,
+	                    { color: 'red' },
+	                    'event.restrictions'
+	                )
 	            );
 	
 	            var cardImage = null;
@@ -73521,7 +73245,7 @@
 	exports.default = EventEditor;
 
 /***/ }),
-/* 624 */
+/* 623 */
 /*!********************************************!*\
   !*** ./assets/components/EventCreator.jsx ***!
   \********************************************/
@@ -73546,7 +73270,7 @@
 	
 	var _eventActions2 = _interopRequireDefault(_eventActions);
 	
-	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 622);
+	var _storageActions = __webpack_require__(/*! ../actions/storageActions */ 621);
 	
 	var _storageActions2 = _interopRequireDefault(_storageActions);
 	
@@ -74010,7 +73734,7 @@
 	}(_react.Component);
 
 /***/ }),
-/* 625 */
+/* 624 */
 /*!*************************************!*\
   !*** ./assets/components/Login.jsx ***!
   \*************************************/
@@ -74280,14 +74004,14 @@
 	exports.default = Login;
 
 /***/ }),
-/* 626 */
+/* 625 */
 /*!**************************************************************!*\
   !*** ./~/react-tap-event-plugin/src/injectTapEventPlugin.js ***!
   \**************************************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {var invariant = __webpack_require__(/*! fbjs/lib/invariant */ 9);
-	var defaultClickRejectionStrategy = __webpack_require__(/*! ./defaultClickRejectionStrategy */ 627);
+	var defaultClickRejectionStrategy = __webpack_require__(/*! ./defaultClickRejectionStrategy */ 626);
 	
 	var alreadyInjected = false;
 	
@@ -74309,14 +74033,14 @@
 	  alreadyInjected = true;
 	
 	  __webpack_require__(/*! react-dom/lib/EventPluginHub */ 47).injection.injectEventPluginsByName({
-	    'TapEventPlugin':       __webpack_require__(/*! ./TapEventPlugin.js */ 628)(shouldRejectClick)
+	    'TapEventPlugin':       __webpack_require__(/*! ./TapEventPlugin.js */ 627)(shouldRejectClick)
 	  });
 	};
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../../process/browser.js */ 4)))
 
 /***/ }),
-/* 627 */
+/* 626 */
 /*!***********************************************************************!*\
   !*** ./~/react-tap-event-plugin/src/defaultClickRejectionStrategy.js ***!
   \***********************************************************************/
@@ -74330,7 +74054,7 @@
 
 
 /***/ }),
-/* 628 */
+/* 627 */
 /*!********************************************************!*\
   !*** ./~/react-tap-event-plugin/src/TapEventPlugin.js ***!
   \********************************************************/
@@ -74357,14 +74081,14 @@
 	
 	"use strict";
 	
-	var EventConstants = __webpack_require__(/*! react-dom/lib/EventConstants */ 629);
+	var EventConstants = __webpack_require__(/*! react-dom/lib/EventConstants */ 628);
 	var EventPluginUtils = __webpack_require__(/*! react-dom/lib/EventPluginUtils */ 49);
 	var EventPropagators = __webpack_require__(/*! react-dom/lib/EventPropagators */ 46);
 	var SyntheticUIEvent = __webpack_require__(/*! react-dom/lib/SyntheticUIEvent */ 80);
-	var TouchEventUtils = __webpack_require__(/*! ./TouchEventUtils */ 630);
+	var TouchEventUtils = __webpack_require__(/*! ./TouchEventUtils */ 629);
 	var ViewportMetrics = __webpack_require__(/*! react-dom/lib/ViewportMetrics */ 81);
 	
-	var keyOf = __webpack_require__(/*! fbjs/lib/keyOf */ 631);
+	var keyOf = __webpack_require__(/*! fbjs/lib/keyOf */ 630);
 	var topLevelTypes = EventConstants.topLevelTypes;
 	
 	var isStartish = EventPluginUtils.isStartish;
@@ -74510,7 +74234,7 @@
 
 
 /***/ }),
-/* 629 */
+/* 628 */
 /*!*******************************************!*\
   !*** ./~/react-dom/lib/EventConstants.js ***!
   \*******************************************/
@@ -74609,7 +74333,7 @@
 	module.exports = EventConstants;
 
 /***/ }),
-/* 630 */
+/* 629 */
 /*!*********************************************************!*\
   !*** ./~/react-tap-event-plugin/src/TouchEventUtils.js ***!
   \*********************************************************/
@@ -74660,7 +74384,7 @@
 
 
 /***/ }),
-/* 631 */
+/* 630 */
 /*!*****************************!*\
   !*** ./~/fbjs/lib/keyOf.js ***!
   \*****************************/

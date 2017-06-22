@@ -34,8 +34,7 @@ import getMuiTheme from 'material-ui/styles/getMuiTheme'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 // First Party
 import LocaleTable from './LocaleTable'
-import EventTable from './EventTable'
-import EventApprovalTable from './EventApprovalTable'
+import EventTable, { EventApprovalTable } from './EventTable'
 import UploadForm from './UploadForm'
 import EventEditor from './EventEditor'
 import EventCreator from './EventCreator'
@@ -96,10 +95,6 @@ const routes = {
 		{
 			path: 'pending',
 			component: EventApprovalTable
-		},
-		{
-			path: 'import',
-			component: UploadForm
 		},
 		{
 			path: 'create',
