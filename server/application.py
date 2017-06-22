@@ -52,33 +52,16 @@ Database oriented routes
 TODO figure out which of these ought to actually be restricted to admin
 """
 
-# /admin/locales
+# /locales
 # Get all locales for display in the admin panel
-@api.route('/admin/locales')
-class AdminLocales(Resource):
+@api.route('/locales')
+class GetLocales(Resource):
     @api.login_required
     def get(self):
         result = []
         for l in Locale.query.all():
             result.append(l.client_json())
         return result
-
-# /admin/localeEvents/<int:id>
-# Get all events for the locale specified by the locale id (excludes pending event)
-# For more complex queries, use /getEvents
-@api.route('/admin/localeEvents/<int:id>')
-class AdminLocaleEvents(Resource):
-    @api.login_required
-    def get(self, id):
-        result = []
-        locale = Locale.query.get(id)
-        if (locale):
-            events = Event.query.filter(sqlalchemy.and_(Event.locale_id == id, Event.status == 'active'))
-            for e in events:
-                result.append(e.client_json())
-            return result
-        else:
-            return 'Locale not found', 404
 
 # /event/<int:id>
 # retrieve, update, delete interactions for existing events
