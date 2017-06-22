@@ -2,7 +2,7 @@ from flask import request, send_from_directory
 from flask_restful import Resource
 from init import application, api, db, check_token
 from models import *
-import os, traceback, sqlalchemy
+import os, traceback, sqlalchemy, time
 
 """
 Static page routes
@@ -53,7 +53,7 @@ TODO figure out which of these ought to actually be restricted to admin
 """
 
 # /locales
-# Get all locales for display in the admin panel
+# Get all locales as an array
 @api.route('/locales')
 class GetLocales(Resource):
     @api.login_required
@@ -62,6 +62,18 @@ class GetLocales(Resource):
         for l in Locale.query.all():
             result.append(l.client_json())
         return result
+
+# /locale/<int:id>
+# Get the locale by id
+@api.route('/locale/<int:id>')
+class GetLocale(Resource):
+    @api.login_required
+    def get(self, id):
+        locale = Locale.query.get(id)
+        if locale != None:
+            return locale.client_json()
+        else:
+            return 'Locale not found', 404
 
 # /event/<int:id>
 # retrieve, update, delete interactions for existing events
@@ -176,6 +188,7 @@ class EventQueries(Resource):
         if 'query' not in body:
             raise ValueError('Missing parameter "query"')
         try:
+            start = time.clock()
             # filter by tags
             query = self.filter_by_tags(Event.query, body)
             # execute query
@@ -188,6 +201,9 @@ class EventQueries(Resource):
             query = self.paginate(query, body)
             # create result array
             results = [q.client_json() for q in list(query.all())]
+            # log perf
+            end = time.clock()
+            print("Found {} results in {:.4f} seconds".format(count, end - start))
             # if count, return number of results in addition to array
             if 'count' in body and body['count']:
                 return {
@@ -279,6 +295,12 @@ class EventQueries(Resource):
         for group in queryGroups:
             baseQuery = self.apply_filter_group(baseQuery, group)
         return baseQuery
+
+"""
+App specific queries
+"""
+
+
 
 if __name__ == '__main__':
     application.run(debug=True)
