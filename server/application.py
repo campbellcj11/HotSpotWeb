@@ -1,9 +1,8 @@
 from flask import request, send_from_directory
 from flask_restful import Resource
 from init import application, api, db, check_token
-from sqlalchemy import exc as sa_exc
 from models import *
-import os, traceback, operator
+import os, traceback, sqlalchemy
 
 """
 Static page routes
@@ -110,7 +109,7 @@ class CrudEvent(Resource):
                 return {
                     'status': 'SUCCESS'
                 }
-            except sa_exc.IntegrityError as error:
+            except sqlalchemy.exc.IntegrityError as error:
                 traceback.print_tb(error.__traceback__)
                 return {
                     'status': 'FAILED'
@@ -129,7 +128,7 @@ class CrudEvent(Resource):
                     event.update_from_json(body)
                     db.session.commit()
                     return event.client_json()
-                except (ValueError, sa_exc.SQLAlchemyError) as error:
+                except (ValueError, sqlalchemy.exc.SQLAlchemyError) as error:
                     traceback.print_tb(error.__traceback__)
                     return 'Invalid parameters', 400
             else:
@@ -156,7 +155,7 @@ class CreateEvent(Resource):
                 event.set_tags(tags)
                 db.session.commit()
                 return event.client_json()
-            except sa_exc.SQLAlchemyError as error:
+            except sqlalchemy.exc.SQLAlchemyError as error:
                 traceback.print_tb(error.__traceback__)
                 return 'Failed to create event', 400
         else:
@@ -192,21 +191,30 @@ class EventQueries(Resource):
         if 'query' not in body:
             raise ValueError('Missing parameter "query"')
         try:
+            # filter by tags
+            query = self.filter_by_tags(Event.query, body)
             # execute query
-            query = self.construct_query(body['query'])
+            query = self.construct_query(query, body['query'])
             # sort
             query = self.sort(query, body)
             # paginate
             query = self.paginate(query, body)
-            # format
-            result = []
-            for q in list(query.all()):
-                result.append(q.client_json())
-            return result
+            # return event json array
+            return [q.client_json() for q in list(query.all())]
         except ValueError as error:
             return {
                 'error': str(error)
             }
+
+    def filter_by_tags(self, query, json):
+        if 'tags' not in json:
+            return query
+        else:
+            tagNames = json['tags']
+            expressions = [Tag.name.ilike(name) for name in tagNames]
+            tags = Tag.query.filter(sqlalchemy.or_(*tuple(expressions))).all()
+            eventIds = [t.event_id for t in tags]
+            return query.filter(Event.id.in_(eventIds))
 
     # Paginate query based on the parameters of the input JSON
     def paginate(self, query, json):
@@ -260,13 +268,12 @@ class EventQueries(Resource):
         if len(queryGroup) == 0:
             return base
         else:
-            return base.filter(operator.or_(*tuple(orArray)))
+            return base.filter(sqlalchemy.or_(*tuple(orArray)))
     
     # Construct a SQLAlchemy query object based on the query array from the request JSON
     # OR and AND statements are handled by breaking queries into groups, where an AND
     # group has length 1 and and OR group has length > 1
-    def construct_query(self, queryArray):
-        baseQuery = Event.query
+    def construct_query(self, baseQuery, queryArray):
         queryGroups = [[]]
         for query in queryArray:
             queryGroups[len(queryGroups) - 1].append(query)
