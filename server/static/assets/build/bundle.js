@@ -71856,38 +71856,10 @@
 	var eventTable = database.ref("events");
 	
 	var EventActions = {
-		//NEW server queries start here
+		// Event related server queries start here
 		// TODO consider removing catch statements here and letting them be always handled externally
 		getLocales: function getLocales() {
-			return fetch('/admin/locales').then(function (response) {
-				return response.json();
-			}).catch(function (error) {
-				return error;
-			});
-		},
-		// TODO consider paginating
-		getLocaleEvents: function getLocaleEvents(id) {
-			return fetch('/admin/localeEvents/' + id).then(function (response) {
-				return response.json();
-			}).catch(function (error) {
-				return error;
-			});
-		},
-	
-		getPendingEvents: function getPendingEvents() {
-			var searchParams = {
-				query: [{
-					field: 'status',
-					value: 'pending'
-				}]
-			};
-			return fetch('/getEvents', {
-				method: 'POST',
-				body: JSON.stringify(searchParams),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			}).then(function (response) {
+			return fetch('/locales').then(function (response) {
 				return response.json();
 			}).catch(function (error) {
 				return error;
@@ -71951,7 +71923,6 @@
 				return error;
 			});
 		}
-	
 	};
 	
 	//export all event related functionality as a single object
@@ -72125,17 +72096,20 @@
 						}).catch(function (error) {
 							console.error(error);
 						});
-						/*EventActions.getLocaleEvents(this.props.router.location.query.l)
-	     	.then(events => {
-	     		this.addEventArray(events)
-	     	})
-	     	.catch(error => {
-	     		console.error(error)
-	     	})*/
 					}
 				} else {
-					_eventActions2.default.getPendingEvents().then(function (events) {
-						_this2.addEventArray(events);
+					_eventActions2.default.getEvents({
+						sortBy: 'start_date',
+						pageNumber: this.pagination.page,
+						pageSize: this.pagination.numberOfRows,
+						count: true,
+						query: [{
+							field: 'status',
+							value: 'pending'
+						}]
+					}).then(function (response) {
+						_this2.pagination.total = response.count;
+						_this2.addEventArray(response.events);
 					}).catch(function (error) {
 						console.error(error);
 					});
@@ -73354,10 +73328,10 @@
 	                    titleColor: event.image ? '#fff' : '#000',
 	                    subtitle: event.short_description,
 	                    subtitleColor: event.image ? '#ccc' : '#333' }),
-	                this.props.pending && event.restrictions && _react2.default.createElement(
+	                this.pending && event.restrictions && _react2.default.createElement(
 	                    _materialUi.CardText,
 	                    { color: 'red' },
-	                    'event.restrictions'
+	                    event.restrictions
 	                )
 	            );
 	

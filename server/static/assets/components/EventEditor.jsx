@@ -314,7 +314,7 @@ class EventEditor extends Component {
                     subtitleColor={event.image ? '#ccc' : '#333'} />
                 {this.pending && event.restrictions && (
                     <CardText color="red">
-                        event.restrictions
+                        {event.restrictions}
                     </CardText>
                 )}
             </div>
