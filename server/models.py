@@ -16,6 +16,7 @@ class User(db.Model):
     gender = db.Column(db.String)
     profile_image = db.Column(db.String)
     locales = db.Column(ARRAY(db.Integer))
+    uid = db.Column(db.String, unique=True)
 
     # relationships
     favorites = db.relationship('Favorite', backref='favorites')

@@ -217,6 +217,7 @@ class EventQueries(Resource):
                 'error': str(error)
             }
 
+    # Restrict query to events containing at least one of the specified tags
     def filter_by_tags(self, query, json):
         if 'tags' not in json:
             return query
@@ -300,6 +301,63 @@ class EventQueries(Resource):
 App specific queries
 """
 
+# /createUser
+
+# /launch
+
+# /toggleFavorite (also increment decrement interested count of event)
+@api.route('/toggleFavorite')
+class ToggleFavorite(Resource):
+    @api.login_required
+    def post(self):
+        body = request.get_json()
+        if body != None or 'user_id' not in body or 'event_id' not in body:
+            u_id = body['user_id']
+            e_id = body['event_id']
+            exp = sqlalchemy.and_(Favorite.user_id == u_id, Favorite.event_id == e_id)
+            search = Favorite.query.filter(exp)
+            try:
+                if len(list(search.all())) == 1: # already favorited
+                    # remove favorite entry
+                    fav = search.first()
+                    db.session.delete(fav)
+                    # decrement interested count for the event
+                    event = Event.query.get(e_id)
+                    event.interested = event.interested - 1
+                    # commit changes
+                    db.session.commit()
+                    return {
+                        "isFavorite": False
+                    }
+                else: # not yet favorited
+                    # create new favorite
+                    fav = Favorite(event_id=e_id, user_id=u_id)
+                    db.session.add(fav)
+                    # increment interested count for the event
+                    event = Event.query.get(e_id)
+                    event.interested = event.interested + 1
+                    # commit changes
+                    db.session.commit()
+                    return {
+                        "isFavorite": True
+                    }
+            except sqlalchemy.exc.IntegrityError as error:
+                traceback.print_tb(error.__traceback__)
+                return {
+                    "error": str(error)
+                }
+        else:
+            return 'Missing required parameters', 400
+
+# /getFavorites ?? paginate
+
+# /setUserLocales
+
+# /setUserInterests
+
+# /feedback
+
+# /user/<int:id>
 
 
 if __name__ == '__main__':
