@@ -284,7 +284,7 @@ class EventQueries(Resource):
     
     # Construct a SQLAlchemy query object based on the query array from the request JSON
     # OR and AND statements are handled by breaking queries into groups, where an AND
-    # group has length 1 and and OR group has length > 1
+    # group has length 1 and an OR group has length > 1
     def construct_query(self, baseQuery, queryArray):
         queryGroups = [[]]
         for query in queryArray:
@@ -387,6 +387,42 @@ class SetUserLocales(Resource):
 
 
 # /setUserInterests
+@api.route('/setUserInterests/<int:id>')
+class SetUserInterests(Resource):
+    allowed_interests = [
+        "art", "books", "causes", "class", "comedy", "community",
+        "conference", "dance", "food", "health", "social", "sport",
+        "movie", "music", "nightlife", "theater", "religion",
+        "shopping", "other"
+    ]
+
+    @api.login_required
+    def post(self, id):
+        body = request.get_json()
+        user = User.query.get(id)
+        if user != None:
+            try:
+                self.verify_tag_array(body)
+                user.interests = body
+                db.session.commit()
+                return 'success'
+            except (ValueError, sqlalchemy.exc.IntegrityError) as error:
+                traceback.print_tb(error.__traceback__)
+                return {
+                    'error': str(error)
+                }
+        else:
+            return {
+                'error': 'User not found'
+            }, 404
+
+    def verify_tag_array(self, array):
+        if len(array) > 0:
+            for tag in array:
+                if tag.lower() not in self.allowed_interests:
+                    raise ValueError('Invalid interest: {}'.format(tag))
+        else:
+            raise ValueError('At least one locale must be specified')
 
 # /feedback
 

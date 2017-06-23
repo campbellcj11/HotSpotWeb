@@ -17,6 +17,7 @@ class User(db.Model):
     profile_image = db.Column(db.String)
     locales = db.Column(ARRAY(db.Integer))
     uid = db.Column(db.String, unique=True)
+    interests = db.Column(ARRAY(db.String))
 
     # relationships
     favorites = db.relationship('Favorite', backref='favorites')
@@ -45,7 +46,8 @@ class User(db.Model):
             'last_name': self.last_name,
             'phone': self.phone,
             'profile_image': self.profile_image,
-            'locales': self.get_locale_jsons()
+            'locales': self.get_locale_jsons(),
+            'interests': self.interests
         }
 
     def admin_json(self):
