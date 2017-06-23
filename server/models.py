@@ -239,6 +239,17 @@ class Metric(db.Model):
             'user': self.user.admin_json()
         }
 
+# feedback table
+class Feedback(db.Model):
+    __tablename__ = 'feedback'
+    id = db.Column(db.Integer, db.Sequence('feedback_id_seq'), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    type = db.Column(db.String) # BUG_REPORT, FEATURE_REQUEST, INACCURATE_EVENT_INFO, OTHER
+    message = db.Column(db.String)
+
+    def __repr__(self):
+        return '<Feedback id=%i u%s>' % (self.id, id(self))
+
 # convert datetime object to Unix timestamp integer
 def toUnixTime(datetime):
     return int(datetime.timestamp() * 1000)

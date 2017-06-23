@@ -87,7 +87,7 @@ class CrudEvent(Resource):
             return event.client_json()
         else:
             return 'Event not found', 404
-    
+
     # Delete the event with the specified id
     @api.login_required ## TODO also require admin
     def delete(self, id):
@@ -215,7 +215,7 @@ class EventQueries(Resource):
         except ValueError as error:
             return {
                 'error': str(error)
-            }
+            }, 400
 
     # Restrict query to events containing at least one of the specified tags
     def filter_by_tags(self, query, json):
@@ -279,7 +279,7 @@ class EventQueries(Resource):
             return base
         else:
             return base.filter(sqlalchemy.or_(*tuple(orArray)))
-    
+
     # Construct a SQLAlchemy query object based on the query array from the request JSON
     # OR and AND statements are handled by breaking queries into groups, where an AND
     # group has length 1 and an OR group has length > 1
@@ -301,7 +301,7 @@ App specific queries
 
 # /createUser
 
-# /launch
+# /launch/<int:user_id>
 
 # /toggleFavorite
 # also increments decrement interested count of event
@@ -359,21 +359,27 @@ class GetFavorites(Resource):
             body = request.get_json()
         else:
             body = {}
-        startDate = toDateTime(body['startDate']) if 'startDate' in body else datetime.now()
-        pageSize = int(body['pageSize']) if 'pageSize' in body else 20
-        pageNumber = int(body['pageNumber']) - 1 if 'pageNumber' in body else 0
-        favs = list(Favorite.query.filter(Favorite.user_id == user_id).all())
-        expressions = [Event.id.op('=')(fav.event_id) for fav in favs]
-        # filter by events to those favorite by user
-        events = Event.query.filter(sqlalchemy.or_(*tuple(expressions)))
-        # remove events before startDate
-        events = events.filter(Event.start_date >= datetime.now())
-        # sort events
-        events = events.order_by(Event.start_date)
-        # paginate
-        events = events.limit(pageSize).offset(pageSize * pageNumber)
-        # return results
-        return [event.client_json() for event in events]
+        try:
+            startDate = toDateTime(body['startDate']) if 'startDate' in body else datetime.now()
+            pageSize = int(body['pageSize']) if 'pageSize' in body else 20
+            pageNumber = int(body['pageNumber']) - 1 if 'pageNumber' in body else 0
+            favs = list(Favorite.query.filter(Favorite.user_id == user_id).all())
+            expressions = [Event.id.op('=')(fav.event_id) for fav in favs]
+            # filter by events to those favorite by user
+            events = Event.query.filter(sqlalchemy.or_(*tuple(expressions)))
+            # remove events before startDate
+            events = events.filter(Event.start_date >= datetime.now())
+            # sort events
+            events = events.order_by(Event.start_date)
+            # paginate
+            events = events.limit(pageSize).offset(pageSize * pageNumber)
+            # return results
+            return [event.client_json() for event in events]
+        except sqlalchemy.exc.SQLAlchemyError as error:
+            traceback.print_tb(error.__traceback__)
+            return {
+                'error': str(error)
+            }, 400
 
 # /setUserLocales
 @api.route('/setUserLocales/<int:id>')
@@ -412,7 +418,7 @@ class SetUserLocales(Resource):
 class SetUserInterests(Resource):
     allowed_interests = [
         "art", "books", "causes", "class", "comedy", "community",
-        "conference", "dance", "food", "health", "social", "sport",
+        "conference", "dance", "food", "health", "social", "sports",
         "movie", "music", "nightlife", "theater", "religion",
         "shopping", "other"
     ]
@@ -446,6 +452,23 @@ class SetUserInterests(Resource):
             raise ValueError('At least one locale must be specified')
 
 # /feedback
+@api.route('/feedback')
+class SubmitFeedback(Resource):
+    @api.login_required
+    def post(self):
+        body = request.get_json()
+        try:
+            fav = Feedback(user_id=body['user_id'], type=body['type'], message=body['message'])
+            db.session.add(fav)
+            db.session.commit()
+            return {
+                'message': 'Feedback submitted successfully.'
+            }
+        except (sqlalchemy.exc.SQLAlchemyError, KeyError) as error:
+            traceback.print_tb(error.__traceback__)
+            return {
+                'error': str(error)
+            }, 400
 
 # /user/<int:id>
 

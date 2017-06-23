@@ -374,7 +374,7 @@ export class TagSelect extends Component {
     populate() {
         this.tags = [
             "art", "books", "causes", "class", "comedy", "community",
-            "conference", "dance", "food", "health", "social", "sport",
+            "conference", "dance", "food", "health", "social", "sports",
             "movie", "music", "nightlife", "theater", "religion",
             "shopping", "other"
         ]
