@@ -373,10 +373,10 @@ export class TagSelect extends Component {
 
     populate() {
         this.tags = [
-            "Art", "Books", "Causes", "Class", "Comedy", "Community",
-            "Conference", "Dance", "Food", "Health", "Social", "Sport",
-            "Movie", "Music", "Nightlife", "Theater", "Religion",
-            "Shopping", "Other"
+            "art", "books", "causes", "class", "comedy", "community",
+            "conference", "dance", "food", "health", "social", "sport",
+            "movie", "music", "nightlife", "theater", "religion",
+            "shopping", "other"
         ]
         if (this.props.defaultValue) {
             this.setState({
