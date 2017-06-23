@@ -4,6 +4,7 @@ import pyrebase
 import sys
 import getpass
 import requests
+import psycopg2
 from datetime import datetime
 from facepy import GraphAPI
 from os.path import expanduser
@@ -24,6 +25,7 @@ from os.path import expanduser
 
 # Setting up the graph api and firebase connections.
 graph = GraphAPI('1738197196497592|RpbqD1owgCZ6aT7s5JOrGvp9_7Q')
+# graph = GraphAPI('EAACEdEose0cBAKprAK5L4u823Jm6UbqnMueJ1WDQJfJTkqOZBEND5wgfYtx2ypQXFlZCVSrXBDyZCVASfqqQGHVc6kszwLZA71tV7a64PRgOx1ZCUS79deom19KBn8IBTNzHX2q4BZCopwc8rCasZAVuvqOVJpKAwLJvtGSzE2cW20MfXe7OuNYe7WpjVEcCjUZD')
 home = expanduser("~")
 config = {
     "apiKey" : "AIzaSyBc6_49WEUZLKCBoR8FFIHAfVjrZasdHlc",
@@ -69,55 +71,33 @@ def setParameters():
         limitNumber = sys.argv[4]
     return [centerCoordinates, distanceNumber, limitNumber]
 
-"""Setup firebase and return auth user."""
-def setup():
-    print("Setting up web scraper...")
-    auth = firebase.auth()
-    # Log the user in
-    #userName = input("Plese enter a user name for firebase: ")
-    userName = 'conor@email.sc.edu'
-    # password = input("Please enter a password for the previous account: ")
-    user = auth.sign_in_with_email_and_password(userName, 'password')
-    return user;
-
 """Search for places within the parameters.
 Edit distance, center, and limit in order to change search results.
 """
 # TODO: make AC get from db
-def searchForPlaces(listOfParameters, db):
+def searchForPlaces(listOfParameters):
     listofPlaces = []
-    ## if city is AC, get places from db
-    if listOfParameters[0] == '39.364283, -74.422927':
-        places = db.child('scraperLists').child('atlanticCity').get()
-        for place in places.each():
-            listofPlaces.append(place.val()['name'] + '::: ' + place.val()['id'])
-    else: # all other cities
-        result = graph.search(
-            term = '',
-            type = 'place',
-            center = listOfParameters[0],
-            #increase limit and distance to increase event results
-            distance = listOfParameters[1],
-            limit = listOfParameters[2]
-        )
+    result = graph.search(
+        term = '',
+        type = 'place',
+        center = listOfParameters[0],
+        #increase limit and distance to increase event results
+        distance = listOfParameters[1],
+        limit = listOfParameters[2]
+    )
+    for element in result['data']:
+        listofPlaces.append(element['name'] + "::: " + element['id'])
+
+    while 'paging' in result and 'next' in result['paging']:
+        next = result['paging']['next']
+        result = requests.get(next)
+        result = result.json()
         for element in result['data']:
-            listofPlaces.append(element['name'] + "::: " + element['id'])
-
-
-        while 'paging' in result and 'next' in result['paging']:
-            # print("Pagination!")
-            next = result['paging']['next']
-            result = requests.get(next)
-            result = result.json()
-            for element in result['data']:
-                stringName = element['name'] + ", " + element['id']
-                if stringName in listofPlaces:
-                    # print("ERRRRRORRRRRRR")
-                    # print(element['name'])
-                    # print(element['id'])
-                    pass
-                else:
-                    listofPlaces.append(element['name'] + "::: " + element['id'])
+            stringName = element['name'] + ", " + element['id']
+            if stringName in listofPlaces:
+                pass
+            else:
+                listofPlaces.append(element['name'] + "::: " + element['id'])
     return listofPlaces
 
 """Parse the short description from the long description."""
@@ -136,31 +116,60 @@ def getShortDescription(longDescription):
     return shortDescription
 
 """Format data to fit database scheme."""
-def formatOutput(event, user):
+def formatOutput(event):
+
+    restrictions = ''
+    # Check Status
+    if 'is_canceled' in event:
+        if event['is_canceled'] is True:
+            status = "canceled"
+        else:
+            status = 'active'
+    else:
+        status = 'active'
+
     #format place
     if 'place' in event and 'location' in event['place']:
         location = event['place']['location']
         if 'street' not in location or 'state' not in location or 'zip' not in location:
             return None
         else:
-            address = location['street'] + ', ' + location['city'] + ', ' + location['state'] + ', ' + location['zip']
-        city = location['city']
+            address = location['street'] + ', ' + location['city'] + ', ' + location['state'] + ' ' + location['zip']
         latitude = location['latitude']
         longitude = location['longitude']
-        locationName = event['place']['name']
+        placeName = event['place']['name']
+        city = location['city']
         state = location['state']
     else:
+        # No Adress information, return none
         return None
 
-    #Check for category
+    #Check for category - THIS is needed for tag
     if 'category' not in event:
-        return None
+        status = 'pending'
+        restrictions += 'Needs tags. '
+        category = ''
+    else:
+        category = event['category']
+        if category.endswith('_EVENT'):
+            category = category[:-6]
+        category = category[0] + category[1:].lower()
+        category = category.replace("_", " and ").title()
 
-    # format Date
-    dateString = event['start_time']
-    date = int(time.mktime(datetime.strptime(dateString, '%Y-%m-%dT%H:%M:%S%z').timetuple())) * 1000
+    # Format Date - start date and end date
+    startDateString = event['start_time']
+    startDate = datetime.strptime(startDateString, '%Y-%m-%dT%H:%M:%S%z')
 
-    # format Image
+    if 'end_time' not in event:
+        status = 'pending'
+        restrictions += 'Needs end date. '
+        endDate = datetime.now()
+        endDateString = 'undefined'
+    else:
+        endDateString = event['end_time']
+        endDate = datetime.strptime(endDateString, '%Y-%m-%dT%H:%M:%S%z')
+
+    # Cover Image used for us
     if 'cover' in event:
         image = event['cover']['source']
     else:
@@ -170,75 +179,133 @@ def formatOutput(event, user):
     if 'description' not in event:
         return None
 
-    #Status
-    if 'is_canceled' in event:
-        if event['is_canceled'] is True:
-            status = "Canceled"
-        else:
-            status = 'Active'
-    else:
-        status = 'Active'
-
     # interested
     if 'interested' in event:
-        numberInterested = str(len(event['interested']['data']))
+        numberInterested = len(event['interested']['data'])
     else:
-        numberInterested = ""
+        numberInterested = 0
 
     # Short Description parsing
     shortDescription = getShortDescription(event['description'])
+
     newData = {
         'Facebook_ID' : event['id'],
         'Event_Name' : event['name'],
         'Address' : address,
-        'City' : city,
-        'Date' : date,
-        'Sort_Date' : date,
-        'Event_Type' : 'Event',
+        'Start_Date' : startDate,
+        'End_Date' : endDate,
         'Image' : image,
         'Latitude' : str(latitude),
         'Longitude' : str(longitude),
-        'Location' : locationName,
+        'Location' : placeName,
         'Long_Description' : event['description'],
-        'State' : state,
         'Status' : status,
         'Short_Description' : shortDescription,
         'Website' : ('www.facebook.com/' + event['id']),
         # TODO: need to find a better way for this
-        'Email_Contact' : ('www.facebook.com/' + event['id']),
-        'Interested' : numberInterested
+        # 'Email_Contact' : ('www.facebook.com/' + event['id']),
+        'Interested' : numberInterested,
+        'Category' : category,
+        'Restrictions' : restrictions,
+        'City' : city,
+        'State' : state
     }
     return newData
+""" Connect to database using credentials."""
+def connectToDatabase():
+    # TODO: use credentials file
+    print("Connecting to database...")
+    try:
+        conn = psycopg2.connect(dbname="HotSpot", user="HotSpotAdmin", password="UscGrad2017", host="hotspotdb.cv91mewjlcfw.us-east-1.rds.amazonaws.com", port="5432")
+        cur = conn.cursor()
+    except:
+        print('Could not connect to database.')
+        sys.exit()
+    return cur, conn
 
-"""Put Tags for event into database."""
-def putTags(db, user, event, pushID):
-    if event['category'] is not None:
-        if event['category'].endswith('_EVENT'):
-            event['category'] = event['category'][:-6]
-        event['category'] = event['category'][0] + event['category'][1:].lower()
-        event['category'] = event['category'].replace("_", " and ").title()
-        data = {
-            event['category'] : 'true'
-        }
-        db.child("tags").child(pushID).set(data)
+def getCurrentLocales(cur, conn):
+    print("Getting Current Locales...")
+    localeSql = "SELECT * FROM locales;"
+    cur.execute(localeSql)
+    conn.commit()
+    locales = cur.fetchall()
+    dictOfLocales = {}
+    # Format into a city state string split by ' ::: '
+    for locale in locales:
+        dictOfLocales[locale[1] + " ::: " + locale[2]] = locale[0]
 
-"""Get all the database events to check to see if events exist already."""
-def getAllDatabaseEvents(db, user):
-    print("Getting current database events to avoid duplicates...")
-    databaseEvents = db.child("events").get()
-    listOfEvents = []
-    if databaseEvents.each() is None:
-        return listOfEvents
-    else:
-        for locale in databaseEvents.each():
-            for key, data in locale.val().items():
-                if 'Facebook_ID' in data:
-                    listOfEvents.append(data['Facebook_ID'])
+    # print("Got Current Locales")
+    return dictOfLocales
 
-    return listOfEvents
+def refreshLocales(cur, conn, data):
+    # print("RefreshingLocales")
+    localeInsertSql = "INSERT INTO locales (name, state, country) VALUES (%s, %s, %s);"
+    localeData = (data['City'], data['State'], 'United States')
+    cur.execute(localeInsertSql, localeData)
+    localeSql = "SELECT * FROM locales;"
+    cur.execute(localeSql)
+    conn.commit()
+    locales = cur.fetchall()
+    dictOfLocales = {}
+    for locale in locales:
+        dictOfLocales[locale[1] + " ::: " + locale[2]] = locale[0]
+
+    # print("Got Current Locales")
+    return dictOfLocales
+
+def constructTagMapping():
+    tagMapping = dict()
+    tagMapping['art'] = 'art'
+    tagMapping['art and film'] = 'art'
+    tagMapping['book'] = 'books'
+    tagMapping['books and literature'] = 'books'
+    tagMapping['causes'] = 'causes'
+    tagMapping['fundraiser'] = 'causes'
+    tagMapping['class'] = 'class'
+    tagMapping['lecture'] = 'class'
+    tagMapping['comedy'] = 'comedy'
+    tagMapping['community'] = 'community'
+    tagMapping['neighborhood'] = 'community'
+    tagMapping['festival'] = 'community'
+    tagMapping['home and garden'] = 'community'
+    tagMapping['conference'] = 'conference'
+    tagMapping['dance'] = 'dance'
+    tagMapping['dining'] = 'food'
+    tagMapping['food and drink'] = 'food'
+    tagMapping['food and tasting'] = 'food'
+    tagMapping['fitness'] = 'health'
+    tagMapping['health and wellness'] = 'health'
+    tagMapping['meetup'] = 'social'
+    tagMapping['networking'] = 'social'
+    tagMapping['family'] = 'social'
+    tagMapping['event and music'] = 'social'
+    tagMapping['event and party'] = 'social'
+    tagMapping['event and recreation'] = 'social'
+    tagMapping['event and art'] = 'social'
+    tagMapping['event and film'] = 'social'
+    tagMapping['event and cause'] = 'social'
+    tagMapping['event and food'] = 'social'
+    tagMapping['event and dance'] = 'social'
+    tagMapping['games'] = 'sport'
+    tagMapping['sports'] = 'sport'
+    tagMapping['sports and recreation'] = 'sport'
+    tagMapping['movie'] = 'movie'
+    tagMapping['music'] = 'music'
+    tagMapping['nightlife'] = 'nightlife'
+    tagMapping['parties and nightlife'] = 'nightlife'
+    tagMapping['theater'] = 'theater'
+    tagMapping['theater and dance'] = 'theater'
+    tagMapping['religion'] = 'religion'
+    tagMapping['religious'] = 'religion'
+    tagMapping['shopping'] = 'shopping'
+    tagMapping['other'] = 'other'
+    # ignore tagging
+    tagMapping[''] = ''
+    return tagMapping
+
 
 """Get event by using event ID. Then put event into database."""
-def getEvents(listOfPlaces, user, db, databaseEvents):
+def getEvents(listOfPlaces, tagMapping):
     print("Getting events of all places...")
     offsetTimeInSeconds = 7.776e+6
     ids = []
@@ -250,7 +317,11 @@ def getEvents(listOfPlaces, user, db, databaseEvents):
         counterhere += 1
         currentTime = int(time.time())
         offsetDaysLimit = currentTime + offsetTimeInSeconds
-        events = graph.get(x[1] + '/events', since=currentTime, until=offsetDaysLimit, limit=100000, fields='id')
+        try:
+            events = graph.get(x[1] + '/events', since=currentTime, until=offsetDaysLimit, limit=100000, fields='id')
+        except:
+            # Place not found.
+            pass
         for event in events['data']:
             ids.append(event['id'])
 
@@ -258,69 +329,75 @@ def getEvents(listOfPlaces, user, db, databaseEvents):
     print("Count of places: " + str(counterhere))
 
     counter = 0
+    wastedEvents = 0
     duplicateCounter = 0
     dictOfRepeatsTime = dict()
     dictOfNameAndPlace = dict()
     millisecondsInADay = 8.64e+7
     eventNameAndLocationCap = 5
+
+    dictOfLocales = getCurrentLocales(cur, conn)
+
     # Loop through event IDs to get all event details to put into databases"""
     for id in ids:
         event = graph.get(id, fields='id,description,name,category,cover,start_time,end_time,place,interested')
-        data = formatOutput(event, user)
+        data = formatOutput(event)
         if data is not None:
-            # Checking if event already exists in database
-            if data['Facebook_ID'] not in databaseEvents:
-                eventNameAndLocationString = data['Event_Name'] + ":" + data['Location']
-                if eventNameAndLocationString not in dictOfNameAndPlace:
-                    # Checking to see if multiple events from the same time and provider
-                    if data['Event_Name'] not in dictOfRepeatsTime:
-                        # Putting event into databases
-                        eventsOutcome = db.child("events/" + data['City']).push(data, user['idToken'])
-                        putTags(db, user, event, eventsOutcome['name'])
-                        dictOfRepeatsTime[data['Event_Name']] = data["Date"]
-                        counter += 1
-                    elif abs(int(dictOfRepeatsTime[data['Event_Name']]) - int(data['Date'])) >= millisecondsInADay:
-                        # Putting event into databases if time is greater than a day
-                        eventsOutcome = db.child("events/" + data['City']).push(data, user['idToken'])
-                        putTags(db, user, event, eventsOutcome['name'])
-                        dictOfRepeatsTime[data['Event_Name']] = data["Date"]
-                        counter += 1
-                    else:
-                        print("Repeat, skipping this event.")
-                    dictOfNameAndPlace[eventNameAndLocationString] = 1
+            try:
+                # check if locale exists
+                cityStateString = data['City'] + ' ::: ' + data['State']
+                if cityStateString not in dictOfLocales:
+                    dictOfLocales = refreshLocales(cur, conn, data)
+                    localeID = dictOfLocales[cityStateString]
                 else:
-                    if dictOfNameAndPlace[eventNameAndLocationString] < eventNameAndLocationCap:
-                        # Checking to see if multiple events from the same time and provider
-                        if data['Event_Name'] not in dictOfRepeatsTime:
-                            # Putting event into databases
-                            eventsOutcome = db.child("events/" + data['City']).push(data, user['idToken'])
-                            putTags(db, user, event, eventsOutcome['name'])
-                            dictOfRepeatsTime[data['Event_Name']] = data["Date"]
-                            counter += 1
-                            dictOfNameAndPlace[eventNameAndLocationString] += 1
-                        elif abs(int(dictOfRepeatsTime[data['Event_Name']]) - int(data['Date'])) >= millisecondsInADay:
-                            # Putting event into databases if time is greater than a day
-                            eventsOutcome = db.child("events/" + data['City']).push(data, user['idToken'])
-                            putTags(db, user, event, eventsOutcome['name'])
-                            dictOfRepeatsTime[data['Event_Name']] = data["Date"]
-                            counter += 1
-                            dictOfNameAndPlace[eventNameAndLocationString] += 1
-                        else:
-                            pass
-                            # print(abs(int(dictOfRepeatsTime[data['Event_Name']]) - int(data['Date'])))
-                            # print("Repeat, skipping this event.")
-                    else:
-                        pass
-                        # print("Cap hit, not adding. " + eventNameAndLocationString)
-            else:
-                duplicateCounter += 1
+                    localeID = dictOfLocales[cityStateString]
+
+                # check if event exists
+                existingEventsSql = "SELECT * FROM events WHERE facebook_id = \'" + data['Facebook_ID'] + "\';"
+                cur.execute(existingEventsSql)
+                conn.commit()
+                existingEventsResult = [] if cur.description is None else cur.fetchall()
+
+                if not existingEventsResult:
+                    if data['Category'].lower() not in tagMapping:
+                        if data['Category'] is not '':
+                            print("Tag nonexistant, please add " + data['Category'])
+                            data['Restrictions'] += "Needs tag. "
+                            data['Category'] = ''
+
+                    tag = tagMapping[data['Category'].lower()]
+                    sql = "INSERT INTO events (locale_id, address, start_date, end_date, name, venue_name, type, short_description, long_description, interested, status, website, facebook_id, image, restrictions) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;"
+                    sqlData = (localeID, data['Address'], data['Start_Date'], data['End_Date'], data['Event_Name'], data['Location'], 'Event', data['Short_Description'], data['Long_Description'], data['Interested'], data['Status'], data['Website'], id, data['Image'], data['Restrictions'])
+                    cur.execute(sql, sqlData)
+                    id_of_new_row = int(cur.fetchone()[0])
+                    # only insert tag if it exists
+                    if data['Category'] is not '':
+                        tagSql = "INSERT INTO tags (name, event_id) VALUES (%s, %s);"
+                        tagData = (tag, id_of_new_row)
+                        cur.execute(tagSql, tagData)
+                        conn.commit()
+                    counter += 1
+                    # print("Inserted " + str(counter) + " event.")
+                else:
+                    duplicateCounter += 1
+                    # print("Duplicate Event.")
+            except psycopg2.Error as e:
+                print("ERROR")
+                print(e)
+        else:
+            wastedEvents += 1
     print("Added " + str(counter) + " events. ")
-    print("Found " + str(duplicateCounter) + " existing events in database.")
+    print("Wasted " + str(wastedEvents) + " events. ")
+    print("Duplicate Events: " + str(duplicateCounter))
+    # print("Found " + str(duplicateCounter) + " existing events in database.")
 
 checkCommandLineArguments()
-db = firebase.database()
-user = setup()
+cur, conn = connectToDatabase()
 listOfParameters = setParameters()
-listOfPlaces = searchForPlaces(listOfParameters, db)
-databaseEvents = getAllDatabaseEvents(db, user)
-getEvents(listOfPlaces, user, db, databaseEvents)
+listOfPlaces = searchForPlaces(listOfParameters)
+tagMapping = constructTagMapping()
+# getting the database events will have to be redone
+getEvents(listOfPlaces, tagMapping)
+
+cur.close()
+conn.close()
