@@ -233,10 +233,8 @@ class EventQueries(Resource):
         if 'pageSize' not in json:
             return query
         else:
-            pageSize = json['pageSize']
-            pageNumber = json['pageNumber'] if 'pageNumber' in json else 1
-            pageSize = int(pageSize)
-            pageNumber = int(pageNumber) - 1
+            pageSize = int(json['pageSize'])
+            pageNumber = int(json['pageNumber']) - 1 if 'pageNumber' in json else 0
             return query.limit(pageSize).offset(pageSize * pageNumber)
 
     # Sort query based on the parameters of the input JSON
@@ -352,7 +350,30 @@ class ToggleFavorite(Resource):
                 'error': 'Missing required parameters'
             }, 400
 
-# /getFavorites ?? paginate
+# /getFavoritedEvents/<int:user_id>
+@api.route('/getFavoritedEvents/<int:user_id>')
+class GetFavorites(Resource):
+    @api.login_required
+    def post(self, user_id):
+        if request.data:
+            body = request.get_json()
+        else:
+            body = {}
+        startDate = toDateTime(body['startDate']) if 'startDate' in body else datetime.now()
+        pageSize = int(body['pageSize']) if 'pageSize' in body else 20
+        pageNumber = int(body['pageNumber']) - 1 if 'pageNumber' in body else 0
+        favs = list(Favorite.query.filter(Favorite.user_id == user_id).all())
+        expressions = [Event.id.op('=')(fav.event_id) for fav in favs]
+        # filter by events to those favorite by user
+        events = Event.query.filter(sqlalchemy.or_(*tuple(expressions)))
+        # remove events before startDate
+        events = events.filter(Event.start_date >= datetime.now())
+        # sort events
+        events = events.order_by(Event.start_date)
+        # paginate
+        events = events.limit(pageSize).offset(pageSize * pageNumber)
+        # return results
+        return [event.client_json() for event in events]
 
 # /setUserLocales
 @api.route('/setUserLocales/<int:id>')
