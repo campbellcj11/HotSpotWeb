@@ -299,8 +299,6 @@ class EventQueries(Resource):
 App specific queries
 """
 
-# /createUser
-
 # /toggleFavorite
 # also increments decrement interested count of event
 @api.route('/toggleFavorite')
@@ -469,7 +467,7 @@ class SubmitFeedback(Resource):
             }, 400
 
 # /user/<int:id>
-@api.route('/user/<int:id>')
+@api.route('/user/update/<int:id>')
 class UpdateUser(Resource):
     @api.login_required
     def put(self, id):
@@ -493,6 +491,52 @@ class UpdateUser(Resource):
             return {
                 'error': 'User not found'
             }, 404
+
+# /user/create
+# pair with /user/uploadProfileImage
+# TODO use firebase admin to check that uid is registered with firebase, otherwise throw error
+@api.route('/user/create')
+class CreateUser(Resource):
+    required_keys = [
+        'email', 'first_name', 'last_name', 'dob',
+        'gender', 'locales', 'uid'
+    ]
+
+    optional_keys = [
+        'phone'
+    ]
+
+    def post(self):
+        body = request.get_json()
+        if body != None:
+            for key in self.required_keys:
+                if key not in body:
+                    raise ValueError('Missing required key: {}'.format(key))
+            try:
+                user = User(
+                    dob=toDateTime(body['dob']),
+                    email=body['email'],
+                    first_name=body['first_name'],
+                    last_name=body['last_name'],
+                    gender=body['gender'],
+                    uid=body['uid'],
+                    locales=body['locales']
+                )
+                for key in self.optional_keys:
+                    if key in body:
+                        setattr(user, key, body[key])
+                db.session.add(user)
+                db.session.commit()
+                return {
+                    'message': 'User created successfully'
+                }
+            except sqlalchemy.exc.SQLAlchemyError as error:
+                traceback.print_tb(error.__traceback__)
+                return {
+                    'error': str(error)
+                }, 400
+        else:
+            return 'Missing body', 400
 
 # TODO /user/uploadProfileImage/<int:user_id>
 
