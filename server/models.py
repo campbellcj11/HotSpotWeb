@@ -22,6 +22,12 @@ class User(db.Model):
     # relationships
     favorites = db.relationship('Favorite', backref='favorites')
 
+    # other
+    updateable_fields = [
+        'dob', 'email', 'first_name', 'last_name',
+        'phone', 'gender'
+    ]
+
     def get_locales(self):
         result = []
         if (self.locales != None):

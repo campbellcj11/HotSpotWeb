@@ -301,8 +301,6 @@ App specific queries
 
 # /createUser
 
-# /launch/<int:user_id>
-
 # /toggleFavorite
 # also increments decrement interested count of event
 @api.route('/toggleFavorite')
@@ -471,7 +469,32 @@ class SubmitFeedback(Resource):
             }, 400
 
 # /user/<int:id>
+@api.route('/user/<int:id>')
+class UpdateUser(Resource):
+    @api.login_required
+    def put(self, id):
+        body = request.get_json()
+        u = User.query.get(id)
+        if u != None:
+            try:
+                for key in body:
+                    if key in u.updateable_fields:
+                        setattr(u, key, body[key])
+                    else:
+                        raise ValueError('Invalid field: {}'.format(key))
+                db.session.commit()
+                return 'Update suceeded'
+            except (ValueError, sqlalchemy.exc.SQLAlchemyError) as error:
+                traceback.print_tb(error.__traceback__)
+                return {
+                    'error': str(error)
+                }, 400
+        else:
+            return {
+                'error': 'User not found'
+            }, 404
 
+# TODO /user/uploadProfileImage/<int:user_id>
 
 if __name__ == '__main__':
     application.run(debug=True)
