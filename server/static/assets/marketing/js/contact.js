@@ -9,13 +9,12 @@ var firebaseConfig = {
 
 var firebaseApp = firebase.initializeApp(firebaseConfig)
 
-// anonymous auth
-firebase.auth().signInAnonymously()
-
 // init db
 var database = firebase.database()
 
 function submitContactForm() {
+    // anonymous auth
+    firebase.auth().signInAnonymously()
     // get info from form
     var info = {
         name: $('#name').val(),

@@ -2,7 +2,7 @@ from flask import request, send_from_directory
 from flask_restful import Resource
 from init import application, api, db, check_token
 from models import *
-import os, traceback, sqlalchemy, time
+import os, traceback, sqlalchemy, time, json
 
 """
 Static page routes
@@ -62,7 +62,18 @@ class GetLocales(Resource):
         for l in Locale.query.all():
             result.append(l.client_json())
         return result
-
+    def post(self):
+        body = request.get_json()
+        if body != None:
+            ids = []
+            if 'ids' in body:
+                ids = body.pop('ids')
+            for element in ids:
+                locales = Locale.query.filter(Locale.id.in_(ids))
+                results = [q.client_json() for q in list(locales.all())]
+                return results
+        else:
+            return 'Missing locale IDs', 404
 # /locale/<int:id>
 # Get the locale by id
 @api.route('/locale/<int:id>')
