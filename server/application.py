@@ -41,8 +41,20 @@ class AuthLoginHandler(Resource):
         else:
             valid = check_token(token, uidFromUser)
             if valid is True:
+                # Get user from DB
+                kwargs = {'uid': uidFromUser}
+                u = User.query.filter_by(**kwargs).first()
+                print(u)
                 response = "Login Successful"
-                return response, 200
+                # return response, 200, u.client_json()
+                if u is not None:
+                    return {
+                        "response" : response,
+                        "user" : u.client_json()
+                    }
+                else:
+                    response = "Unknown error"
+                    return response, 401
             else:
                 response = "Login Unsuccessful"
                 return response, 401
