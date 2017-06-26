@@ -251,7 +251,7 @@ class EventQueries(Resource):
             else:
                 raise ValueError('Invalid sortOrder: {}'.format(order))
 
-    # Convert the JSON query's field, operator, and value into a 
+    # Convert the JSON query's field, operator, and value into a
     # SQLAlchemy BinaryExpression
     def query_json_to_expression(self, query):
         if 'operator' not in query:
@@ -508,6 +508,8 @@ class CreateUser(Resource):
 
     def post(self):
         body = request.get_json()
+        print(request.is_json)
+        print(body)
         if body != None:
             for key in self.required_keys:
                 if key not in body:
@@ -520,7 +522,8 @@ class CreateUser(Resource):
                     last_name=body['last_name'],
                     gender=body['gender'],
                     uid=body['uid'],
-                    locales=body['locales']
+                    locales=body['locales'],
+                    interests=body['interests']
                 )
                 for key in self.optional_keys:
                     if key in body:
