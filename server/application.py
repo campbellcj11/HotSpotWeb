@@ -521,12 +521,12 @@ class UpdateUser(Resource):
 @api.route('/user/create')
 class CreateUser(Resource):
     required_keys = [
-        'email', 'first_name', 'last_name', 'dob',
-        'gender', 'locales', 'uid'
+        'email', 'first_name', 'last_name',
+        'locales', 'uid', 'interests'
     ]
 
     optional_keys = [
-        'phone'
+        'phone', 'dob', 'gender'
     ]
 
     def post(self):
@@ -539,18 +539,19 @@ class CreateUser(Resource):
                     raise ValueError('Missing required key: {}'.format(key))
             try:
                 user = User(
-                    dob=toDateTime(body['dob']),
                     email=body['email'],
                     first_name=body['first_name'],
                     last_name=body['last_name'],
-                    gender=body['gender'],
                     uid=body['uid'],
                     locales=body['locales'],
                     interests=body['interests']
                 )
                 for key in self.optional_keys:
                     if key in body:
-                        setattr(user, key, body[key])
+                        if key is 'dob':
+                            setattr(user, key, toDateTime(body['dob']))
+                        else:
+                            setattr(user, key, body[key])
                 db.session.add(user)
                 db.session.commit()
                 return {
