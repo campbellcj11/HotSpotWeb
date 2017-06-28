@@ -55,7 +55,8 @@ class User(db.Model):
             'profile_image': self.profile_image,
             'locales': self.get_locale_jsons(),
             'interests': self.interests,
-            'dob' : time.mktime(self.dob.timetuple())
+            'dob' : time.mktime(self.dob.timetuple()),
+            'id' : self.id
         }
 
     def admin_json(self):
