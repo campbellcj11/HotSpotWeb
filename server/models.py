@@ -1,6 +1,7 @@
 from init import db
 from sqlalchemy.dialects.postgresql import ARRAY
 from datetime import datetime
+import time
 
 # users table
 class User(db.Model):
@@ -53,7 +54,8 @@ class User(db.Model):
             'phone': self.phone,
             'profile_image': self.profile_image,
             'locales': self.get_locale_jsons(),
-            'interests': self.interests
+            'interests': self.interests,
+            'dob' : time.mktime(self.dob.timetuple())
         }
 
     def admin_json(self):
