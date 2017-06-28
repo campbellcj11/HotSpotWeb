@@ -286,6 +286,7 @@ def constructTagMapping():
     tagMapping['event and cause'] = 'social'
     tagMapping['event and food'] = 'social'
     tagMapping['event and dance'] = 'social'
+    tagMapping['event'] = 'social'
     tagMapping['games'] = 'sport'
     tagMapping['sports'] = 'sport'
     tagMapping['sports and recreation'] = 'sport'
@@ -359,6 +360,9 @@ def getEvents(listOfPlaces, tagMapping):
                 existingEventsResult = [] if cur.description is None else cur.fetchall()
 
                 if not existingEventsResult:
+                    if 'event' in data['Category'].lower():
+                        data['Category'] = 'event'
+                        
                     if data['Category'].lower() not in tagMapping:
                         if data['Category'] is not '':
                             print("Tag nonexistant, please add " + data['Category'])
