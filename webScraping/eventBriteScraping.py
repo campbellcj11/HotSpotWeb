@@ -14,6 +14,19 @@ def connectToDatabase():
         sys.exit()
     return cur, conn
 
+def checkCommandLineArguments():
+    numberOfArgs = len(sys.argv)
+    if (numberOfArgs != 3):
+        print("Not enough command line arguements. " +
+            "Please enter the arguements as shown: latitude longitude.")
+        sys.exit()
+
+def setParameters():
+    numberOfArgs = len(sys.argv)
+    latitude = float(sys.argv[1])
+    longitude = float(sys.argv[2])
+    return latitude,longitude
+
 def getCurrentLocales():
     print("Getting Current Locales...")
     localeSql = "SELECT * FROM locales;"
@@ -83,9 +96,12 @@ def getVenueInfo(venue_id):
     try:
         venue = eventbrite.get('/venues/' + str(venue_id))
         address_line1 = venue['address']['address_1'].title()
-        city = venue['address']['city']
+        city = venue['address']['city'].title()
         zipCode = venue['address']['postal_code']
-        state = venue['address']['region']
+        if len(state) > 2:
+            state = venue['address']['region'].title()
+        else:
+            state = venue['address']['region']
         address = address_line1 + ', ' + city + ', ' + state + ' ' + zipCode
         returnVenue = {
             'name' : venue['name'],
@@ -169,6 +185,12 @@ def constructTagMapping():
     tagMapping['science & tech'] = 'tech'
     tagMapping['travel & outdoor'] = 'sport'
     tagMapping['fashion'] = 'fashion'
+    tagMapping['auto, boat & air'] = 'sport'
+    tagMapping['government'] = 'community'
+    tagMapping['home & lifestyle'] = 'other'
+    tagMapping['holiday'] = 'social'
+    tagMapping['hobbies'] = 'other'
+
     return tagMapping
 
 """Parse the short description from the long description."""
@@ -234,6 +256,8 @@ def formatEvents(totalEvents, tagMapping):
             # localeID
             if venue['state'] == 'New Jersey':
                 cityStateString = venue['city'] + ' ::: NJ'
+            elif venue['state'] == 'Pennsylvania':
+                cityStateString = venue['city'] + ' ::: PA'
             else:
                 cityStateString = venue['city'] + ' ::: ' + venue['state']
         except:
@@ -266,11 +290,10 @@ def formatEvents(totalEvents, tagMapping):
     return (addedCounter, throwAwayCounter, duplicateEventsCounter)
 
 
-
+checkCommandLineArguments()
+current_latitude, current_longitude = setParameters()
 cur, conn = connectToDatabase()
 tagMapping = constructTagMapping()
-current_latitude = 39.364283
-current_longitude = -74.422927
 totalEvents = getEvents(current_latitude, current_longitude)
 addedCounter, throwAwayCounter, duplicateEventsCounter = formatEvents(totalEvents, tagMapping)
 print("Added counter: " + str(addedCounter))

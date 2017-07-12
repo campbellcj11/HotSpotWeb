@@ -17,10 +17,33 @@ from os.path import expanduser
 #      python3 facebookEventScraper.py 40.712784 -74.005941 20 100000
 # To run for Columbia:
 #      python3 facebookEventScraper.py 34.000710 -81.034814 20 100000
+# To run for sea isle, nj
+#      python3 facebookEventScraper.py 39.153448 -74.692939 20 100000
 ## Now you can run this using the city name like so:
 #      python3 facebookEventScraper.py NewYork 20 100000
 #      python3 facebookEventScraper.py AtlanticCity 20 100000
 #      python3 facebookEventScraper.py Philadelphia 20 100000
+'''
+Current Locales-
+AC
+    python3 facebookEventScraper.py 39.364283 -74.422927 20 100000
+Philadelphia
+    python3 facebookEventScraper.py 39.952584 -75.165222 20 100000
+Camden
+    python3 facebookEventScraper.py 39.925946 -75.119620 20 100000
+Ocean City
+    python3 facebookEventScraper.py 39.277616 -74.574600 20 100000
+Avalon
+    python3 facebookEventScraper.py 39.101225 39.101225 20 100000
+Stone Harbor
+    python3 facebookEventScraper.py 39.046407 -74.764361 20 100000
+Wildwood
+    python3 facebookEventScraper.py 38.991780 -74.814889 20 100000
+Cape May
+    python3 facebookEventScraper.py 38.935113 -74.906005 20 100000
+Sea Isle City
+    python3 facebookEventScraper.py 39.153448 -74.692939 20 100000
+'''
 
 
 # Setting up the graph api and firebase connections.
@@ -300,6 +323,7 @@ def constructTagMapping():
     tagMapping['religious'] = 'religion'
     tagMapping['shopping'] = 'shopping'
     tagMapping['other'] = 'other'
+    tagMapping['Workshop'] = 'sport'
     # ignore tagging
     tagMapping[''] = ''
     return tagMapping
@@ -348,8 +372,10 @@ def getEvents(listOfPlaces, tagMapping):
                 # check if locale exists
                 cityStateString = data['City'] + ' ::: ' + data['State']
                 if cityStateString not in dictOfLocales:
-                    dictOfLocales = refreshLocales(cur, conn, data)
-                    localeID = dictOfLocales[cityStateString]
+                    print("Locale does not exist: " + cityStateString)
+                    continue
+                    # dictOfLocales = refreshLocales(cur, conn, data)
+                    # localeID = dictOfLocales[cityStateString]
                 else:
                     localeID = dictOfLocales[cityStateString]
 
@@ -362,7 +388,7 @@ def getEvents(listOfPlaces, tagMapping):
                 if not existingEventsResult:
                     if 'event' in data['Category'].lower():
                         data['Category'] = 'event'
-                        
+
                     if data['Category'].lower() not in tagMapping:
                         if data['Category'] is not '':
                             print("Tag nonexistant, please add " + data['Category'])
