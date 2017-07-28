@@ -1,4 +1,4 @@
-from flask import request, send_from_directory
+from flask import request, send_from_directory, jsonify
 from flask_restful import Resource
 from init import application, api, db, check_token
 from models import *
@@ -44,7 +44,6 @@ class AuthLoginHandler(Resource):
                 # Get user from DB
                 kwargs = {'uid': uidFromUser}
                 u = User.query.filter_by(**kwargs).first()
-                print(u)
                 response = "Login Successful"
                 # return response, 200, u.client_json()
                 if u is not None:
@@ -514,6 +513,21 @@ class UpdateUser(Resource):
             return {
                 'error': 'User not found'
             }, 404
+
+# /users/emails
+@api.route('/users/emails')
+class GetAllUserEmails(Resource):
+    @api.login_required
+    def get(self):
+        response = 'Returning all emails of all users.'
+        users = User.query.all()
+        emails = []
+        for user in users:
+            emails.append(user.email)
+        return {
+            "response" : response,
+            "emails" : json.dumps(emails)
+        }
 
 # /user/create
 # pair with /user/uploadProfileImage

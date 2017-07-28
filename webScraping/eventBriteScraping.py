@@ -3,6 +3,28 @@ from bs4 import BeautifulSoup
 import sys, psycopg2
 eventbrite = Eventbrite('3DFUMKJHM7JBPUDAWUJY')
 
+'''
+Current Locales-
+AC
+    python3 eventBriteScraping.py 39.364283 -74.422927
+Philadelphia
+    python3 eventBriteScraping.py 39.952584 -75.165222
+Camden
+    python3 eventBriteScraping.py 39.925946 -75.119620
+Ocean City
+    python3 eventBriteScraping.py 39.277616 -74.574600
+Avalon
+    python3 eventBriteScraping.py 39.101225 39.101225
+Stone Harbor
+    python3 eventBriteScraping.py 39.046407 -74.764361
+Wildwood
+    python3 eventBriteScraping.py 38.991780 -74.814889
+Cape May
+    python3 eventBriteScraping.py 38.935113 -74.906005
+Sea Isle City
+    python3 eventBriteScraping.py 39.153448 -74.692939
+'''
+
 """ Connect to database using credentials."""
 def connectToDatabase():
     print("Connecting to database...")
@@ -98,7 +120,7 @@ def getVenueInfo(venue_id):
         address_line1 = venue['address']['address_1'].title()
         city = venue['address']['city'].title()
         zipCode = venue['address']['postal_code']
-        if len(state) > 2:
+        if len(venue['address']['region']) > 2:
             state = venue['address']['region'].title()
         else:
             state = venue['address']['region']
@@ -110,7 +132,8 @@ def getVenueInfo(venue_id):
             'state' : state
         }
         return returnVenue
-    except:
+    except Exception as e:
+        print("Could not find venue: " + e)
         return None
 
 def parseDescription(description):
@@ -226,6 +249,7 @@ def formatEvents(totalEvents, tagMapping):
     throwAwayCounter = 0
     addedCounter = 0
     duplicateEventsCounter = 0
+    print("Total Events: " + str(len(totalEvents)))
     for event in totalEvents:
         # locale_id, address, start_date, end_date, name, type, venue_name
         # short_description, long_description, status, website
@@ -260,10 +284,10 @@ def formatEvents(totalEvents, tagMapping):
                 cityStateString = venue['city'] + ' ::: PA'
             else:
                 cityStateString = venue['city'] + ' ::: ' + venue['state']
-        except:
+        except Exception as e:
+            print(e)
             throwAwayCounter += 1
             continue
-
         if cityStateString not in dictOfLocales:
             print('Locale does not exist: ' + venue['city'])
             # dictOfLocales = refreshLocales(venue)
@@ -285,7 +309,7 @@ def formatEvents(totalEvents, tagMapping):
                 addedCounter += 1
             else:
                 duplicateEventsCounter += 1
-                print('Not adding.')
+                print('Duplicate. Not adding.')
 
     return (addedCounter, throwAwayCounter, duplicateEventsCounter)
 
