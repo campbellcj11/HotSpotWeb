@@ -349,7 +349,7 @@ class EventEditor extends Component {
                             style={styles.fileInput} /> 
                 </FlatButton>
                 <FlatButton
-                    label={this.pending ? "View Properties" : "Edit Properties"}
+                    label={"Edit Properties"}
                     primary={true}
                     style={styles.rowItem}
                     onClick={this.enterEditTextMode.bind(this)} />
@@ -367,7 +367,6 @@ class EventEditor extends Component {
                 <TextField
                     id="name"
                     floatingLabelText="Name"
-                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.name || event.name}
@@ -375,7 +374,6 @@ class EventEditor extends Component {
                 <TextField
                     id="address"
                     floatingLabelText="Address"
-                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.address || event.address}
@@ -383,7 +381,6 @@ class EventEditor extends Component {
                 <DatePicker
                     id="start_date"
                     floatingLabelText="Start Date"
-                    disabled={this.pending}
                     minDate={new Date()}
                     defaultDate={modifications.start_date ? 
                         new Date(modifications.start_date) : start_date}
@@ -391,7 +388,6 @@ class EventEditor extends Component {
                 <TimePicker
                     id="start_time"
                     floatingLabelText="Start Time"
-                    disabled={this.pending}
                     defaultTime={modifications.start_date ? 
                         new Date(modifications.start_date) : start_date}
                     pedantic={true}
@@ -399,7 +395,6 @@ class EventEditor extends Component {
                  <DatePicker
                     id="end_date"
                     floatingLabelText="End Date"
-                    disabled={this.pending}
                     minDate={new Date()}
                     defaultDate={modifications.end_date ? 
                         new Date(modifications.end_date) : end_date}
@@ -407,7 +402,6 @@ class EventEditor extends Component {
                 <TimePicker
                     id="end_time"
                     floatingLabelText="End Time"
-                    disabled={this.pending}
                     defaultTime={modifications.end_time ? 
                         new Date(modifications.end_time) : end_date}
                     pedantic={true}
@@ -415,7 +409,6 @@ class EventEditor extends Component {
                  <TextField
                     id="venue_name"
                     floatingLabelText="Location"
-                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.venue_name || event.venue_name}
@@ -423,7 +416,6 @@ class EventEditor extends Component {
                 <TextField
                     id="short_description"
                     floatingLabelText="Short Description"
-                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.short_description || event.short_description}
@@ -431,7 +423,6 @@ class EventEditor extends Component {
                 <TextField
                     id="long_description"
                     floatingLabelText="Long Description"
-                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.long_description || event.long_description}
@@ -439,7 +430,6 @@ class EventEditor extends Component {
                 <TextField
                     id="website"
                     floatingLabelText="Website"
-                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.website || event.website}
@@ -447,7 +437,6 @@ class EventEditor extends Component {
                 <TextField
                     id="email_contact"
                     floatingLabelText="Email Contact"
-                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.email_contact || event.email_contact}
@@ -455,21 +444,25 @@ class EventEditor extends Component {
                 <TextField
                     id="phone_contact"
                     floatingLabelText="Phone Contact"
-                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.phone_contact || event.phone_contact}
                     onChange={this.handleInputChange.bind(this)} />
                 <LocaleSelect
                     floatingLabelText="Locale"
-                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     defaultValue={modifications.locale_id ? modifications.locale_id : event.locale.id}
                     onChange={this.handleLocaleChange.bind(this)} />
                 <TextField
+                    id="price"
+                    floatingLabelText="Price"
+                    fullWidth={true}
+                    defaultValue={modifications.price || event.price}
+                    onChange={this.handleInputChange.bind(this)}
+                    />
+                <TextField
                     id="status"
                     floatingLabelText="Status"
-                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.status || event.status}
@@ -477,7 +470,6 @@ class EventEditor extends Component {
                 <TextField
                     id="type"
                     floatingLabelText="Type"
-                    disabled={!this.state.editingText || this.pending}
                     fullWidth={true}
                     multiLine={true}
                     defaultValue={modifications.type || event.type}
@@ -485,7 +477,6 @@ class EventEditor extends Component {
                 <TagSelect
                     floatingLabelText="Tags"
                     fullWidth={true}
-                    disabled={!this.state.editingText || this.pending}
                     onChange={this.handleTagsChange.bind(this)}
                     defaultValue={event.tags || []} />
             </div>

@@ -73367,7 +73367,7 @@
 	                        style: styles.fileInput })
 	                ),
 	                _react2.default.createElement(_materialUi.FlatButton, {
-	                    label: this.pending ? "View Properties" : "Edit Properties",
+	                    label: "Edit Properties",
 	                    primary: true,
 	                    style: styles.rowItem,
 	                    onClick: this.enterEditTextMode.bind(this) }),
@@ -73385,7 +73385,6 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'name',
 	                    floatingLabelText: 'Name',
-	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.name || event.name,
@@ -73393,7 +73392,6 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'address',
 	                    floatingLabelText: 'Address',
-	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.address || event.address,
@@ -73401,35 +73399,30 @@
 	                _react2.default.createElement(_materialUi.DatePicker, {
 	                    id: 'start_date',
 	                    floatingLabelText: 'Start Date',
-	                    disabled: this.pending,
 	                    minDate: new Date(),
 	                    defaultDate: modifications.start_date ? new Date(modifications.start_date) : start_date,
 	                    onChange: this.handleDateChange.bind(this, 'start') }),
 	                _react2.default.createElement(_materialUi.TimePicker, {
 	                    id: 'start_time',
 	                    floatingLabelText: 'Start Time',
-	                    disabled: this.pending,
 	                    defaultTime: modifications.start_date ? new Date(modifications.start_date) : start_date,
 	                    pedantic: true,
 	                    onChange: this.handleTimeChange.bind(this, 'start') }),
 	                _react2.default.createElement(_materialUi.DatePicker, {
 	                    id: 'end_date',
 	                    floatingLabelText: 'End Date',
-	                    disabled: this.pending,
 	                    minDate: new Date(),
 	                    defaultDate: modifications.end_date ? new Date(modifications.end_date) : end_date,
 	                    onChange: this.handleDateChange.bind(this, 'end') }),
 	                _react2.default.createElement(_materialUi.TimePicker, {
 	                    id: 'end_time',
 	                    floatingLabelText: 'End Time',
-	                    disabled: this.pending,
 	                    defaultTime: modifications.end_time ? new Date(modifications.end_time) : end_date,
 	                    pedantic: true,
 	                    onChange: this.handleTimeChange.bind(this, 'end') }),
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'venue_name',
 	                    floatingLabelText: 'Location',
-	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.venue_name || event.venue_name,
@@ -73437,7 +73430,6 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'short_description',
 	                    floatingLabelText: 'Short Description',
-	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.short_description || event.short_description,
@@ -73445,7 +73437,6 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'long_description',
 	                    floatingLabelText: 'Long Description',
-	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.long_description || event.long_description,
@@ -73453,7 +73444,6 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'website',
 	                    floatingLabelText: 'Website',
-	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.website || event.website,
@@ -73461,7 +73451,6 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'email_contact',
 	                    floatingLabelText: 'Email Contact',
-	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.email_contact || event.email_contact,
@@ -73469,21 +73458,25 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'phone_contact',
 	                    floatingLabelText: 'Phone Contact',
-	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.phone_contact || event.phone_contact,
 	                    onChange: this.handleInputChange.bind(this) }),
 	                _react2.default.createElement(_EventCreator.LocaleSelect, {
 	                    floatingLabelText: 'Locale',
-	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    defaultValue: modifications.locale_id ? modifications.locale_id : event.locale.id,
 	                    onChange: this.handleLocaleChange.bind(this) }),
 	                _react2.default.createElement(_materialUi.TextField, {
+	                    id: 'price',
+	                    floatingLabelText: 'Price',
+	                    fullWidth: true,
+	                    defaultValue: modifications.price || event.price,
+	                    onChange: this.handleInputChange.bind(this)
+	                }),
+	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'status',
 	                    floatingLabelText: 'Status',
-	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.status || event.status,
@@ -73491,7 +73484,6 @@
 	                _react2.default.createElement(_materialUi.TextField, {
 	                    id: 'type',
 	                    floatingLabelText: 'Type',
-	                    disabled: !this.state.editingText || this.pending,
 	                    fullWidth: true,
 	                    multiLine: true,
 	                    defaultValue: modifications.type || event.type,
@@ -73499,7 +73491,6 @@
 	                _react2.default.createElement(_EventCreator.TagSelect, {
 	                    floatingLabelText: 'Tags',
 	                    fullWidth: true,
-	                    disabled: !this.state.editingText || this.pending,
 	                    onChange: this.handleTagsChange.bind(this),
 	                    defaultValue: event.tags || [] })
 	            ) : null;
@@ -73980,7 +73971,7 @@
 	    }, {
 	        key: 'populate',
 	        value: function populate() {
-	            this.tags = ["Art", "Books", "Causes", "Class", "Comedy", "Community", "Conference", "Dance", "Food", "Health", "Social", "Sport", "Movie", "Music", "Nightlife", "Theater", "Religion", "Shopping", "Other"];
+	            this.tags = ["art", "books", "causes", "class", "comedy", "community", "conference", "dance", "food", "health", "social", "sports", "movie", "music", "nightlife", "theater", "religion", "shopping", "other"];
 	            if (this.props.defaultValue) {
 	                this.setState({
 	                    values: this.props.defaultValue
