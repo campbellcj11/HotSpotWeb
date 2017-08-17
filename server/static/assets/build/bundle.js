@@ -73163,6 +73163,7 @@
 	                    var oldEvent = Object.assign({}, event);
 	                    event = _this4.event = updated;
 	                    if (_this4.state.newImage) {
+	                        // TODO
 	                        // delete old image
 	                        // upload new image
 	                        // set state on promise resolution

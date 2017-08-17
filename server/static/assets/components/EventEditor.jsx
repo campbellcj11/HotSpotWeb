@@ -145,6 +145,7 @@ class EventEditor extends Component {
                     let oldEvent = Object.assign({}, event)
                     event = this.event = updated
                     if (this.state.newImage) {
+                        // TODO
                         // delete old image
                         // upload new image
                         // set state on promise resolution
