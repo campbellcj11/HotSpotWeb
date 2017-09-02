@@ -82,6 +82,10 @@ class EventTable extends React.Component {
 					query: [{
 						field: 'locale_id',
 						value: this.state.locale || id
+					}, {
+						field: 'end_date',
+						operator: '>',
+						value: new Date().getTime()
 					}]
 				}).then(response => {
 					this.pagination.total = response.count
@@ -100,6 +104,10 @@ class EventTable extends React.Component {
 				query: [{
 					field: 'status',
 					value: 'pending'
+				}, {
+					field: 'end_date',
+					operator: '>',
+					value: new Date().getTime()
 				}]
 			}).then(response => {
 				this.pagination.total = response.count

@@ -283,6 +283,8 @@ class EventQueries(Resource):
                 col = getattr(Event, query['field'])
             except AttributeError:
                 raise ValueError('Invalid query field {}'.format(query['field']))
+            if query['field'] == 'start_date' or query['field'] == 'end_date':
+                query['value'] = toDateTime(query['value'])
             if query['operator'] == 'LIKE':
                 op = col.like
             return col.op(query['operator'])(query['value'])
