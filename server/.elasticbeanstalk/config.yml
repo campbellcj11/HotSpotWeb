@@ -1,0 +1,20 @@
+branch-defaults:
+  default:
+    environment: HotSpotEnv
+environment-defaults:
+  HotSpotEnv:
+    branch: null
+    repository: null
+global:
+  application_name: HotSpot
+  default_ec2_keyname: hotspot-key-pair
+  default_platform: arn:aws:elasticbeanstalk:us-east-1::platform/Python 3.4 running
+    on 64bit Amazon Linux/2.4.0
+  default_region: us-east-1
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: eb-cli
+  sc: null
+  workspace_type: Application
