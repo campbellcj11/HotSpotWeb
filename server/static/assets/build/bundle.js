@@ -72077,6 +72077,9 @@
 				if (props) {
 					Object.assign(this.pagination, props);
 				}
+				var startDate = new Date();
+				// --> set start date to yesterday
+				startDate.setDate(startDate.getDate() - 1);
 				if (!this.props.pending) {
 					if (this.mode == 'potential') {
 						this.addEventArray(this.props.potentialEvents);
@@ -72089,6 +72092,10 @@
 							query: [{
 								field: 'locale_id',
 								value: this.state.locale || id
+							}, {
+								field: 'start_date',
+								operator: '>',
+								value: startDate.getTime()
 							}]
 						}).then(function (response) {
 							_this2.pagination.total = response.count;
@@ -72106,6 +72113,10 @@
 						query: [{
 							field: 'status',
 							value: 'pending'
+						}, {
+							field: 'start_date',
+							operator: '>',
+							value: startDate.getTime()
 						}]
 					}).then(function (response) {
 						_this2.pagination.total = response.count;

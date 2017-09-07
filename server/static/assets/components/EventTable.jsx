@@ -70,6 +70,9 @@ class EventTable extends React.Component {
 		if (props) {
 			Object.assign(this.pagination, props)
 		}
+		let startDate = new Date()
+		// --> set start date to yesterday
+		startDate.setDate(startDate.getDate() - 1)
 		if (!this.props.pending) {
 			if (this.mode == 'potential') {
 				this.addEventArray(this.props.potentialEvents)
@@ -83,9 +86,9 @@ class EventTable extends React.Component {
 						field: 'locale_id',
 						value: this.state.locale || id
 					}, {
-						field: 'end_date',
+						field: 'start_date',
 						operator: '>',
-						value: new Date().getTime()
+						value: startDate.getTime()
 					}]
 				}).then(response => {
 					this.pagination.total = response.count
@@ -105,9 +108,9 @@ class EventTable extends React.Component {
 					field: 'status',
 					value: 'pending'
 				}, {
-					field: 'end_date',
+					field: 'start_date',
 					operator: '>',
-					value: new Date().getTime()
+					value: startDate.getTime()
 				}]
 			}).then(response => {
 				this.pagination.total = response.count

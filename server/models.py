@@ -265,4 +265,4 @@ def toUnixTime(datetime):
 
 # convert Unix timestamp integer to datetime object
 def toDateTime(unixTime):
-    return datetime.fromtimestamp(int(unixTime) / 1000)
+    return datetime.fromtimestamp(int(int(unixTime) / 1000))
